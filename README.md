@@ -30,16 +30,10 @@ A powerful mathematical visualization library for interactive geometry and funct
   - Custom shapes 自定义图形
   - Event handling 事件处理
 
-## Installation 安装
-
-```bash
-npm install math-components
-```
-
 ## Quick Start 快速开始
 
 ```typescript
-import { field, coordinate, func } from 'math-components';
+import { field, coordinate, func } from 'idea-js';
 
 // Create canvas 创建画布
 const canvas = field(800, 600);
