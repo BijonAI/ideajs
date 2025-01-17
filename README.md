@@ -1,4 +1,4 @@
-# Math Components
+# IdeaJs
 
 A powerful mathematical visualization library for interactive geometry and function plotting.
 
