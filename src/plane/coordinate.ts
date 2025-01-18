@@ -201,6 +201,7 @@ export function coordinate(width: number, height: number) {
       text.setAttribute("x", x.toString());
       text.setAttribute("y", "20");
       text.setAttribute("text-anchor", "middle");
+      text.style.fontFamily = "Comic Sans MS";
       text.textContent = format(i * step);
       labels.appendChild(text);
     }
@@ -341,6 +342,7 @@ export function coordinate(width: number, height: number) {
     textElement.setAttribute('font-size', size.toString());
     textElement.setAttribute('fill', color);
     textElement.setAttribute('text-anchor', anchor);
+    textElement.style.fontFamily = "Comic Sans MS";
     textElement.textContent = text;
     content.appendChild(textElement);
     return rtn;

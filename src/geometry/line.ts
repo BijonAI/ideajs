@@ -2,17 +2,17 @@ import { getTheme } from '../theme';
 import { Line, LineStyle, MarkerOptions, GradientStop } from '../interfaces/geometry';
 import { Transform, Animation, TooltipOptions, EffectOptions, TeachingOptions, AnimationStep } from '../interfaces/common';
 import { draggable as draggableFn } from '../utils/draggable';
+import { gsap } from 'gsap';
 
 export function line(x1: number, y1: number, x2: number, y2: number): Line {
-  const lineElement = document.createElementNS("http://www.w3.org/2000/svg", "line");
-  lineElement.setAttribute("x1", x1.toString());
-  lineElement.setAttribute("y1", y1.toString());
-  lineElement.setAttribute("x2", x2.toString());
-  lineElement.setAttribute("y2", y2.toString());
+  const lineElement = document.createElementNS("http://www.w3.org/2000/svg", "path");
+  const d = `M ${x1} ${y1} L ${x2} ${y2}`;
+  lineElement.setAttribute("d", d);
   
   const theme = getTheme();
   lineElement.setAttribute("stroke-width", theme.sizes.function.toString());
   lineElement.setAttribute("stroke", theme.colors.primary);
+  lineElement.setAttribute("fill", "none");
   
   const rtn = {
     node: () => lineElement,
@@ -52,18 +52,54 @@ export function line(x1: number, y1: number, x2: number, y2: number): Line {
     restrict,
     snap,
     connect,
-    draggable
+    draggable,
+    show: () => {
+      lineElement.style.display = '';
+      return rtn;
+    },
+    hide: () => {
+      lineElement.style.display = 'none';
+      return rtn;
+    },
+    opacity: (value: number) => {
+      lineElement.style.opacity = value.toString();
+      return rtn;
+    },
+    remove: () => {
+      lineElement.remove();
+    },
+    morph: (target: Line, duration: number = 1000) => {
+      if (!target?.node()) return rtn;
+      const targetLine = target.node();
+      gsap.to(lineElement, {
+        duration: duration / 1000,
+        attr: {
+          x1: targetLine.getAttribute('x1'),
+          y1: targetLine.getAttribute('y1'),
+          x2: targetLine.getAttribute('x2'),
+          y2: targetLine.getAttribute('y2')
+        },
+        ease: "power1.inOut"
+      });
+      return rtn;
+    }
   };
 
   function from(x1: number, y1: number) {
-    lineElement.setAttribute("x1", x1.toString());
-    lineElement.setAttribute("y1", y1.toString());
+    const x2 = Number(lineElement.dataset.x2 || 0);
+    const y2 = Number(lineElement.dataset.y2 || 0);
+    lineElement.dataset.x1 = x1.toString();
+    lineElement.dataset.y1 = y1.toString();
+    lineElement.setAttribute("d", `M ${x1} ${y1} L ${x2} ${y2}`);
     return rtn;
   }
 
   function to(x2: number, y2: number) {
-    lineElement.setAttribute("x2", x2.toString());
-    lineElement.setAttribute("y2", y2.toString());
+    const x1 = Number(lineElement.dataset.x1 || 0);
+    const y1 = Number(lineElement.dataset.y1 || 0);
+    lineElement.dataset.x2 = x2.toString();
+    lineElement.dataset.y2 = y2.toString();
+    lineElement.setAttribute("d", `M ${x1} ${y1} L ${x2} ${y2}`);
     return rtn;
   }
 

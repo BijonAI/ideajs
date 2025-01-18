@@ -1,10 +1,12 @@
 import { Transform, Animation, TooltipOptions, EffectOptions, TeachingOptions, AnimationStep } from '../interfaces/common';
 import { Polygon } from '../interfaces/geometry';
 import { getTheme } from '../theme';
+import { gsap } from 'gsap';
 
 export function polygon(points: { x: number, y: number }[]): Polygon {
-  const polygon = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
-  polygon.setAttribute("points", points.map(point => `${point.x},${point.y}`).join(" "));
+  const polygon = document.createElementNS("http://www.w3.org/2000/svg", "path");
+  const d = pointsToPath(points);
+  polygon.setAttribute("d", d);
   
   const theme = getTheme();
   polygon.setAttribute("stroke-width", theme.sizes.function.toString());
@@ -19,7 +21,7 @@ export function polygon(points: { x: number, y: number }[]): Polygon {
     setPoint,
     insertBefore,
     insertAfter,
-    remove,
+    removePoint: remove,
     stroke,
     fill,
     style,
@@ -79,39 +81,72 @@ export function polygon(points: { x: number, y: number }[]): Polygon {
     },
     connect: (target: Polygon, options?: {elastic?: boolean, distance?: number, strength?: number}) => {
       return rtn;
+    },
+    show: () => {
+      polygon.style.display = '';
+      return rtn;
+    },
+    hide: () => {
+      polygon.style.display = 'none';
+      return rtn;
+    },
+    opacity: (value: number) => {
+      polygon.style.opacity = value.toString();
+      return rtn;
+    },
+    remove: () => {
+      polygon.remove();
     }
   }
 
+  function pointsToPath(points: { x: number, y: number }[]): string {
+    if (points.length === 0) return '';
+    return `M ${points[0].x} ${points[0].y} ` + 
+           points.slice(1).map(p => `L ${p.x} ${p.y}`).join(' ') + 
+           ' Z';
+  }
+
   function setPoints(points: { x: number, y: number }[]) {
-    polygon.setAttribute("points", points.map(point => `${point.x},${point.y}`).join(" "));
+    polygon.setAttribute("d", pointsToPath(points));
     return rtn;
   }
 
   function setPoint(index: number, point: { x: number, y: number }) {
-    const points = polygon.getAttribute("points")?.split(" ").map(point => point.split(","));
-    points[index] = [point.x.toString(), point.y.toString()];
-    polygon.setAttribute("points", points.flat().join(" "));
+    const points = getPoints();
+    points[index] = point;
+    polygon.setAttribute("d", pointsToPath(points));
     return rtn;
   }
 
+  function getPoints(): { x: number, y: number }[] {
+    const d = polygon.getAttribute("d") || '';
+    const commands = d.split(/(?=[MLZ])/);
+    return commands
+      .filter(cmd => cmd.trim().length > 0 && cmd[0] !== 'Z')
+      .map(cmd => {
+        const [x, y] = cmd.slice(1).trim().split(/\s+/);
+        return { x: Number(x), y: Number(y) };
+      });
+  }
+
   function insertBefore(index: number, point: { x: number, y: number }) {
-    const points = polygon.getAttribute("points")?.split(" ").map(point => point.split(","));
-    points.splice(index, 0, [point.x.toString(), point.y.toString()]);
-    polygon.setAttribute("points", points.flat().join(" "));
+    const points = getPoints();
+    points.splice(index, 0, point);
+    polygon.setAttribute("d", pointsToPath(points));
     return rtn;
   }
 
   function insertAfter(index: number, point: { x: number, y: number }) {
-    const points = polygon.getAttribute("points")?.split(" ").map(point => point.split(","));
-    points.splice(index + 1, 0, [point.x.toString(), point.y.toString()]);
-    polygon.setAttribute("points", points.flat().join(" "));
+    const points = getPoints();
+    points.splice(index + 1, 0, point);
+    polygon.setAttribute("d", pointsToPath(points));
     return rtn;
   }
 
   function remove(index: number) {
-    const points = polygon.getAttribute("points")?.split(" ").map(point => point.split(","));
+    const points = getPoints();
     points.splice(index, 1);
-    polygon.setAttribute("points", points.flat().join(" "));
+    polygon.setAttribute("d", pointsToPath(points));
     return rtn;
   }
 
@@ -151,8 +186,14 @@ export function polygon(points: { x: number, y: number }[]): Polygon {
     return rtn;
   }
 
-  function morph(points: { x: number, y: number }[]) {
-    // Implementation for morphing
+  function morph(target: Polygon, duration: number = 1000) {
+    if (!target?.node()) return rtn;
+    const targetPath = target.node();
+    gsap.to(polygon, {
+      duration: duration / 1000,
+      attr: { d: targetPath.getAttribute('d') },
+      ease: "power1.inOut"
+    });
     return rtn;
   }
 

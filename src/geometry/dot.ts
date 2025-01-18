@@ -83,11 +83,18 @@ export function dot(x: number, y: number) {
     },
     connect: (target: Dot, options?: {elastic?: boolean, distance?: number, strength?: number}) => {
       return rtn;
-    }
+    },
+    move,
   }
 
   function node() {
     return circle;
+  }
+
+  function move(x: number, y: number) {
+    circle.setAttribute("cx", x.toString());
+    circle.setAttribute("cy", y.toString());
+    return rtn;
   }
 
   function resize(radius: number) {
