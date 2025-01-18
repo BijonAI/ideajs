@@ -1,4 +1,7 @@
+import { Renderable } from '../field';
+import { dot } from '../geometry/dot';
 import { getTheme } from '../theme';
+import { gsap } from 'gsap';
 
 export function func(fn: (x: number) => number, xRange: [number, number]) {
   const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
@@ -24,6 +27,7 @@ export function func(fn: (x: number) => number, xRange: [number, number]) {
     domain,
     style,
     animate,
+    animateDrawing,
     discontinuity,
     derivative,
     integral,
@@ -33,6 +37,18 @@ export function func(fn: (x: number) => number, xRange: [number, number]) {
     highlight,
     label,
     tooltip,
+    show,
+    hide,
+    opacity,
+    remove,
+    morph,
+    bind
+  }
+
+  function bind(node: ReturnType<typeof dot>, x: number) {
+    path.parentElement?.appendChild(node.node());
+    node.move(x * scaleX + offsetX, -fn(x) * scaleY + offsetY);
+    return rtn;
   }
 
   function generatePath() {
@@ -130,6 +146,25 @@ export function func(fn: (x: number) => number, xRange: [number, number]) {
     path.style.strokeDashoffset = length.toString();
     path.style.transition = `stroke-dashoffset ${duration}ms ${easing || 'linear'}`;
     setTimeout(() => path.style.strokeDashoffset = '0', 0);
+    return rtn;
+  }
+
+  function animateDrawing(duration: number = 1000) {
+    const [start, end] = xRange;
+    const originalRange = [...xRange];
+    const step = (end - start) / 50;
+    let currentEnd = start;
+    
+    const interval = setInterval(() => {
+      currentEnd += step;
+      if (currentEnd >= end) {
+        currentEnd = end;
+        clearInterval(interval);
+      }
+      xRange = [start, currentEnd];
+      generatePath();
+    }, duration / 50);
+    
     return rtn;
   }
 
@@ -306,12 +341,6 @@ export function func(fn: (x: number) => number, xRange: [number, number]) {
       const y = fn(x);
       
       text.textContent = `(${x.toFixed(2)}, ${y.toFixed(2)})`;
-      const bbox = text.getBBox();
-      
-      background.setAttribute('x', (bbox.x - 5).toString());
-      background.setAttribute('y', (bbox.y - 5).toString());
-      background.setAttribute('width', (bbox.width + 10).toString());
-      background.setAttribute('height', (bbox.height + 10).toString());
       background.setAttribute('fill', 'white');
       background.setAttribute('stroke', 'black');
       
@@ -413,6 +442,49 @@ export function func(fn: (x: number) => number, xRange: [number, number]) {
     }
     
     return points;
+  }
+
+  function show() {
+    path.style.display = '';
+    return rtn;
+  }
+
+  function hide() {
+    path.style.display = 'none';
+    return rtn;
+  }
+
+  function opacity(value: number) {
+    path.style.opacity = value.toString();
+    return rtn;
+  }
+
+  function remove() {
+    path.remove();
+  }
+
+  function morph(target: typeof rtn, duration: number = 1000) {
+    if (!target || !target.node || typeof target.node !== 'function') {
+      console.error('Invalid target for morphing');
+      return rtn;
+    }
+
+    const targetPath = target.node();
+    if (!(targetPath instanceof SVGPathElement)) {
+      console.error('Target must be a path element');
+      return rtn;
+    }
+
+    const currentD = path.getAttribute('d') || '';
+    const targetD = targetPath.getAttribute('d') || '';
+
+    gsap.to(path, {
+      duration: duration / 1000,
+      attr: { d: targetD },
+      ease: "power1.inOut"
+    });
+
+    return rtn;
   }
 
   generatePath();

@@ -4,6 +4,7 @@ export * from './geometry/dot';
 export * from './geometry/line';
 export * from './geometry/polygon';
 export * from './geometry/arc';
+export * from './geometry/parametric';
 export * from './geometry/vector';
 export * from './plane/axis';
 export * from './plane/coordinate';

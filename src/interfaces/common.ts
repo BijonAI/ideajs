@@ -78,4 +78,10 @@ export interface CommonMethods<T> {
     distance?: number,
     strength?: number
   }): T;
+  node(): SVGElement;
+  show(): T;
+  hide(): T;
+  opacity(value: number): T;
+  remove(): void;
+  morph(target: T, duration?: number): T;
 } 

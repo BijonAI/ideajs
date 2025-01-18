@@ -96,7 +96,7 @@ export interface Polygon extends CommonMethods<Polygon> {
   setPoint(index: number, point: { x: number, y: number }): Polygon;
   insertBefore(index: number, point: { x: number, y: number }): Polygon;
   insertAfter(index: number, point: { x: number, y: number }): Polygon;
-  remove(index: number): Polygon;
+  removePoint(index: number): Polygon;
   stroke(color?: string): Polygon;
   fill(color?: string): Polygon;
   style(options: PolygonStyle): Polygon;
@@ -142,4 +142,23 @@ export interface PolygonStyle extends CommonStyle {
   fillColor?: string;
   fillOpacity?: number;
   lineJoin?: 'miter' | 'round' | 'bevel';
-} 
+}
+
+export interface ParametricStyle extends CommonStyle {
+  color?: string;
+  width?: number;
+  opacity?: number;
+  dashArray?: string;
+  lineCap?: 'butt' | 'round' | 'square';
+}
+
+export interface Parametric extends CommonMethods<Parametric> {
+  node(): SVGPathElement;
+  stroke(color?: string): Parametric;
+  style(options: ParametricStyle): Parametric;
+  range(min: number, max: number): Parametric;
+  samples(n: number): Parametric;
+  scale(x: number, y?: number): Parametric;
+  offset(x: number, y: number): Parametric;
+  update(xFn: (t: number) => number, yFn: (t: number) => number, range?: [number, number]): Parametric;
+}

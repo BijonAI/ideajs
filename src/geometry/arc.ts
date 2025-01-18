@@ -1,10 +1,10 @@
 import { getTheme } from '../theme';
 import { Arc } from '../interfaces/geometry';
 import { Transform, Animation, TooltipOptions, EffectOptions, TeachingOptions, AnimationStep } from '../interfaces/common';
+import { gsap } from 'gsap';
 
-export function arc(x: number, y: number): Arc {
+export function arc(x: number, y: number, radius: number = 50): Arc {
   const arc = document.createElementNS("http://www.w3.org/2000/svg", "path");
-  const radius = 50; // 默认半径
   
   // 初始化为0度弧
   arc.setAttribute("d", describeArc(x, y, radius, 0, 0));
@@ -27,6 +27,30 @@ export function arc(x: number, y: number): Arc {
     class_,
     tooltip,
     effect,
+    scale: (x: number, y: number = x) => {
+      const currentD = arc.getAttribute('d') || '';
+      const scaledD = currentD.replace(/[\d.-]+/g, (match) => {
+        const num = parseFloat(match);
+        return (num * x).toString();
+      });
+      arc.setAttribute('d', scaledD);
+      return rtn;
+    },
+    offset: (x: number, y: number) => {
+      const transform = arc.getAttribute('transform') || '';
+      arc.setAttribute('transform', transform + ` translate(${x},${y})`);
+      return rtn;
+    },
+    samples: (n: number) => rtn,
+    update: (newFn: (x: number) => number, newRange?: [number, number]) => rtn,
+    range: (min: number, max: number) => rtn,
+    domain: (min: number, max: number) => rtn,
+    style: (options: any) => {
+      if (options.color) arc.setAttribute('stroke', options.color);
+      if (options.width) arc.setAttribute('stroke-width', options.width.toString());
+      if (options.opacity) arc.setAttribute('opacity', options.opacity.toString());
+      return rtn;
+    },
     highlight: (duration?: number) => {
       return rtn;
     },
@@ -62,8 +86,7 @@ export function arc(x: number, y: number): Arc {
     connect: (target: Arc, options?: {elastic?: boolean, distance?: number, strength?: number}) => {
       return rtn;
     },
-    animateDrawing(duration: number = 1000) {
-      // Need to wait for next frame to ensure element is rendered
+    animateDrawing: (duration: number = 1000) => {
       requestAnimationFrame(() => {
         const length = arc.getTotalLength?.() || 0;
         if (length === 0) return rtn;
@@ -80,7 +103,31 @@ export function arc(x: number, y: number): Arc {
           fill: 'forwards'
         });
       });
-      
+      return rtn;
+    },
+    show: () => {
+      arc.style.display = '';
+      return rtn;
+    },
+    hide: () => {
+      arc.style.display = 'none';
+      return rtn;
+    },
+    opacity: (value: number) => {
+      arc.style.opacity = value.toString();
+      return rtn;
+    },
+    remove: () => {
+      arc.remove();
+    },
+    morph: (target: Arc, duration: number = 1000) => {
+      if (!target?.node()) return rtn;
+      const targetArc = target.node();
+      gsap.to(arc, {
+        duration: duration / 1000,
+        attr: { d: targetArc.getAttribute('d') },
+        ease: "power1.inOut"
+      });
       return rtn;
     }
   }
@@ -248,7 +295,8 @@ export function arc(x: number, y: number): Arc {
 }
 
 // 辅助函数：将角度转换为弧度
-function polarToCartesian(centerX: number, centerY: number, radius: number, angleInRadians: number) {
+function polarToCartesian(centerX: number, centerY: number, radius: number, angleInDegrees: number) {
+  const angleInRadians = (angleInDegrees - 90) * Math.PI / 180.0;
   return {
     x: centerX + (radius * Math.cos(angleInRadians)),
     y: centerY + (radius * Math.sin(angleInRadians))
@@ -257,17 +305,14 @@ function polarToCartesian(centerX: number, centerY: number, radius: number, angl
 
 // 辅助函数：生成圆弧路径
 function describeArc(x: number, y: number, radius: number, startAngle: number, endAngle: number) {
-  const start = polarToCartesian(x, y, radius, startAngle);
-  const end = polarToCartesian(x, y, radius, endAngle);
+  const start = polarToCartesian(x, y, radius, endAngle);
+  const end = polarToCartesian(x, y, radius, startAngle);
   
-  // 计算是否需要画大弧（large-arc-flag）
-  const largeArcFlag = Math.abs(endAngle - startAngle) <= Math.PI ? "0" : "1";
-  
-  // 计算是否需要顺时针画弧（sweep-flag）
-  const sweepFlag = endAngle > startAngle ? "1" : "0";
+  const largeArcFlag = endAngle - startAngle <= 180 ? "0" : "1";
+  const sweepFlag = "1";
   
   return [
-    "M", start.x, start.y,
+    "M", start.x, start.y, 
     "A", radius, radius, 0, largeArcFlag, sweepFlag, end.x, end.y
   ].join(" ");
 }

@@ -7,6 +7,10 @@ settings:
 importers:
 
   .:
+    dependencies:
+      gsap:
+        specifier: ^3.12.7
+        version: 3.12.7
     devDependencies:
       tsup:
         specifier: ^8.3.5
@@ -386,6 +390,9 @@ packages:
   glob@10.4.5:
     resolution: {integrity: sha512-7Bv8RF0k6xjo7d4A/PxYLbUCfb6c+Vpd2/mB2yRDlew7Jb5hEXiCD9ibfO7wpk8i4sevK6DFny9h7EYbM3/sHg==}
     hasBin: true
+
+  gsap@3.12.7:
+    resolution: {integrity: sha512-V4GsyVamhmKefvcAKaoy0h6si0xX7ogwBoBSs2CTJwt7luW0oZzC0LhdkyuKV8PJAXr7Yaj8pMjCKD4GJ+eEMg==}
 
   is-fullwidth-code-point@3.0.0:
     resolution: {integrity: sha512-zymm5+u+sCsSWyD9qNaejV3DFvhCKclKdizYaJUuHA83RLjb7nSuGnddCHGv0hk+KY7BMAlsWeK4Ueg6EV6XQg==}
@@ -874,6 +881,8 @@ snapshots:
       minipass: 7.1.2
       package-json-from-dist: 1.0.1
       path-scurry: 1.11.1
+
+  gsap@3.12.7: {}
 
   is-fullwidth-code-point@3.0.0: {}
 

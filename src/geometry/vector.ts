@@ -1,6 +1,7 @@
 import { getTheme } from '../theme';
 import { Vector } from '../interfaces/geometry';
 import { Transform, Animation, TooltipOptions, EffectOptions, TeachingOptions, AnimationStep } from '../interfaces/common';
+import gsap from 'gsap';
 
 export function vector(x1: number, y1: number, x2: number, y2: number): Vector {
   const vector = document.createElementNS("http://www.w3.org/2000/svg", "g");
@@ -68,6 +69,31 @@ export function vector(x1: number, y1: number, x2: number, y2: number): Vector {
       return rtn;
     },
     connect: (target: Vector, options?: {elastic?: boolean, distance?: number, strength?: number}) => {
+      return rtn;
+    },
+    show: () => {
+      vector.style.display = '';
+      return rtn;
+    },
+    hide: () => {
+      vector.style.display = 'none';
+      return rtn;
+    },
+    opacity: (value: number) => {
+      vector.style.opacity = value.toString();
+      return rtn;
+    },
+    remove: () => {
+      vector.remove();
+    },
+    morph: (target: Vector, duration: number = 1000) => {
+      if (!target?.node()) return rtn;
+      const targetVector = target.node();
+      gsap.to(vector, {
+        duration: duration / 1000,
+        attr: { transform: targetVector.getAttribute('transform') },
+        ease: "power1.inOut"
+      });
       return rtn;
     }
   }
