@@ -6,4 +6,13 @@ export default defineConfig({
   dts: true,
   sourcemap: true,
   clean: true,
+  minify: true,
+  splitting: true,
+  treeshake: true,
+  target: 'es2020',
+  outDir: 'dist',
+  esbuildOptions(options) {
+    options.charset = 'utf8';
+    options.legalComments = 'none';
+  }
 });

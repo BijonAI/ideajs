@@ -1,164 +1,155 @@
-import { Direction, down, left, right, up } from "./direction";
-import { TeachingOptions } from "./interfaces/common";
+import { Direction, down, left, right, up } from './direction';
+import { createSVGElement, createGroup, setAttributes, clearElement } from './utils/svg';
+import { BatchOperation, EventManager, ObjectPool } from './utils/performance';
+import { SVG } from './config/constants';
 
-export type Renderable = object & { node: () => SVGElement }
+export interface Renderable {
+  node: () => SVGElement;
+  update?: (...args: any[]) => void;
+  dispose?: () => void;
+}
 
 export function field(width: number, height: number) {
-  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-  svg.setAttribute("width", width.toString());
-  svg.setAttribute("height", height.toString());
-  const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+  // 创建基本元素
+  const svg = createSVGElement('svg', {
+    width,
+    height,
+    viewBox: `${-width/2} ${-height/2} ${width} ${height}`
+  });
+  
+  const g = createGroup();
   svg.appendChild(g);
-  const originPoint = [0, 0];
 
-  const rtn = {
-    origin,
-    direct,
-    node,
-    add,
-    size,
-    background,
-    border,
-    clear,
-    remove,
-    toDataURL,
-    viewBox,
-    zoom,
-    presentation,
-    enableSnap,
-    teachingMode,
-  }
+  // 性能优化工具
+  const batchOp = new BatchOperation();
+  const eventManager = new EventManager();
+  const elementPool = new ObjectPool<Renderable>(
+    () => ({ node: () => createGroup() }),
+    { maxSize: 100 }
+  );
 
-  function origin(x: number, y: number) {
-    originPoint[0] = x;
-    originPoint[1] = y;
-    g.setAttribute('transform', `translate(${x}, ${y})`);
-    return rtn;
-  }
+  // 元素管理
+  const elements = new Set<Renderable>();
+  let originPoint = { x: 0, y: 0 };
 
-  function direct(x: Direction, y: Direction) {
-    const xValue = x === left() ? -1 : x === right() ? 1 : 0;
-    const yValue = y === up() ? -1 : y === down() ? 1 : 0;
-    g.setAttribute('transform', `translate(${xValue}, ${yValue})`);
-    return rtn;
-  }
+  const api = {
+    node: () => svg,
 
-  function node() {
-    return svg;
-  }
-
-  function add(renderable: Renderable) {
-    g.appendChild(renderable.node());
-    return rtn;
-  }
-
-  function size(width: number, height: number) {
-    svg.setAttribute("width", width.toString());
-    svg.setAttribute("height", height.toString());
-    return rtn;
-  }
-
-  function background(color: string) {
-    svg.style.background = color;
-    return rtn;
-  }
-
-  function border(width: number, color: string) {
-    svg.style.border = `${width}px solid ${color}`;
-    return rtn;
-  }
-
-  function clear() {
-    g.innerHTML = '';
-    return rtn;
-  }
-
-  function remove(element: Renderable) {
-    g.removeChild(element.node());
-    return rtn;
-  }
-
-  function toDataURL() {
-    const serializer = new XMLSerializer();
-    const source = serializer.serializeToString(svg);
-    return 'data:image/svg+xml;base64,' + btoa(source);
-  }
-
-  function viewBox(x: number, y: number, width: number, height: number) {
-    svg.setAttribute('viewBox', `${x} ${y} ${width} ${height}`);
-    return rtn;
-  }
-
-  function zoom(scale: number) {
-    g.setAttribute('transform', `scale(${scale})`);
-    return rtn;
-  }
-
-  function presentation(steps: {
-    elements: Renderable[],
-    duration: number,
-    description?: string
-  }[]) {
-    let currentStep = 0;
-    
-    function playStep() {
-      if (currentStep >= steps.length) return;
-      
-      const step = steps[currentStep];
-      clear();
-      
-      step.elements.forEach(element => add(element));
-      
-      if (step.description) {
-        const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
-        text.textContent = step.description;
-        text.setAttribute("x", "10");
-        text.setAttribute("y", "30");
-        svg.appendChild(text);
-      }
-      
-      currentStep++;
-      if (currentStep < steps.length) {
-        setTimeout(playStep, step.duration);
-      }
-    }
-    
-    playStep();
-    return rtn;
-  }
-
-  function enableSnap(size: number) {
-    const snapToGrid = (value: number) => Math.round(value / size) * size;
-    
-    svg.addEventListener('mousemove', (e) => {
-      Array.from(g.children).forEach(child => {
-        if (child.getAttribute('data-draggable')) {
-          const rect = svg.getBoundingClientRect();
-          const x = snapToGrid(e.clientX - rect.left);
-          const y = snapToGrid(e.clientY - rect.top);
-          child.setAttribute('transform', `translate(${x}, ${y})`);
-        }
+    origin: (x: number, y: number) => {
+      originPoint = { x, y };
+      batchOp.add(() => {
+        setAttributes(g, {
+          transform: `translate(${x}, ${y})`
+        });
       });
-    });
-    
-    return rtn;
-  }
+      return api;
+    },
 
-  function teachingMode(options: TeachingOptions = {}) {
-    const overlay = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-    overlay.setAttribute("width", width.toString());
-    overlay.setAttribute("height", height.toString());
-    overlay.setAttribute("fill", "none");
-    overlay.setAttribute("pointer-events", "none");
-    svg.appendChild(overlay);
-    
-    if (options.annotations) {
-      const annotationLayer = document.createElementNS("http://www.w3.org/2000/svg", "g");
-      svg.appendChild(annotationLayer);
+    direct: (x: Direction, y: Direction) => {
+      const xValue = x === left() ? -1 : x === right() ? 1 : 0;
+      const yValue = y === up() ? -1 : y === down() ? 1 : 0;
+      originPoint = { x: xValue, y: yValue };
+      batchOp.add(() => {
+        setAttributes(g, {
+          transform: `translate(${xValue}, ${yValue})`
+        });
+      });
+      return api;
+    },
+
+    add: (renderable: Renderable) => {
+      elements.add(renderable);
+      batchOp.add(() => {
+        g.appendChild(renderable.node());
+      });
+      return api;
+    },
+
+    remove: (renderable: Renderable) => {
+      if (elements.has(renderable)) {
+        elements.delete(renderable);
+        batchOp.add(() => {
+          const node = renderable.node();
+          if (node.parentNode === g) {
+            g.removeChild(node);
+          }
+          renderable.dispose?.();
+          elementPool.release(renderable);
+        });
+      }
+      return api;
+    },
+
+    clear: () => {
+      batchOp.add(() => {
+        elements.forEach(element => {
+          element.dispose?.();
+          elementPool.release(element);
+        });
+        elements.clear();
+        clearElement(g);
+      });
+      return api;
+    },
+
+    size: (w: number, h: number) => {
+      batchOp.add(() => {
+        setAttributes(svg, {
+          width: w,
+          height: h,
+          viewBox: `${-w/2} ${-h/2} ${w} ${h}`
+        });
+      });
+      return api;
+    },
+
+    background: (color: string) => {
+      batchOp.add(() => {
+        svg.style.backgroundColor = color;
+      });
+      return api;
+    },
+
+    border: (width: number, color: string) => {
+      batchOp.add(() => {
+        svg.style.border = `${width}px solid ${color}`;
+      });
+      return api;
+    },
+
+    viewBox: (x: number, y: number, w: number, h: number) => {
+      batchOp.add(() => {
+        setAttributes(svg, {
+          viewBox: `${x} ${y} ${w} ${h}`
+        });
+      });
+      return api;
+    },
+
+    zoom: (scale: number) => {
+      batchOp.add(() => {
+        setAttributes(g, {
+          transform: `scale(${scale})`
+        });
+      });
+      return api;
+    },
+
+    toDataURL: () => {
+      const serializer = new XMLSerializer();
+      const source = serializer.serializeToString(svg);
+      return 'data:image/svg+xml;base64,' + btoa(source);
+    },
+
+    dispose: () => {
+      batchOp.clear();
+      eventManager.clear();
+      elements.forEach(element => element.dispose?.());
+      elements.clear();
+      elementPool.clear();
+      svg.parentNode?.removeChild(svg);
     }
-    
-    return rtn;
-  }
+  };
 
-  return rtn;
+  return api;
 }
