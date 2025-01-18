@@ -7,6 +7,7 @@ const coord = idea.coordinate(1600, 900)
   .ticks(50)
   .labels(50, 10)
   .grid(50)
+  .unit(50)
 
 const sinFunc = idea.func(x => Math.sin(x), [-2 * Math.PI, 2 * Math.PI])
   .samples(500)
@@ -23,7 +24,7 @@ const expFunc = idea.func(x => Math.exp(x), [-2 * Math.PI, 2 * Math.PI])
     width: 2,
     opacity: 1
   })
-  .scale(50)
+  .scale(100)
 
 const tanFunc = idea.func(x => Math.tan(x), [-2 * Math.PI, 2 * Math.PI])
   .samples(500)
@@ -34,14 +35,14 @@ const tanFunc = idea.func(x => Math.tan(x), [-2 * Math.PI, 2 * Math.PI])
   })
   .scale(50)
 
-const circle = idea.parametric((x) => Math.cos(x), (y) => (y / 1000) * Math.sin(y), [0, 1000])
+const circle = idea.parametric((x) => Math.cos(x) * Math.log(x ** Math.E), (y) => Math.sin(y) * Math.log(y ** Math.E), [0, 2 * Math.PI])
   .samples(500)
   .style({
     color: 'red',
     width: 2,
     opacity: 1
   })
-  .scale(500)
+  .scale(20)
 
 const normalDistribution = idea.func(x => Math.exp(-x * x / 2) / Math.sqrt(2 * Math.PI), [-2 * Math.PI, 2 * Math.PI])
   .samples(500)
@@ -50,9 +51,6 @@ const normalDistribution = idea.func(x => Math.exp(-x * x / 2) / Math.sqrt(2 * M
     width: 2,
     opacity: 1
   })
-  .scale(50)
-
-// const circle = idea.func((x) => Math.sqrt(10000 - x * x), [-100, 100])
 
 coord.add(sinFunc)
 

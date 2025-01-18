@@ -7,7 +7,21 @@ export function parametric(
   xFn: (t: number) => number,
   yFn: (t: number) => number,
   range: [number, number] = [0, 1]
-): Parametric {
+): Parametric & {
+  domain(min: number, max: number): Parametric;
+  animate(options: Animation): Parametric;
+  animateDrawing(duration?: number): Parametric;
+  discontinuity(points: number[]): Parametric;
+  derivative(): Parametric;
+  integral(from?: number): Parametric;
+  intersection(other: Parametric): { x: number, y: number }[];
+  extrema(): { x: number, y: number }[];
+  asymptotes(): { horizontal?: number[], vertical?: number[] };
+  highlight(duration?: number): Parametric;
+  label(text: string): Parametric;
+  bind(node: ReturnType<typeof import('../geometry/dot').dot>, x: number): Parametric;
+  update(newFn: (x: number) => number, newRange?: [number, number]): Parametric;
+} {
   const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
   path.setAttribute("fill", "none");
   
@@ -69,6 +83,12 @@ export function parametric(
       generatePath();
       return rtn;
     },
+    domain: (min: number, max: number) => {
+      tMin = min;
+      tMax = max;
+      generatePath();
+      return rtn;
+    },
     samples: (n: number) => {
       samples = n;
       generatePath();
@@ -86,40 +106,16 @@ export function parametric(
       generatePath();
       return rtn;
     },
-    update: (newXFn: (t: number) => number, newYFn: (t: number) => number, newRange?: [number, number]) => {
-      currentXFn = newXFn;
-      currentYFn = newYFn;
+    update: (newFn: (x: number) => number, newRange?: [number, number]) => {
+      currentXFn = t => t;
+      currentYFn = newFn;
       if (newRange) {
         [tMin, tMax] = newRange;
       }
       generatePath();
       return rtn;
     },
-    transform: (options: Transform) => {
-      let transform = '';
-      if (options.translate) {
-        transform += `translate(${options.translate[0]},${options.translate[1]}) `;
-      }
-      if (options.scale) {
-        if (Array.isArray(options.scale)) {
-          transform += `scale(${options.scale[0]},${options.scale[1]}) `;
-        } else {
-          transform += `scale(${options.scale}) `;
-        }
-      }
-      if (options.rotate) {
-        transform += `rotate(${options.rotate}) `;
-      }
-      if (options.skew) {
-        transform += `skew(${options.skew[0]},${options.skew[1]}) `;
-      }
-      if (options.origin) {
-        path.style.transformOrigin = `${options.origin[0]}px ${options.origin[1]}px`;
-      }
-      path.setAttribute('transform', transform.trim());
-      return rtn;
-    },
-    animation: (options: Animation) => {
+    animate: (options: Animation) => {
       const animations: string[] = [];
       if (options.properties) {
         Object.entries(options.properties).forEach(([prop, { from, to }]) => {
@@ -135,153 +131,87 @@ export function parametric(
       }
       return rtn;
     },
-    event: (type: string, handler: (e: Event) => void) => {
-      path.addEventListener(type, handler);
-      return {
-        remove: () => path.removeEventListener(type, handler),
-        rtn
-      };
-    },
-    attr: (name: string, value: string) => {
-      path.setAttribute(name, value);
+    animateDrawing: (duration: number = 1000) => {
+      const length = path.getTotalLength();
+      path.style.strokeDasharray = length.toString();
+      path.style.strokeDashoffset = length.toString();
+      path.style.transition = `stroke-dashoffset ${duration}ms linear`;
+      setTimeout(() => path.style.strokeDashoffset = '0', 0);
       return rtn;
     },
-    data: (key: string, value: any) => {
-      path.dataset[key] = value;
+    discontinuity: (points: number[]) => {
       return rtn;
     },
-    class_: (names: string | string[]) => {
-      if (Array.isArray(names)) {
-        path.classList.add(...names);
-      } else {
-        path.classList.add(names);
-      }
-      return {
-        remove: () => path.classList.remove(...(Array.isArray(names) ? names : [names])),
-        rtn
-      };
-    },
-    tooltip: (content: string | HTMLElement, options: TooltipOptions = {}) => {
-      const tip = document.createElement('div');
-      if (typeof content === 'string') {
-        tip.textContent = content;
-      } else {
-        tip.appendChild(content);
-      }
-      if (options.className) tip.className = options.className;
-      if (options.style) Object.assign(tip.style, options.style);
-      
-      path.addEventListener('mouseenter', (e) => {
-        document.body.appendChild(tip);
-        const rect = path.getBoundingClientRect();
-        const [offsetX = 0, offsetY = 0] = options.offset || [0, 0];
-        
-        switch (options.position) {
-          case 'top':
-            tip.style.left = `${rect.left + rect.width/2 + offsetX}px`;
-            tip.style.top = `${rect.top - tip.offsetHeight + offsetY}px`;
-            break;
-          case 'bottom':
-            tip.style.left = `${rect.left + rect.width/2 + offsetX}px`;
-            tip.style.top = `${rect.bottom + offsetY}px`;
-            break;
-          case 'left':
-            tip.style.left = `${rect.left - tip.offsetWidth + offsetX}px`;
-            tip.style.top = `${rect.top + rect.height/2 + offsetY}px`;
-            break;
-          case 'right':
-            tip.style.left = `${rect.right + offsetX}px`;
-            tip.style.top = `${rect.top + rect.height/2 + offsetY}px`;
-            break;
-          default:
-            tip.style.left = `${e.pageX + offsetX}px`;
-            tip.style.top = `${e.pageY + offsetY}px`;
-        }
-      });
-      
-      path.addEventListener('mouseleave', () => {
-        tip.remove();
-      });
-      
+    derivative: () => {
       return rtn;
     },
-    effect: (type: 'glow' | 'shadow' | 'blur', options: EffectOptions = {}) => {
-      const { color = '#000', strength = 5, spread = 0 } = options;
-      switch (type) {
-        case 'glow':
-          path.style.filter = `drop-shadow(0 0 ${strength}px ${color})`;
-          break;
-        case 'shadow':
-          path.style.filter = `drop-shadow(${spread}px ${spread}px ${strength}px ${color})`;
-          break;
-        case 'blur':
-          path.style.filter = `blur(${strength}px)`;
-          break;
-      }
+    integral: (from?: number) => {
       return rtn;
+    },
+    intersection: (other: Parametric) => {
+      return [];
+    },
+    extrema: () => {
+      return [];
+    },
+    asymptotes: () => {
+      return {};
     },
     highlight: (duration?: number) => {
       return rtn;
     },
-    annotate: (text: string, position?: 'top' | 'bottom' | 'left' | 'right') => {
+    label: (text: string) => {
       return rtn;
     },
-    pulse: (count?: number) => {
+    bind: (node: ReturnType<typeof import('../geometry/dot').dot>, x: number) => {
       return rtn;
     },
-    trace: (color?: string) => {
-      return rtn;
-    },
-    teachingMode: (options?: TeachingOptions) => {
-      return rtn;
-    },
-    step: (steps: AnimationStep[]) => {
-      return rtn;
-    },
-    lock: () => {
-      path.style.pointerEvents = 'none';
-      return rtn;
-    },
-    unlock: () => {
-      path.style.pointerEvents = 'all';
-      return rtn;
-    },
-    restrict: (bounds: {x: [number, number], y: [number, number]}) => {
-      return rtn;
-    },
-    snap: (gridSize: number) => {
-      return rtn;
-    },
-    connect: (target: Parametric, options?: {elastic?: boolean, distance?: number, strength?: number}) => {
-      return rtn;
-    },
-    show: () => {
-      path.style.display = '';
-      return rtn;
-    },
-    hide: () => {
-      path.style.display = 'none';
-      return rtn;
-    },
-    opacity: (value: number) => {
-      path.style.opacity = value.toString();
-      return rtn;
-    },
-    remove: () => {
-      path.remove();
-    },
-    morph: (target: Parametric, duration: number = 1000) => {
+    morph: (target: any, duration: number = 1000) => {
       if (!target?.node()) return rtn;
       const targetPath = target.node();
-      gsap.to(path, {
-        duration: duration / 1000,
-        attr: { d: targetPath.getAttribute('d') },
-        ease: "power1.inOut"
-      });
+      
+      const currentD = path.getAttribute('d') || '';
+      const targetD = targetPath.getAttribute('d') || '';
+      
+      if (currentD && targetD) {
+        const currentPoints = currentD.split(/[ML]\s*/).slice(1).map(point => {
+          const [x, y] = point.trim().split(',').map(Number);
+          return { x, y };
+        });
+        
+        const targetPoints = targetD.split(/[ML]\s*/).slice(1).map(point => {
+          const [x, y] = point.trim().split(',').map(Number);
+          return { x, y };
+        });
+        
+        const interpolatedPoints = currentPoints.map((currentPoint, i) => {
+          const targetPoint = targetPoints[Math.floor(i * targetPoints.length / currentPoints.length)];
+          return {
+            x: currentPoint.x,
+            y: currentPoint.y,
+            targetX: targetPoint?.x || currentPoint.x,
+            targetY: targetPoint?.y || currentPoint.y
+          };
+        });
+        
+        gsap.to(interpolatedPoints, {
+          duration: duration / 1000,
+          x: 'targetX',
+          y: 'targetY',
+          ease: "power1.inOut",
+          onUpdate: () => {
+            const newD = interpolatedPoints.reduce((acc, point, i) => {
+              return acc + `${i === 0 ? 'M' : 'L'} ${point.x},${point.y} `;
+            }, '');
+            path.setAttribute('d', newD);
+          }
+        });
+      }
+      
       return rtn;
     }
   };
   
   generatePath();
-  return rtn;
+  return rtn as any;
 } 
