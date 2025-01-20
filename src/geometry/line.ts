@@ -6,7 +6,7 @@ import { gsap } from 'gsap';
 
 export function line(x1: number, y1: number, x2: number, y2: number): Line {
   const lineElement = document.createElementNS("http://www.w3.org/2000/svg", "path");
-  const d = `M ${x1} ${y1} L ${x2} ${y2}`;
+  const d = `M ${x1} ${-y1} L ${x2} ${-y2}`;
   lineElement.setAttribute("d", d);
   
   const theme = getTheme();
@@ -74,32 +74,32 @@ export function line(x1: number, y1: number, x2: number, y2: number): Line {
       gsap.to(lineElement, {
         duration: duration / 1000,
         attr: {
-          x1: targetLine.getAttribute('x1'),
-          y1: targetLine.getAttribute('y1'),
-          x2: targetLine.getAttribute('x2'),
-          y2: targetLine.getAttribute('y2')
+          x1,
+          y1: -y1,
+          x2,
+          y2: -y2
         },
         ease: "power1.inOut"
       });
       return rtn;
+    },
+    scale: (x: number, y: number = x) => {
+      lineElement.setAttribute("d", `M ${x1 * x} ${-y1 * y} L ${x2 * x} ${-y2 * y}`);
+      return rtn;
     }
   };
 
-  function from(x1: number, y1: number) {
-    const x2 = Number(lineElement.dataset.x2 || 0);
-    const y2 = Number(lineElement.dataset.y2 || 0);
-    lineElement.dataset.x1 = x1.toString();
-    lineElement.dataset.y1 = y1.toString();
-    lineElement.setAttribute("d", `M ${x1} ${y1} L ${x2} ${y2}`);
+  function from(x: number, y: number) {
+    x1 = x;
+    y1 = y;
+    lineElement.setAttribute("d", `M ${x1} ${-y1} L ${x2} ${-y2}`);
     return rtn;
   }
 
-  function to(x2: number, y2: number) {
-    const x1 = Number(lineElement.dataset.x1 || 0);
-    const y1 = Number(lineElement.dataset.y1 || 0);
-    lineElement.dataset.x2 = x2.toString();
-    lineElement.dataset.y2 = y2.toString();
-    lineElement.setAttribute("d", `M ${x1} ${y1} L ${x2} ${y2}`);
+  function to(x: number, y: number) {
+    x2 = x;
+    y2 = y;
+    lineElement.setAttribute("d", `M ${x1} ${-y1} L ${x2} ${-y2}`);
     return rtn;
   }
 
@@ -135,46 +135,34 @@ export function line(x1: number, y1: number, x2: number, y2: number): Line {
   }
 
   function length() {
-    const x = Number(lineElement.getAttribute('x2')) - Number(lineElement.getAttribute('x1'));
-    const y = Number(lineElement.getAttribute('y2')) - Number(lineElement.getAttribute('y1'));
+    const x = Number(x2) - Number(x1);
+    const y = Number(-y2) - Number(-y1);
     return Math.sqrt(x * x + y * y);
   }
 
   function angle() {
-    const x = Number(lineElement.getAttribute('x2')) - Number(lineElement.getAttribute('x1'));
-    const y = Number(lineElement.getAttribute('y2')) - Number(lineElement.getAttribute('y1'));
+    const x = Number(x2) - Number(x1);
+    const y = Number(-y2) - Number(-y1);
     return Math.atan2(y, x) * 180 / Math.PI;
   }
 
   function midpoint() {
-    const x1 = Number(lineElement.getAttribute('x1'));
-    const y1 = Number(lineElement.getAttribute('y1'));
-    const x2 = Number(lineElement.getAttribute('x2'));
-    const y2 = Number(lineElement.getAttribute('y2'));
     return {
       x: (x1 + x2) / 2,
-      y: (y1 + y2) / 2
+      y: (-y1 - y2) / 2
     };
   }
 
   function parallel(distance: number) {
-    const x1 = Number(lineElement.getAttribute('x1'));
-    const y1 = Number(lineElement.getAttribute('y1'));
-    const x2 = Number(lineElement.getAttribute('x2'));
-    const y2 = Number(lineElement.getAttribute('y2'));
-    const angle = Math.atan2(y2 - y1, x2 - x1);
+    const angle = Math.atan2(y1 - y2, x2 - x1);
     const dx = distance * Math.sin(angle);
     const dy = distance * Math.cos(angle);
-    return line(x1 + dx, y1 - dy, x2 + dx, y2 - dy);
+    return line(x1 + dx, -y1 - dy, x2 + dx, -y2 - dy);
   }
 
   function perpendicular(point: { x: number, y: number }) {
-    const x1 = Number(lineElement.getAttribute('x1'));
-    const y1 = Number(lineElement.getAttribute('y1'));
-    const x2 = Number(lineElement.getAttribute('x2'));
-    const y2 = Number(lineElement.getAttribute('y2'));
     const dx = x2 - x1;
-    const dy = y2 - y1;
+    const dy = y1 - y2;
     const mag = Math.sqrt(dx * dx + dy * dy);
     const nx = -dy / mag;
     const ny = dx / mag;
@@ -182,15 +170,11 @@ export function line(x1: number, y1: number, x2: number, y2: number): Line {
   }
 
   function extend(start: number = 0, end: number = 0) {
-    const x1 = Number(lineElement.getAttribute('x1'));
-    const y1 = Number(lineElement.getAttribute('y1'));
-    const x2 = Number(lineElement.getAttribute('x2'));
-    const y2 = Number(lineElement.getAttribute('y2'));
     const angle = Math.atan2(y2 - y1, x2 - x1);
     const newX1 = x1 - start * Math.cos(angle);
-    const newY1 = y1 - start * Math.sin(angle);
+    const newY1 = -y1 - start * Math.sin(angle);
     const newX2 = x2 + end * Math.cos(angle);
-    const newY2 = y2 + end * Math.sin(angle);
+    const newY2 = -y2 + end * Math.sin(angle);
     lineElement.setAttribute('x1', newX1.toString());
     lineElement.setAttribute('y1', newY1.toString());
     lineElement.setAttribute('x2', newX2.toString());
@@ -199,24 +183,17 @@ export function line(x1: number, y1: number, x2: number, y2: number): Line {
   }
 
   function trim(start: number = 0, end: number = 0) {
-    const x1 = Number(lineElement.getAttribute('x1'));
-    const y1 = Number(lineElement.getAttribute('y1'));
-    const x2 = Number(lineElement.getAttribute('x2'));
-    const y2 = Number(lineElement.getAttribute('y2'));
-    const len = Math.sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1));
-    const angle = Math.atan2(y2 - y1, x2 - x1);
+    const len = Math.sqrt((x2 - x1) * (x2 - x1) + (y1 - y2) * (y1 - y2));
+    const angle = Math.atan2(y1 - y2, x2 - x1);
     const newX1 = x1 + start * Math.cos(angle);
-    const newY1 = y1 + start * Math.sin(angle);
+    const newY1 = -y1 + start * Math.sin(angle);
     const newX2 = x1 + (len - end) * Math.cos(angle);
-    const newY2 = y1 + (len - end) * Math.sin(angle);
-    lineElement.setAttribute('x1', newX1.toString());
-    lineElement.setAttribute('y1', newY1.toString());
-    lineElement.setAttribute('x2', newX2.toString());
-    lineElement.setAttribute('y2', newY2.toString());
+    const newY2 = -y1 + (len - end) * Math.sin(angle);
+    lineElement.setAttribute('d', `M ${newX1} ${-newY1} L ${newX2} ${-newY2}`);
     return rtn;
   }
 
-  function dash(pattern: number[]) {
+  function dash(...pattern: number[]) {
     lineElement.setAttribute('stroke-dasharray', pattern.join(','));
     return rtn;
   }
@@ -415,21 +392,21 @@ export function line(x1: number, y1: number, x2: number, y2: number): Line {
     
     if (options.showLength) {
       const length = Math.sqrt(
-        Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2)
+        Math.pow(x2 - x1, 2) + Math.pow(y1 - y2, 2)
       );
       const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
       text.textContent = `${length.toFixed(2)}${options.unit || ''}`;
       text.setAttribute("x", ((x1 + x2) / 2).toString());
-      text.setAttribute("y", ((y1 + y2) / 2 - 10).toString());
+      text.setAttribute("y", ((-y1 - y2) / 2 - 10).toString());
       g.appendChild(text);
     }
     
     if (options.showAngle) {
-      const angle = Math.atan2(y2 - y1, x2 - x1) * 180 / Math.PI;
+      const angle = Math.atan2(y1 - y2, x2 - x1) * 180 / Math.PI;
       const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
       text.textContent = `${angle.toFixed(1)}°`;
       text.setAttribute("x", (x1 - 20).toString());
-      text.setAttribute("y", (y1 - 10).toString());
+      text.setAttribute("y", (-y1 - 10).toString());
       g.appendChild(text);
     }
     
@@ -490,8 +467,8 @@ export function line(x1: number, y1: number, x2: number, y2: number): Line {
     const annotation = document.createElementNS("http://www.w3.org/2000/svg", "text");
     annotation.textContent = text;
     
-    const x = (Number(lineElement.getAttribute('x1')) + Number(lineElement.getAttribute('x2'))) / 2;
-    const y = (Number(lineElement.getAttribute('y1')) + Number(lineElement.getAttribute('y2'))) / 2;
+    const x = (x1 + x2) / 2;
+    const y = (-y1 - y2) / 2;
     
     annotation.setAttribute('x', x.toString());
     annotation.setAttribute('y', (position === 'bottom' ? y + 20 : y - 10).toString());

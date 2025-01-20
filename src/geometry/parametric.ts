@@ -33,6 +33,7 @@ export function parametric(
   let [tMin, tMax] = range;
   let currentXFn = xFn;
   let currentYFn = yFn;
+  let unit = 1;
   
   const theme = getTheme();
   path.setAttribute("stroke", theme.colors.primary);
@@ -44,8 +45,8 @@ export function parametric(
     
     for (let t = tMin; t <= tMax; t += step) {
       try {
-        const x = currentXFn(t) * scaleX + offsetX;
-        const y = -currentYFn(t) * scaleY + offsetY;
+        const x = currentXFn(t) * scaleX * unit + offsetX;
+        const y = -currentYFn(t) * scaleY * unit + offsetY;
         if (isFinite(x) && isFinite(y)) {
           points.push([x, y]);
         }
@@ -97,6 +98,7 @@ export function parametric(
     scale: (x: number, y: number = x) => {
       scaleX = x;
       scaleY = y;
+      unit = x;
       generatePath();
       return rtn;
     },
@@ -176,21 +178,21 @@ export function parametric(
       if (currentD && targetD) {
         const currentPoints = currentD.split(/[ML]\s*/).slice(1).map(point => {
           const [x, y] = point.trim().split(',').map(Number);
-          return { x, y };
+          return { x: x / unit, y: y / unit };
         });
         
         const targetPoints = targetD.split(/[ML]\s*/).slice(1).map(point => {
           const [x, y] = point.trim().split(',').map(Number);
-          return { x, y };
+          return { x: x / unit, y: y / unit };
         });
         
         const interpolatedPoints = currentPoints.map((currentPoint, i) => {
           const targetPoint = targetPoints[Math.floor(i * targetPoints.length / currentPoints.length)];
           return {
-            x: currentPoint.x,
-            y: currentPoint.y,
-            targetX: targetPoint?.x || currentPoint.x,
-            targetY: targetPoint?.y || currentPoint.y
+            x: currentPoint.x * unit,
+            y: currentPoint.y * unit,
+            targetX: (targetPoint?.x || currentPoint.x) * unit,
+            targetY: (targetPoint?.y || currentPoint.y) * unit
           };
         });
         

@@ -79,13 +79,14 @@ export function coordinate(width: number, height: number) {
   function add(element: { 
     node: () => SVGElement, 
     scale?: (x: number, y?: number) => any,
-    offset?: (x: number, y: number) => any
+    offset?: (x: number, y: number) => any  // 添加 offset 支持
   }) {
     if (element.scale) {
       element.scale(unit);
     }
     if (element.offset) {
-      element.offset(0, 0);
+      // 计算偏移量，使函数图像正确定位在坐标系中
+      element.offset(0, 0);  // 重置到原点
     }
     content.appendChild(element.node());
     return rtn;
@@ -97,15 +98,19 @@ export function coordinate(width: number, height: number) {
     if (grid.children.length > 0) {
       setGrid(unit);
     }
-    if (axes.children.length > 4) {
+    if (axes.children.length > 4) { // 4是两个轴线和两个箭头
       setTicks(unit);
     }
     // 更新所有已添加的图形
     Array.from(content.children).forEach(child => {
       const element = child as SVGElement;
-      const elementObj = element['__element'];
-      if (elementObj?.scale) {
-        elementObj.scale(unit);
+      if (element.getAttribute('data-original-transform')) {
+        const transform = element.getAttribute('data-original-transform');
+        element.setAttribute('transform', `scale(${unit}) ${transform}`);
+      } else {
+        const transform = element.getAttribute('transform') || '';
+        element.setAttribute('data-original-transform', transform);
+        element.setAttribute('transform', `scale(${unit}) ${transform}`);
       }
     });
     return rtn;

@@ -12,8 +12,8 @@ export function vector(x1: number, y1: number, x2: number, y2: number): Vector {
   vector.setAttribute("stroke-width", theme.sizes.function.toString());
   
   const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-  line.setAttribute("x2", x2.toString());
-  line.setAttribute("y2", y2.toString());
+  line.setAttribute("x2", (x2 - x1).toString());
+  line.setAttribute("y2", (-y2 + y1).toString());
   
   const arrow = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
   arrow.setAttribute("transform", `translate(${x2}, ${y2})`);
@@ -28,6 +28,15 @@ export function vector(x1: number, y1: number, x2: number, y2: number): Vector {
     from,
     to,
     stroke,
+    scale: (x: number, y: number = x) => {
+      x1 *= x;
+      y1 *= y;
+      vector.setAttribute("transform", `translate(${x1}, ${-y1})`);
+      line.setAttribute("x2", (Number(line.getAttribute("x2")) * x).toString());
+      line.setAttribute("y2", (Number(line.getAttribute("y2")) * y).toString());
+      adjustAngle(0, 0, Number(line.getAttribute("x2")), Number(line.getAttribute("y2")));
+      return rtn;
+    },
     transform,
     animation,
     event,

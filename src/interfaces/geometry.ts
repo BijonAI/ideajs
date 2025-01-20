@@ -66,7 +66,7 @@ export interface Line extends CommonMethods<Line> {
   perpendicular(point: { x: number, y: number }): Line;
   extend(start?: number, end?: number): Line;
   trim(start?: number, end?: number): Line;
-  dash(pattern: number[]): Line;
+  dash(...pattern: number[]): Line;
   marker(options?: MarkerOptions): Line;
   gradient(stops: GradientStop[]): Line;
   measure(options?: {
@@ -116,6 +116,7 @@ export interface Vector extends CommonMethods<Vector> {
   from(x1: number, y1: number): Vector;
   to(x2: number, y2: number): Vector;
   stroke(color?: string): Vector;
+  scale(x: number, y?: number): Vector;
 }
 
 export interface Function extends CommonMethods<Function> {
