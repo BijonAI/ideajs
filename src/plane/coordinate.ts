@@ -79,15 +79,8 @@ export function coordinate(width: number, height: number) {
   function add(element: { 
     node: () => SVGElement, 
     scale?: (x: number, y?: number) => any,
-    offset?: (x: number, y: number) => any  // 添加 offset 支持
+    offset?: (x: number, y: number) => any
   }) {
-    if (element.scale) {
-      element.scale(unit);
-    }
-    if (element.offset) {
-      // 计算偏移量，使函数图像正确定位在坐标系中
-      element.offset(0, 0);  // 重置到原点
-    }
     content.appendChild(element.node());
     return rtn;
   }
@@ -213,6 +206,7 @@ export function coordinate(width: number, height: number) {
       text.setAttribute("x", "20");
       text.setAttribute("y", y.toString());
       text.setAttribute("dominant-baseline", "middle");
+      text.style.fontFamily = "Comic Sans MS";
       text.textContent = format(-i * step);
       labels.appendChild(text);
     }

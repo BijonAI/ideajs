@@ -161,5 +161,6 @@ export interface Parametric extends CommonMethods<Parametric> {
   samples(n: number): Parametric;
   scale(x: number, y?: number): Parametric;
   offset(x: number, y: number): Parametric;
-  update(xFn: (t: number) => number, yFn: (t: number) => number, range?: [number, number]): Parametric;
+  update(fn: (t: number) => [number, number], range?: [number, number]): Parametric;
+  animateDrawing(duration?: number): Parametric;
 }

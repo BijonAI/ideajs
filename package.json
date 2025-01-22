@@ -1,6 +1,6 @@
 {
   "name": "idea-math",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "SVG-based mathematical graph library.",
   "scripts": {
     "build": "tsup",
