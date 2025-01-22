@@ -16,7 +16,6 @@ export function vector(x1: number, y1: number, x2: number, y2: number): Vector {
   line.setAttribute("y2", (-y2 + y1).toString());
   
   const arrow = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
-  arrow.setAttribute("transform", `translate(${x2}, ${y2})`);
   arrow.setAttribute("points", `-5,-4 0,0 5,-4 0,8`);
   arrow.setAttribute("stroke", "none");
   arrow.setAttribute("fill", theme.colors.primary);
@@ -129,8 +128,8 @@ export function vector(x1: number, y1: number, x2: number, y2: number): Vector {
   }
 
   function adjustAngle(x1: number, y1: number, x2: number, y2: number) {
-    const angle = Math.atan2(y2 - y1, x2 - x1);
-    arrow.setAttribute("transform", `translate(${x2}, ${y2}) rotate(${angle * 180 / Math.PI - 90})`);
+    const angle = Math.atan2(y1 - y2, x2 - x1);
+    arrow.setAttribute("transform", `translate(${x2}, ${-y2}) rotate(${angle * 180 / Math.PI - 90})`);
     return rtn;
   }
 

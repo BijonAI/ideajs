@@ -4,6 +4,8 @@ import * as idea from '../src'
 const canvas = idea.field(800, 600)
 document.body.appendChild(canvas.node())
 
+const vector = idea.vector(0, 0, 30, 40)
+
 // 创建坐标系
 const coord = idea.coordinate(800, 600)
   .origin(400, 300)  // 设置原点在中心
@@ -57,6 +59,7 @@ const butterfly = idea.parametric(
 coord.add(circle)
 coord.add(heart)
 coord.add(butterfly)
+coord.add(vector)
 
 // 添加坐标系到画布
 canvas.add(coord)
