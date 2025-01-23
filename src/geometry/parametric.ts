@@ -1,8 +1,32 @@
+/**
+ * @file parametric.ts
+ * @description 参数方程曲线的实现，提供了丰富的曲线操作和动画功能
+ */
+
 import { getTheme } from '../theme';
 import { Parametric, ParametricStyle } from '../interfaces/geometry';
 import { Transform, Animation, TooltipOptions, EffectOptions, TeachingOptions, AnimationStep } from '../interfaces/common';
 import { gsap } from 'gsap';
 
+/**
+ * 创建参数方程曲线
+ * @param fn 参数方程函数，接收参数t，返回[x,y]坐标
+ * @param range 参数t的范围，默认为[0,1]
+ * @returns 参数曲线对象，包含多种操作方法：
+ *   - domain: 设置参数范围
+ *   - animate: 设置动画效果
+ *   - animateDrawing: 设置绘制动画
+ *   - discontinuity: 设置不连续点
+ *   - derivative: 计算导数曲线
+ *   - integral: 计算积分曲线
+ *   - intersection: 计算与其他曲线的交点
+ *   - extrema: 计算极值点
+ *   - asymptotes: 计算渐近线
+ *   - highlight: 高亮显示
+ *   - label: 添加标签
+ *   - bind: 绑定点到曲线
+ *   - update: 更新曲线函数
+ */
 export function parametric(
   fn: (t: number) => [number, number],
   range: [number, number] = [0, 1]
@@ -21,35 +45,45 @@ export function parametric(
   bind(node: ReturnType<typeof import('../geometry/dot').dot>, t: number): Parametric;
   update(newFn: (t: number) => [number, number], newRange?: [number, number]): Parametric;
 } {
+  // 创建SVG路径元素
   const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
   path.setAttribute("fill", "none");
   
-  let scaleX = 1;
-  let scaleY = 1;
-  let offsetX = 0;
-  let offsetY = 0;
-  let samples = 200;
-  let [tMin, tMax] = range;
-  let currentFn = fn;
-  let unit = 1;
-  let discontinuityPoints: number[] = [];
+  // 曲线变换参数
+  let scaleX = 1;          // X轴缩放比例
+  let scaleY = 1;          // Y轴缩放比例
+  let offsetX = 0;         // X轴偏移量
+  let offsetY = 0;         // Y轴偏移量
+  let samples = 200;       // 采样点数量
+  let [tMin, tMax] = range;// 参数范围
+  let currentFn = fn;      // 当前参数方程函数
+  let unit = 1;            // 单位长度
+  let discontinuityPoints: number[] = []; // 不连续点列表
   
+  // 应用主题样式
   const theme = getTheme();
   path.setAttribute("stroke", theme.colors.primary);
   path.setAttribute("stroke-width", theme.sizes.function.toString());
   
+  /**
+   * 生成SVG路径数据
+   * 根据当前参数和样式生成曲线的SVG路径
+   */
   function generatePath() {
     const step = (tMax - tMin) / samples;
     const points: [number, number][] = [];
     let currentPath = '';
     
+    // 遍历参数范围，计算每个点的位置
     for (let t = tMin; t <= tMax; t += step) {
       try {
         const [x, y] = currentFn(t);
         const scaledX = x * scaleX;
         const scaledY = -y * scaleY;
         
+        // 处理有限值点
         if (isFinite(scaledX) && isFinite(scaledY)) {
+          // 处理不连续点
           if (discontinuityPoints.some(p => Math.abs(t - p) < step)) {
             if (points.length > 0) {
               currentPath += points.reduce((acc, [x, y], i) => 
@@ -60,6 +94,7 @@ export function parametric(
           points.push([scaledX, scaledY]);
         }
       } catch (e) {
+        // 处理计算错误，可能是函数在某点未定义
         if (points.length > 0) {
           currentPath += points.reduce((acc, [x, y], i) => 
             acc + `${i === 0 ? 'M' : 'L'} ${x + offsetX},${y + offsetY} `, '');
@@ -69,17 +104,21 @@ export function parametric(
       }
     }
     
+    // 处理剩余点
     if (points.length > 0) {
       currentPath += points.reduce((acc, [x, y], i) => 
         acc + `${i === 0 ? 'M' : 'L'} ${x + offsetX},${y + offsetY} `, '');
     }
     
+    // 更新路径数据
     if (currentPath) {
       path.setAttribute("d", currentPath);
     }
   }
   
+  // 返回对象，包含所有可用的操作方法
   const rtn = {
+    // 基础操作
     node: () => path,
     stroke: (color?: string) => {
       path.setAttribute("stroke", color || theme.colors.primary);
@@ -93,6 +132,8 @@ export function parametric(
       if (options.lineCap) path.setAttribute('stroke-linecap', options.lineCap);
       return rtn;
     },
+    
+    // 范围和采样设置
     range: (min: number, max: number) => {
       tMin = min;
       tMax = max;
@@ -110,6 +151,8 @@ export function parametric(
       generatePath();
       return rtn;
     },
+    
+    // 变换操作
     scale: (x: number, y: number = x) => {
       scaleX = x;
       scaleY = y;
@@ -122,11 +165,15 @@ export function parametric(
       generatePath();
       return rtn;
     },
+    
+    // 特殊点处理
     discontinuity: (points: number[]) => {
       discontinuityPoints = points;
       generatePath();
       return rtn;
     },
+    
+    // 数学运算
     derivative: () => {
       const h = (tMax - tMin) / 1000;
       return parametric((t: number) => {
@@ -138,6 +185,8 @@ export function parametric(
         .offset(offsetX, offsetY)
         .samples(samples);
     },
+    
+    // 动画效果
     animate: (options: Animation) => {
       const animations: string[] = [];
       if (options.properties) {
@@ -154,6 +203,7 @@ export function parametric(
       }
       return rtn;
     },
+    
     animateDrawing: (duration: number = 1000) => {
       const length = path.getTotalLength();
       path.style.strokeDasharray = length.toString();
@@ -162,6 +212,8 @@ export function parametric(
       setTimeout(() => path.style.strokeDashoffset = '0', 0);
       return rtn;
     },
+    
+    // 积分计算
     integral: (from: number = tMin) => {
       const h = (tMax - tMin) / samples;
       let accumX = 0;
@@ -182,6 +234,8 @@ export function parametric(
         .offset(offsetX, offsetY)
         .samples(samples);
     },
+    
+    // 交点计算
     intersection: (other: Parametric) => {
       const intersections: { x: number; y: number }[] = [];
       const threshold = 0.1 / unit;
@@ -217,6 +271,8 @@ export function parametric(
       
       return intersections;
     },
+    
+    // 极值点计算
     extrema: () => {
       const h = (tMax - tMin) / 1000;
       const extremaPoints: { x: number; y: number }[] = [];
@@ -231,6 +287,7 @@ export function parametric(
         const dyPrev = (y1 - y0) / h;
         const dyNext = (y2 - y1) / h;
         
+        // 检测导数符号变化
         if ((dxPrev * dxNext <= 0 || dyPrev * dyNext <= 0) && 
             (Math.abs(dxPrev) > 1e-6 || Math.abs(dyPrev) > 1e-6)) {
           const scaledX = x1 * scaleX * unit + offsetX;
@@ -241,6 +298,8 @@ export function parametric(
       
       return extremaPoints;
     },
+    
+    // 渐近线计算
     asymptotes: () => {
       const asymptotes: { horizontal?: number[]; vertical?: number[] } = {
         horizontal: [],
@@ -260,10 +319,12 @@ export function parametric(
             const dy = Math.abs(y - lastY);
             const dx = Math.abs(x - lastX);
             
+            // 检测水平渐近线
             if (dy > threshold && !asymptotes.horizontal?.includes(lastY)) {
               asymptotes.horizontal?.push(lastY);
             }
             
+            // 检测垂直渐近线
             if (dx > threshold && !asymptotes.vertical?.includes(lastX)) {
               asymptotes.vertical?.push(lastX);
             }
@@ -272,6 +333,7 @@ export function parametric(
           lastX = x;
           lastY = y;
         } catch (e) {
+          // 函数不连续点可能是垂直渐近线
           if (lastX !== null && !asymptotes.vertical?.includes(lastX)) {
             asymptotes.vertical?.push(lastX);
           }
@@ -280,6 +342,8 @@ export function parametric(
       
       return asymptotes;
     },
+    
+    // 高亮显示
     highlight: (duration: number = 1000) => {
       const originalColor = path.getAttribute('stroke');
       const originalWidth = path.getAttribute('stroke-width');
@@ -297,6 +361,8 @@ export function parametric(
       
       return rtn;
     },
+    
+    // 添加标签
     label: (text: string) => {
       const textElement = document.createElementNS("http://www.w3.org/2000/svg", "text");
       const pathLength = path.getTotalLength();
@@ -317,6 +383,8 @@ export function parametric(
       
       return rtn;
     },
+    
+    // 绑定点到曲线
     bind: (node: ReturnType<typeof import('../geometry/dot').dot>, t: number) => {
       const [x, y] = currentFn(t);
       const scaledX = x * scaleX * unit + offsetX;
@@ -325,6 +393,8 @@ export function parametric(
       node.node().setAttribute('cy', scaledY.toString());
       return rtn;
     },
+    
+    // 更新曲线函数
     update: (newFn: (t: number) => [number, number], newRange?: [number, number]) => {
       currentFn = newFn;
       if (newRange) {
@@ -333,6 +403,8 @@ export function parametric(
       generatePath();
       return rtn;
     },
+    
+    // 曲线变形动画
     morph: (target: any, duration: number = 1000) => {
       if (!target?.node()) return rtn;
       const targetPath = target.node();
@@ -341,16 +413,19 @@ export function parametric(
       const targetD = targetPath.getAttribute('d') || '';
       
       if (currentD && targetD) {
+        // 解析当前路径点
         const currentPoints = currentD.split(/[ML]\s*/).slice(1).map(point => {
           const [x, y] = point.trim().split(',').map(Number);
           return { x: x / unit, y: y / unit };
         });
         
+        // 解析目标路径点
         const targetPoints = targetD.split(/[ML]\s*/).slice(1).map(point => {
           const [x, y] = point.trim().split(',').map(Number);
           return { x: x / unit, y: y / unit };
         });
         
+        // 计算插值点
         const interpolatedPoints = currentPoints.map((currentPoint, i) => {
           const targetPoint = targetPoints[Math.floor(i * targetPoints.length / currentPoints.length)];
           return {
@@ -361,6 +436,7 @@ export function parametric(
           };
         });
         
+        // 使用GSAP执行动画
         gsap.to(interpolatedPoints, {
           duration: duration / 1000,
           x: 'targetX',
@@ -379,6 +455,7 @@ export function parametric(
     }
   };
   
+  // 初始化路径
   generatePath();
   return rtn as any;
-} 
+}

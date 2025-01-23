@@ -1,21 +1,35 @@
+/**
+ * @file dot.ts
+ * @description 点对象的实现，提供创建和操作SVG圆点的功能，支持拖拽、样式设置和事件处理
+ */
+
 import { draggable } from "../utils/draggable";
 import { getTheme } from '../theme';
 import { TeachingOptions, AnimationStep } from '../interfaces/common';
 import { Dot } from "../interfaces/geometry";
 
+/**
+ * 创建一个点对象
+ * @param x 点的x坐标
+ * @param y 点的y坐标
+ * @returns 点对象，包含多种操作方法
+ */
 export function dot(x: number, y: number) {
+  // 创建SVG圆点元素
   const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
   circle.setAttribute("cx", x.toString());
   circle.setAttribute("cy", y.toString());
   circle.setAttribute("r", "4");
   circle.setAttribute("stroke-width", "2");
 
+  // 拖拽事件回调数组
   const dragEvents = [];
   function onDrag(callback: (x: number, y: number) => void) {
     dragEvents.push(callback);
     return rtn;
   }
-  
+
+  // 返回对象，包含所有可用的操作方法
   const rtn = {
     node,
     resize,
@@ -26,6 +40,7 @@ export function dot(x: number, y: number) {
     select,
     onFocus,
     onSelect,
+    // 设置点可拖拽
     draggable(condition?: (x: number, y: number) => boolean) {
       draggable(circle, condition, () => dragEvents.forEach(callback => callback(
         Number(circle.getAttribute('cx')) + Number(circle.transform.baseVal[0].matrix.e),
@@ -43,9 +58,11 @@ export function dot(x: number, y: number) {
     class_,
     tooltip,
     effect,
+    // 高亮显示
     highlight: (duration?: number) => {
       return rtn;
     },
+    // 添加注释
     annotate: (text: string, position?: 'top' | 'bottom' | 'left' | 'right') => {
       const annotation = document.createElementNS("http://www.w3.org/2000/svg", "text");
       annotation.textContent = text;
@@ -55,76 +72,120 @@ export function dot(x: number, y: number) {
       circle.parentNode?.appendChild(annotation);
       return rtn;
     },
+    // 脉冲动画
     pulse: (count?: number) => {
       return rtn;
     },
+    // 轨迹跟踪
     trace: (color?: string) => {
       return rtn;
     },
+    // 教学模式
     teachingMode: (options?: TeachingOptions) => {
       return rtn;
     },
+    // 动画步骤
     step: (steps: AnimationStep[]) => {
       return rtn;
     },
+    // 锁定交互
     lock: () => {
       circle.style.pointerEvents = 'none';
       return rtn;
     },
+    // 解锁交互
     unlock: () => {
       circle.style.pointerEvents = 'all';
       return rtn;
     },
-    restrict: (bounds: {x: [number, number], y: [number, number]}) => {
+    // 限制范围
+    restrict: (bounds: { x: [number, number], y: [number, number] }) => {
       return rtn;
     },
+    // 网格对齐
     snap: (gridSize: number) => {
       return rtn;
     },
-    connect: (target: Dot, options?: {elastic?: boolean, distance?: number, strength?: number}) => {
+    // 连接其他点
+    connect: (target: Dot, options?: { elastic?: boolean, distance?: number, strength?: number }) => {
       return rtn;
     },
     move,
   }
 
+  /**
+   * 获取SVG圆点元素
+   */
   function node() {
     return circle;
   }
 
+  /**
+   * 移动点到新位置
+   * @param x 新的x坐标
+   * @param y 新的y坐标
+   * @returns 点对象
+   */
   function move(x: number, y: number) {
     circle.setAttribute("cx", x.toString());
     circle.setAttribute("cy", y.toString());
     return rtn;
   }
 
+  /**
+   * 调整点的大小
+   * @param radius 新的半径
+   * @returns 点对象
+   */
   function resize(radius: number) {
     circle.setAttribute("r", radius.toString());
     return rtn;
   }
 
+  /**
+   * 设置描边颜色
+   * @param color 可选的颜色值，未指定则使用主题色
+   * @returns 点对象
+   */
   function stroke(color?: string) {
     const theme = getTheme();
     circle.setAttribute("stroke", color || theme.colors.marker.stroke);
     return rtn;
   }
 
+  /**
+   * 设置填充颜色
+   * @param color 可选的颜色值，未指定则使用主题色
+   * @returns 点对象
+   */
   function fill(color?: string) {
     const theme = getTheme();
     circle.setAttribute("fill", color || theme.colors.marker.fill);
     return rtn;
   }
 
+  /**
+   * 设置边框宽度
+   * @param width 边框宽度
+   * @returns 点对象
+   */
   function border(width: number) {
     circle.setAttribute("stroke-width", width.toString());
     return rtn;
   }
 
+  // 焦点事件回调数组
   const focusEvents = [];
   function onFocus(callback: () => void) {
     focusEvents.push(callback);
     return rtn;
   }
 
+  /**
+   * 设置焦点效果
+   * @param color 焦点状态的颜色
+   * @returns 点对象
+   */
   function focus(color: string) {
     focusEvents.forEach(callback => callback());
     const oldColor = circle.getAttribute("stroke");
@@ -138,12 +199,18 @@ export function dot(x: number, y: number) {
     return rtn;
   }
 
+  // 选择事件回调数组
   const selectEvents = [];
   function onSelect(callback: () => void) {
     selectEvents.push(callback);
     return rtn;
   }
 
+  /**
+   * 设置选择效果
+   * @param color 选中状态的颜色
+   * @returns 点对象
+   */
   function select(color: string) {
     selectEvents.forEach(callback => callback());
     const oldColor = circle.getAttribute("stroke");
@@ -167,6 +234,11 @@ export function dot(x: number, y: number) {
     return rtn;
   }
 
+  /**
+   * 设置点的样式
+   * @param options 样式选项，包括半径、描边、填充等
+   * @returns 点对象
+   */
   function style(options: {
     radius?: number;
     strokeWidth?: number;
@@ -194,6 +266,11 @@ export function dot(x: number, y: number) {
     return rtn;
   }
 
+  /**
+   * 应用变换
+   * @param options 变换选项，包括平移、缩放、旋转和倾斜
+   * @returns 点对象
+   */
   function transform(options: {
     translate?: [number, number];
     scale?: number | [number, number];
@@ -225,6 +302,11 @@ export function dot(x: number, y: number) {
     return rtn;
   }
 
+  /**
+   * 应用动画效果
+   * @param options 动画选项，包括属性、持续时间和回调函数
+   * @returns 点对象
+   */
   function animation(options: {
     duration?: number;
     delay?: number;
@@ -254,6 +336,12 @@ export function dot(x: number, y: number) {
     return rtn;
   }
 
+  /**
+   * 添加事件监听器
+   * @param type 事件类型
+   * @param handler 事件处理函数
+   * @returns 包含移除监听器方法的对象
+   */
   function event(type: string, handler: (e: Event) => void) {
     circle.addEventListener(type, handler);
     return {
@@ -262,16 +350,33 @@ export function dot(x: number, y: number) {
     };
   }
 
+  /**
+   * 设置属性
+   * @param name 属性名
+   * @param value 属性值
+   * @returns 点对象
+   */
   function attr(name: string, value: string) {
     circle.setAttribute(name, value);
     return rtn;
   }
 
+  /**
+   * 设置数据属性
+   * @param key 数据键名
+   * @param value 数据值
+   * @returns 点对象
+   */
   function data(key: string, value: any) {
     circle.dataset[key] = value;
     return rtn;
   }
 
+  /**
+   * 添加CSS类
+   * @param names 类名或类名数组
+   * @returns 包含移除类名方法的对象
+   */
   function class_(names: string | string[]) {
     if (Array.isArray(names)) {
       circle.classList.add(...names);
@@ -284,6 +389,12 @@ export function dot(x: number, y: number) {
     };
   }
 
+  /**
+   * 添加工具提示
+   * @param content 提示内容，可以是字符串或HTML元素
+   * @param options 提示选项，包括位置、偏移和样式
+   * @returns 点对象
+   */
   function tooltip(content: string | HTMLElement, options: {
     position?: 'top' | 'bottom' | 'left' | 'right';
     offset?: [number, number];
@@ -298,21 +409,27 @@ export function dot(x: number, y: number) {
     }
     if (options.className) tip.className = options.className;
     if (options.style) Object.assign(tip.style, options.style);
-    
+
     circle.addEventListener('mouseenter', () => {
       document.body.appendChild(tip);
       const rect = circle.getBoundingClientRect();
       // Position tooltip based on options.position
       // ...
     });
-    
+
     circle.addEventListener('mouseleave', () => {
       tip.remove();
     });
-    
+
     return rtn;
   }
 
+  /**
+   * 添加视觉效果
+   * @param type 效果类型：'glow'发光、'shadow'阴影、'blur'模糊
+   * @param options 效果选项，包括颜色、强度等
+   * @returns 点对象
+   */
   function effect(type: 'glow' | 'shadow' | 'blur', options: {
     color?: string;
     strength?: number;
@@ -335,4 +452,3 @@ export function dot(x: number, y: number) {
 
   return rtn;
 }
-

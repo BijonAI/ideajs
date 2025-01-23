@@ -1,19 +1,32 @@
+/**
+ * @file polygon.ts
+ * @description 多边形对象的实现，提供创建和操作SVG多边形的功能，支持点的添加、删除、变形等操作
+ */
+
 import { Transform, Animation, TooltipOptions, EffectOptions, TeachingOptions, AnimationStep } from '../interfaces/common';
 import { Polygon } from '../interfaces/geometry';
 import { getTheme } from '../theme';
 import { gsap } from 'gsap';
 
+/**
+ * 创建一个多边形对象
+ * @param points 多边形的顶点数组，每个点包含x和y坐标
+ * @returns 多边形对象，包含多种操作方法
+ */
 export function polygon(points: { x: number, y: number }[]): Polygon {
+  // 创建SVG路径元素
   const polygon = document.createElementNS("http://www.w3.org/2000/svg", "path");
   const d = pointsToPath(points);
   polygon.setAttribute("d", d);
   
+  // 应用主题样式
   const theme = getTheme();
   polygon.setAttribute("stroke-width", theme.sizes.function.toString());
   polygon.setAttribute("stroke", theme.colors.primary);
   polygon.setAttribute("fill", theme.colors.background);
   polygon.setAttribute("fill-opacity", "0.1");
   
+  // 返回对象，包含所有可用的操作方法
   const rtn = {
     node: () => polygon,
     points,
@@ -47,58 +60,78 @@ export function polygon(points: { x: number, y: number }[]): Polygon {
     class_,
     tooltip,
     effect,
+    // 高亮显示
     highlight: (duration?: number) => {
       return rtn;
     },
+    // 添加注释
     annotate: (text: string, position?: 'top' | 'bottom' | 'left' | 'right') => {
       return rtn;
     },
+    // 脉冲动画
     pulse: (count?: number) => {
       return rtn;
     },
+    // 轨迹跟踪
     trace: (color?: string) => {
       return rtn;
     },
+    // 教学模式
     teachingMode: (options?: TeachingOptions) => {
       return rtn;
     },
+    // 动画步骤
     step: (steps: AnimationStep[]) => {
       return rtn;
     },
+    // 锁定交互
     lock: () => {
       polygon.style.pointerEvents = 'none';
       return rtn;
     },
+    // 解锁交互
     unlock: () => {
       polygon.style.pointerEvents = 'all';
       return rtn;
     },
+    // 限制范围
     restrict: (bounds: {x: [number, number], y: [number, number]}) => {
       return rtn;
     },
+    // 网格对齐
     snap: (gridSize: number) => {
       return rtn;
     },
+    // 连接其他多边形
     connect: (target: Polygon, options?: {elastic?: boolean, distance?: number, strength?: number}) => {
       return rtn;
     },
+    // 显示多边形
     show: () => {
       polygon.style.display = '';
       return rtn;
     },
+    // 隐藏多边形
     hide: () => {
       polygon.style.display = 'none';
       return rtn;
     },
+    // 设置透明度
     opacity: (value: number) => {
       polygon.style.opacity = value.toString();
       return rtn;
     },
+    // 移除多边形
     remove: () => {
       polygon.remove();
     }
   }
 
+  /**
+   * 将点数组转换为SVG路径数据
+   * @param points 点数组
+   * @returns SVG路径数据字符串
+   */
   function pointsToPath(points: { x: number, y: number }[]): string {
     if (points.length === 0) return '';
     return `M ${points[0].x} ${points[0].y} ` + 
@@ -106,11 +139,22 @@ export function polygon(points: { x: number, y: number }[]): Polygon {
            ' Z';
   }
 
+  /**
+   * 设置多边形的所有顶点
+   * @param points 新的顶点数组
+   * @returns 多边形对象
+   */
   function setPoints(points: { x: number, y: number }[]) {
     polygon.setAttribute("d", pointsToPath(points));
     return rtn;
   }
 
+  /**
+   * 设置指定位置的顶点
+   * @param index 顶点索引
+   * @param point 新的顶点坐标
+   * @returns 多边形对象
+   */
   function setPoint(index: number, point: { x: number, y: number }) {
     const points = getPoints();
     points[index] = point;
@@ -118,6 +162,10 @@ export function polygon(points: { x: number, y: number }[]): Polygon {
     return rtn;
   }
 
+  /**
+   * 获取多边形的所有顶点
+   * @returns 顶点数组
+   */
   function getPoints(): { x: number, y: number }[] {
     const d = polygon.getAttribute("d") || '';
     const commands = d.split(/(?=[MLZ])/);
@@ -129,6 +177,12 @@ export function polygon(points: { x: number, y: number }[]): Polygon {
       });
   }
 
+  /**
+   * 在指定位置之前插入新顶点
+   * @param index 插入位置
+   * @param point 新顶点坐标
+   * @returns 多边形对象
+   */
   function insertBefore(index: number, point: { x: number, y: number }) {
     const points = getPoints();
     points.splice(index, 0, point);
@@ -136,6 +190,12 @@ export function polygon(points: { x: number, y: number }[]): Polygon {
     return rtn;
   }
 
+  /**
+   * 在指定位置之后插入新顶点
+   * @param index 插入位置
+   * @param point 新顶点坐标
+   * @returns 多边形对象
+   */
   function insertAfter(index: number, point: { x: number, y: number }) {
     const points = getPoints();
     points.splice(index + 1, 0, point);
@@ -143,6 +203,11 @@ export function polygon(points: { x: number, y: number }[]): Polygon {
     return rtn;
   }
 
+  /**
+   * 移除指定位置的顶点
+   * @param index 要移除的顶点索引
+   * @returns 多边形对象
+   */
   function remove(index: number) {
     const points = getPoints();
     points.splice(index, 1);
@@ -150,18 +215,33 @@ export function polygon(points: { x: number, y: number }[]): Polygon {
     return rtn;
   }
 
+  /**
+   * 设置描边颜色
+   * @param color 可选的颜色值，未指定则使用主题色
+   * @returns 多边形对象
+   */
   function stroke(color?: string) {
     const theme = getTheme();
     polygon.setAttribute("stroke", color || theme.colors.primary);
     return rtn;
   }
 
+  /**
+   * 设置填充颜色
+   * @param color 可选的颜色值，未指定则使用主题色
+   * @returns 多边形对象
+   */
   function fill(color?: string) {
     const theme = getTheme();
     polygon.setAttribute("fill", color || theme.colors.secondary);
     return rtn;
   }
 
+  /**
+   * 设置多边形的样式
+   * @param options 样式选项，包括描边、填充等
+   * @returns 多边形对象
+   */
   function style(options: {
     strokeColor?: string,
     strokeWidth?: number,
@@ -177,6 +257,12 @@ export function polygon(points: { x: number, y: number }[]): Polygon {
     return rtn;
   }
 
+  /**
+   * 创建绘制动画
+   * @param duration 动画持续时间（毫秒）
+   * @param easing 缓动函数名称
+   * @returns 多边形对象
+   */
   function animate(duration: number, easing?: string) {
     const length = polygon.getTotalLength();
     polygon.style.strokeDasharray = length.toString();
@@ -186,6 +272,12 @@ export function polygon(points: { x: number, y: number }[]): Polygon {
     return rtn;
   }
 
+  /**
+   * 形状变形动画
+   * @param target 目标多边形
+   * @param duration 动画持续时间（毫秒）
+   * @returns 多边形对象
+   */
   function morph(target: Polygon, duration: number = 1000) {
     if (!target?.node()) return rtn;
     const targetPath = target.node();
@@ -197,66 +289,125 @@ export function polygon(points: { x: number, y: number }[]): Polygon {
     return rtn;
   }
 
+  /**
+   * 旋转多边形
+   * @param angle 旋转角度
+   * @returns 多边形对象
+   */
   function rotate(angle: number) {
     // Implementation for rotating
     return rtn;
   }
 
+  /**
+   * 缩放多边形
+   * @param factor 缩放因子
+   * @returns 多边形对象
+   */
   function scale(factor: number) {
     // Implementation for scaling
     return rtn;
   }
 
+  /**
+   * 平移多边形
+   * @param dx x方向偏移量
+   * @param dy y方向偏移量
+   * @returns 多边形对象
+   */
   function translate(dx: number, dy: number) {
     // Implementation for translating
     return rtn;
   }
 
+  /**
+   * 获取多边形的中心点
+   * @returns 多边形对象
+   */
   function center() {
     // Implementation for finding the center
     return rtn;
   }
 
+  /**
+   * 计算多边形面积
+   * @returns 多边形对象
+   */
   function area() {
     // Implementation for calculating area
     return rtn;
   }
 
+  /**
+   * 计算多边形周长
+   * @returns 多边形对象
+   */
   function perimeter() {
     // Implementation for calculating perimeter
     return rtn;
   }
 
+  /**
+   * 检查点是否在多边形内部
+   * @param point 要检查的点
+   * @returns 多边形对象
+   */
   function contains(point: { x: number, y: number }) {
     // Implementation for checking if a point is inside the polygon
     return rtn;
   }
 
+  /**
+   * 检查是否与另一个多边形相交
+   * @param polygon 要检查的多边形
+   * @returns 多边形对象
+   */
   function intersects(polygon: { x: number, y: number }[]) {
     // Implementation for checking intersection
     return rtn;
   }
 
+  /**
+   * 平滑多边形的边角
+   * @returns 多边形对象
+   */
   function smooth() {
     // Implementation for smoothing
     return rtn;
   }
 
+  /**
+   * 简化多边形（减少顶点）
+   * @returns 多边形对象
+   */
   function simplify() {
     // Implementation for simplifying
     return rtn;
   }
 
+  /**
+   * 转换为正多边形
+   * @returns 多边形对象
+   */
   function regular() {
     // Implementation for creating a regular polygon
     return rtn;
   }
 
+  /**
+   * 克隆多边形
+   * @returns 多边形对象
+   */
   function clone() {
     // Implementation for cloning
     return rtn;
   }
 
+  /**
+   * 应用变换
+   * @param options 变换选项，包括平移、缩放、旋转和倾斜
+   * @returns 多边形对象
+   */
   function transform(options: Transform) {
     let transform = '';
     if (options.translate) {
@@ -282,6 +433,11 @@ export function polygon(points: { x: number, y: number }[]): Polygon {
     return rtn;
   }
 
+  /**
+   * 应用动画效果
+   * @param options 动画选项，包括属性、持续时间和回调函数
+   * @returns 多边形对象
+   */
   function animation(options: Animation) {
     const animations: string[] = [];
     if (options.properties) {
@@ -299,6 +455,12 @@ export function polygon(points: { x: number, y: number }[]): Polygon {
     return rtn;
   }
 
+  /**
+   * 添加事件监听器
+   * @param type 事件类型
+   * @param handler 事件处理函数
+   * @returns 包含移除监听器方法的对象
+   */
   function event(type: string, handler: (e: Event) => void) {
     polygon.addEventListener(type, handler);
     return {
@@ -307,16 +469,33 @@ export function polygon(points: { x: number, y: number }[]): Polygon {
     };
   }
 
+  /**
+   * 设置属性
+   * @param name 属性名
+   * @param value 属性值
+   * @returns 多边形对象
+   */
   function attr(name: string, value: string) {
     polygon.setAttribute(name, value);
     return rtn;
   }
 
+  /**
+   * 设置数据属性
+   * @param key 数据键名
+   * @param value 数据值
+   * @returns 多边形对象
+   */
   function data(key: string, value: any) {
     polygon.dataset[key] = value;
     return rtn;
   }
 
+  /**
+   * 添加CSS类
+   * @param names 类名或类名数组
+   * @returns 包含移除类名方法的对象
+   */
   function class_(names: string | string[]) {
     if (Array.isArray(names)) {
       polygon.classList.add(...names);
@@ -329,6 +508,12 @@ export function polygon(points: { x: number, y: number }[]): Polygon {
     };
   }
 
+  /**
+   * 添加工具提示
+   * @param content 提示内容，可以是字符串或HTML元素
+   * @param options 提示选项，包括位置、样式等
+   * @returns 多边形对象
+   */
   function tooltip(content: string | HTMLElement, options: TooltipOptions = {}) {
     const tip = document.createElement('div');
     if (typeof content === 'string') {
@@ -374,6 +559,12 @@ export function polygon(points: { x: number, y: number }[]): Polygon {
     return rtn;
   }
 
+  /**
+   * 添加视觉效果
+   * @param type 效果类型：'glow'发光、'shadow'阴影、'blur'模糊
+   * @param options 效果选项，包括颜色、强度等
+   * @returns 多边形对象
+   */
   function effect(type: 'glow' | 'shadow' | 'blur', options: EffectOptions = {}) {
     const { color = '#000', strength = 5, spread = 0 } = options;
     switch (type) {
@@ -392,4 +583,3 @@ export function polygon(points: { x: number, y: number }[]): Polygon {
 
   return rtn;
 }
-

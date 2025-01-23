@@ -1,26 +1,30 @@
 {
-  "name": "idea-math",
-  "version": "0.1.1",
+  "name": "ideajs",
+  "version": "1.0.0",
   "description": "SVG-based mathematical graph library.",
   "scripts": {
-    "build": "tsup",
-    "dev": "tsup --watch"
+    "build": "vite build",
+    "dev": "vite",
+    "preview": "vite preview",
+    "test": "vite test"
   },
   "keywords": [],
   "author": "",
-  "license": "MIT",
+  "license": "ISC",
   "devDependencies": {
+    "@types/node": "^20.11.0",
     "tsup": "^8.3.5",
-    "typescript": "^5.7.2"
-  },
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.mjs",
-      "require": "./dist/index.js"
-    }
+    "typescript": "^5.7.2",
+    "vite": "^5.0.0"
   },
   "dependencies": {
     "gsap": "^3.12.7"
-  }
+  },
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ]
 }

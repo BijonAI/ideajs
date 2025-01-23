@@ -1,53 +1,63 @@
 import { getTheme, setTheme } from '../theme';
+import { draggable } from '../utils/draggable';
 
 export function coordinate(width: number, height: number) {
   const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
+  const background = document.createElementNS("http://www.w3.org/2000/svg", "rect"); 
   const grid = document.createElementNS("http://www.w3.org/2000/svg", "g");
   const axes = document.createElementNS("http://www.w3.org/2000/svg", "g");
   const labels = document.createElementNS("http://www.w3.org/2000/svg", "g");
   const content = document.createElementNS("http://www.w3.org/2000/svg", "g");
-  
-  let unit = 50; // 默认1个单位对应50像素
-  
+
+  let unit = 50; 
+
+  background.setAttribute("width", width.toString());
+  background.setAttribute("height", height.toString());
+  background.setAttribute("x", (-width/2).toString());
+  background.setAttribute("y", (-height/2).toString());
+  background.setAttribute("fill", "transparent");
+  background.style.pointerEvents = "all"; 
+
+  group.appendChild(background);
   group.appendChild(grid);
   group.appendChild(axes);
   group.appendChild(labels);
   group.appendChild(content);
-  
+
   const xAxis = document.createElementNS("http://www.w3.org/2000/svg", "line");
   const yAxis = document.createElementNS("http://www.w3.org/2000/svg", "line");
   const xArrow = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
   const yArrow = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
-  
+
   xAxis.setAttribute("x1", (-width / 2).toString());
   xAxis.setAttribute("y1", "0");
   xAxis.setAttribute("x2", (width / 2).toString());
   xAxis.setAttribute("y2", "0");
   xAxis.setAttribute("stroke", "black");
   xAxis.setAttribute("stroke-width", "2");
-  
+
   yAxis.setAttribute("x1", "0");
   yAxis.setAttribute("y1", (-height / 2).toString());
   yAxis.setAttribute("x2", "0");
   yAxis.setAttribute("y2", (height / 2).toString());
   yAxis.setAttribute("stroke", "black");
   yAxis.setAttribute("stroke-width", "2");
-  
+
   xArrow.setAttribute("points", "-5,-4 0,0 5,-4 0,8");
   xArrow.setAttribute("transform", `translate(${width / 2}, 0) rotate(-90)`);
   xArrow.setAttribute("fill", "black");
   xArrow.setAttribute("stroke", "none");
-  
+
   yArrow.setAttribute("points", "-5,4 0,0 5,4 0,-8");
   yArrow.setAttribute("transform", `translate(0, ${-height / 2})`);
   yArrow.setAttribute("fill", "black");
   yArrow.setAttribute("stroke", "none");
-  
+
   axes.appendChild(xAxis);
   axes.appendChild(yAxis);
   axes.appendChild(xArrow);
   axes.appendChild(yArrow);
-  
+
   const rtn = {
     node: () => group,
     origin,
@@ -69,6 +79,7 @@ export function coordinate(width: number, height: number) {
     addMarker,
     addText,
     theme,
+    draggable: enableDragging,  
   }
 
   function origin(x: number, y: number) {
@@ -76,8 +87,8 @@ export function coordinate(width: number, height: number) {
     return rtn;
   }
 
-  function add(element: { 
-    node: () => SVGElement, 
+  function add(element: {
+    node: () => SVGElement,
     scale?: (x: number, y?: number) => any,
     offset?: (x: number, y: number) => any
   }) {
@@ -87,14 +98,12 @@ export function coordinate(width: number, height: number) {
 
   function setUnit(value: number) {
     unit = value;
-    // 更新网格和刻度
     if (grid.children.length > 0) {
       setGrid(unit);
     }
-    if (axes.children.length > 4) { // 4是两个轴线和两个箭头
+    if (axes.children.length > 4) { 
       setTicks(unit);
     }
-    // 更新所有已添加的图形
     Array.from(content.children).forEach(child => {
       const element = child as SVGElement;
       if (element.getAttribute('data-original-transform')) {
@@ -111,10 +120,10 @@ export function coordinate(width: number, height: number) {
 
   function setGrid(interval: number) {
     grid.innerHTML = "";
-    
+
     const verticalCount = Math.ceil(width / 2 / interval);
     const horizontalCount = Math.ceil(height / 2 / interval);
-    
+
     for (let i = -verticalCount; i <= verticalCount; i++) {
       if (i === 0) continue;
       const x = i * interval;
@@ -127,7 +136,7 @@ export function coordinate(width: number, height: number) {
       line.setAttribute("stroke-width", "1");
       grid.appendChild(line);
     }
-    
+
     for (let i = -horizontalCount; i <= horizontalCount; i++) {
       if (i === 0) continue;
       const y = i * interval;
@@ -140,19 +149,18 @@ export function coordinate(width: number, height: number) {
       line.setAttribute("stroke-width", "1");
       grid.appendChild(line);
     }
-    
+
     return rtn;
   }
 
   function setTicks(interval: number, length: number = 6) {
-    // 清除旧的刻度
-    while (axes.children.length > 4) { // 保留两个轴线和两个箭头
+    while (axes.children.length > 4) { 
       axes.removeChild(axes.lastChild);
     }
-    
+
     const verticalCount = Math.ceil(width / 2 / interval);
     const horizontalCount = Math.ceil(height / 2 / interval);
-    
+
     for (let i = -verticalCount; i <= verticalCount; i++) {
       if (i === 0) continue;
       const x = i * interval;
@@ -165,7 +173,7 @@ export function coordinate(width: number, height: number) {
       tick.setAttribute("stroke-width", "2");
       axes.appendChild(tick);
     }
-    
+
     for (let i = -horizontalCount; i <= horizontalCount; i++) {
       if (i === 0) continue;
       const y = i * interval;
@@ -178,7 +186,7 @@ export function coordinate(width: number, height: number) {
       tick.setAttribute("stroke-width", "2");
       axes.appendChild(tick);
     }
-    
+
     return rtn;
   }
 
@@ -186,7 +194,7 @@ export function coordinate(width: number, height: number) {
     labels.innerHTML = "";
     const verticalCount = Math.ceil(width / 2 / interval);
     const horizontalCount = Math.ceil(height / 2 / interval);
-    
+
     for (let i = -verticalCount; i <= verticalCount; i++) {
       if (i === 0) continue;
       const x = i * interval;
@@ -198,7 +206,7 @@ export function coordinate(width: number, height: number) {
       text.textContent = format(i * step);
       labels.appendChild(text);
     }
-    
+
     for (let i = -horizontalCount; i <= horizontalCount; i++) {
       if (i === 0) continue;
       const y = i * interval;
@@ -210,7 +218,7 @@ export function coordinate(width: number, height: number) {
       text.textContent = format(-i * step);
       labels.appendChild(text);
     }
-    
+
     return rtn;
   }
 
@@ -232,7 +240,6 @@ export function coordinate(width: number, height: number) {
     xAxis.setAttribute('stroke-width', options.width?.toString() || '2');
     xAxis.setAttribute('stroke-opacity', options.opacity?.toString() || '1');
     xAxis.setAttribute('stroke-dasharray', options.dashArray || '');
-    // Apply same to yAxis
     return rtn;
   }
 
@@ -281,7 +288,6 @@ export function coordinate(width: number, height: number) {
   function snap(enable: boolean) {
     if (enable) {
       content.setAttribute('data-snap', 'true');
-      // 实现网格吸附逻辑
       content.addEventListener('mousemove', (e) => {
         const rect = content.getBoundingClientRect();
         const x = Math.round((e.clientX - rect.left) / unit) * unit;
@@ -317,7 +323,7 @@ export function coordinate(width: number, height: number) {
         circle.setAttribute('fill', color);
         marker.appendChild(circle);
         break;
-      // 可以添加其他类型的标记
+      // 
     }
 
     content.appendChild(marker);
@@ -345,29 +351,77 @@ export function coordinate(width: number, height: number) {
   function theme(name: 'light' | 'dark') {
     setTheme(name);
     const theme = getTheme();
-    
-    // 应用主题到坐标系
+
     group.style.background = theme.colors.background;
-    
-    // 网格样式
-    gridStyle({ 
+
+    gridStyle({
       color: theme.colors.grid,
       width: theme.sizes.grid,
-      opacity: theme.opacity.grid 
+      opacity: theme.opacity.grid
     });
-    
-    // 坐标轴样式
-    axisStyle({ 
+
+    axisStyle({
       color: theme.colors.axis,
-      width: theme.sizes.axis 
+      width: theme.sizes.axis
     });
-    
-    // 文本样式
+
     labels.childNodes.forEach(node => {
       const text = node as SVGTextElement;
       text.setAttribute('fill', theme.colors.text);
     });
-    
+
+    return rtn;
+  }
+
+  let isDragging = false;
+  let dragEnabled = false;
+
+  function enableDragging() {
+    if (dragEnabled) return rtn;  
+
+    dragEnabled = true;
+
+    const destroy = draggable(background as SVGElement,
+      (x, y) => true,
+      (x, y) => {
+        const originX = x + width / 2;
+        const originY = y + height / 2;
+        origin(originX, originY);
+      }
+    );
+
+    const updateCursor = (cursor: string) => {
+      if (background.style) {
+        background.style.cursor = cursor;
+      }
+    };
+
+    background.addEventListener('mousedown', () => {
+      isDragging = true;
+      updateCursor('grabbing');
+    });
+
+    window.addEventListener('mouseup', () => {
+      if (isDragging) {
+        isDragging = false;
+        updateCursor('grab');
+      }
+    });
+
+    background.addEventListener('mouseover', () => {
+      if (!isDragging) {
+        updateCursor('grab');
+      }
+    });
+
+    background.addEventListener('mouseout', () => {
+      if (!isDragging) {
+        updateCursor('default');
+      }
+    });
+
+    updateCursor('grab');
+
     return rtn;
   }
 
