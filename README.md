@@ -94,3 +94,5 @@ coord.add(f);
 ## License 许可
 
 MIT © [BugDuck Team](https://github.com/bug-duck)
+
+ALL RIGHT RESERVED
