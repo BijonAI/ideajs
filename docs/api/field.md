@@ -30,6 +30,7 @@ canvas.origin(x: number, y: number)
 ```
 
 #### 参数
+
 - `x: number` - 原点x坐标
 - `y: number` - 原点y坐标
 
@@ -42,6 +43,7 @@ canvas.direct(x: Direction, y: Direction)
 ```
 
 #### 参数
+
 - `x: Direction` - x轴方向,可选值: `left()`, `right()`
 - `y: Direction` - y轴方向,可选值: `up()`, `down()`
 
@@ -54,6 +56,7 @@ canvas.add(renderable: Renderable)
 ```
 
 #### 参数
+
 - `renderable: Renderable` - 任何实现了 `node()` 方法的对象
 
 ### size()
@@ -65,6 +68,7 @@ canvas.size(width: number, height: number)
 ```
 
 #### 参数
+
 - `width: number` - 新的宽度
 - `height: number` - 新的高度
 
@@ -77,6 +81,7 @@ canvas.background(color: string)
 ```
 
 #### 参数
+
 - `color: string` - CSS颜色值
 
 ### border()
@@ -88,6 +93,7 @@ canvas.border(width: number, color: string)
 ```
 
 #### 参数
+
 - `width: number` - 边框宽度
 - `color: string` - 边框颜色
 
@@ -96,7 +102,7 @@ canvas.border(width: number, color: string)
 清空画布内容。
 
 ```typescript
-canvas.clear()
+canvas.clear();
 ```
 
 ### remove()
@@ -108,6 +114,7 @@ canvas.remove(element: Renderable)
 ```
 
 #### 参数
+
 - `element: Renderable` - 要移除的元素
 
 ### toDataURL()
@@ -115,10 +122,11 @@ canvas.remove(element: Renderable)
 将画布导出为 data URL。
 
 ```typescript
-const url = canvas.toDataURL()
+const url = canvas.toDataURL();
 ```
 
 #### 返回值
+
 - `string` - SVG 格式的 data URL
 
 ### viewBox()
@@ -130,6 +138,7 @@ canvas.viewBox(x: number, y: number, width: number, height: number)
 ```
 
 #### 参数
+
 - `x: number` - 视口左上角x坐标
 - `y: number` - 视口左上角y坐标
 - `width: number` - 视口宽度
@@ -144,6 +153,7 @@ canvas.zoom(scale: number)
 ```
 
 #### 参数
+
 - `scale: number` - 缩放比例
 
 ### presentation()
@@ -159,6 +169,7 @@ canvas.presentation(steps: {
 ```
 
 #### 参数
+
 - `steps` - 演示步骤数组
   - `elements` - 该步骤要显示的元素
   - `duration` - 该步骤持续时间(毫秒)
@@ -173,6 +184,7 @@ canvas.enableSnap(size: number)
 ```
 
 #### 参数
+
 - `size: number` - 网格大小
 
 ### teachingMode()
@@ -184,6 +196,7 @@ canvas.teachingMode(options?: TeachingOptions)
 ```
 
 #### 参数
+
 - `options` - 教学模式配置
   - `annotations?: boolean` - 是否启用标注
   - `stepDelay?: number` - 步骤间延迟
@@ -213,4 +226,4 @@ interface TeachingOptions {
 }
 ```
 
-教学模式的配置选项。 
+教学模式的配置选项。

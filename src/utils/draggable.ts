@@ -10,7 +10,11 @@
  * @param callback 可选的拖拽回调函数，在拖拽过程中会被调用，接收当前x和y坐标
  * @returns 包含destroy方法的对象，用于清理事件监听器
  */
-export function draggable(node: SVGElement, condition?: (x: number, y: number) => boolean, callback?: (x: number, y: number) => void) {
+export function draggable(
+  node: SVGElement,
+  condition?: (x: number, y: number) => boolean,
+  callback?: (x: number, y: number) => void,
+) {
   // 记录拖拽相关的坐标
   let x = 0;
   let y = 0;
@@ -30,8 +34,8 @@ export function draggable(node: SVGElement, condition?: (x: number, y: number) =
     startY = currentY;
 
     // 添加鼠标移动和抬起事件监听器
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('mouseup', handleMouseUp);
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseup", handleMouseUp);
   }
 
   /**
@@ -51,10 +55,10 @@ export function draggable(node: SVGElement, condition?: (x: number, y: number) =
     if (condition && !condition(currentX, currentY)) {
       handleMouseUp();
       return;
-    };
+    }
 
     // 更新元素位置并触发回调
-    node.setAttribute('transform', `translate(${currentX}, ${currentY})`);
+    node.setAttribute("transform", `translate(${currentX}, ${currentY})`);
     callback?.(currentX, currentY);
   }
 
@@ -63,17 +67,17 @@ export function draggable(node: SVGElement, condition?: (x: number, y: number) =
    * 移除事件监听器，结束拖拽
    */
   function handleMouseUp() {
-    window.removeEventListener('mousemove', handleMouseMove);
-    window.removeEventListener('mouseup', handleMouseUp);
+    window.removeEventListener("mousemove", handleMouseMove);
+    window.removeEventListener("mouseup", handleMouseUp);
   }
 
   // 添加鼠标按下事件监听器
-  node.addEventListener('mousedown', handleMouseDown);
+  node.addEventListener("mousedown", handleMouseDown);
 
   // 返回清理函数
   return {
     destroy() {
-      node.removeEventListener('mousedown', handleMouseDown);
-    }
+      node.removeEventListener("mousedown", handleMouseDown);
+    },
   };
 }

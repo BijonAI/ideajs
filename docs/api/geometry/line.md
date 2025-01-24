@@ -11,6 +11,7 @@ const l = line(x1: number, y1: number, x2: number, y2: number);
 ```
 
 ### 参数
+
 - `x1: number` - 起点x坐标
 - `y1: number` - 起点y坐标
 - `x2: number` - 终点x坐标
@@ -51,18 +52,19 @@ l.style(options: LineStyle)
 ```
 
 #### 参数
+
 ```typescript
 interface LineStyle {
   strokeWidth?: number;
   strokeColor?: string;
   strokeOpacity?: number;
   strokeDasharray?: string;
-  lineCap?: 'butt' | 'round' | 'square';
-  lineJoin?: 'miter' | 'round' | 'bevel';
+  lineCap?: "butt" | "round" | "square";
+  lineJoin?: "miter" | "round" | "bevel";
   cursor?: string;
   filter?: string;
-  visibility?: 'visible' | 'hidden';
-  pointerEvents?: 'none' | 'all';
+  visibility?: "visible" | "hidden";
+  pointerEvents?: "none" | "all";
 }
 ```
 
@@ -71,7 +73,7 @@ interface LineStyle {
 获取线段长度。
 
 ```typescript
-const length = l.length()
+const length = l.length();
 ```
 
 ### angle()
@@ -79,7 +81,7 @@ const length = l.length()
 获取线段角度。
 
 ```typescript
-const angle = l.angle()
+const angle = l.angle();
 ```
 
 ### midpoint()
@@ -87,7 +89,7 @@ const angle = l.angle()
 获取线段中点。
 
 ```typescript
-const { x, y } = l.midpoint()
+const { x, y } = l.midpoint();
 ```
 
 ### parallel()
@@ -139,10 +141,11 @@ l.marker(options?: MarkerOptions)
 ```
 
 #### 参数
+
 ```typescript
 interface MarkerOptions {
-  start?: 'arrow' | 'dot' | 'square' | SVGElement;
-  end?: 'arrow' | 'dot' | 'square' | SVGElement;
+  start?: "arrow" | "dot" | "square" | SVGElement;
+  end?: "arrow" | "dot" | "square" | SVGElement;
   size?: number;
   color?: string;
 }
@@ -191,4 +194,4 @@ l.constrain(options: {
 
 ## 继承的方法
 
-线段对象继承了所有通用的图形方法(transform, animation, event等)。 
+线段对象继承了所有通用的图形方法(transform, animation, event等)。

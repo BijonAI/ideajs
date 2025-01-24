@@ -3,23 +3,33 @@
  * @description 多边形对象的实现，提供创建和操作SVG多边形的功能，支持点的添加、删除、变形等操作
  */
 
-import { Transform, Animation, TooltipOptions, EffectOptions, TeachingOptions, AnimationStep } from '../interfaces/common';
-import { Polygon } from '../interfaces/geometry';
-import { getTheme } from '../theme';
-import { gsap } from 'gsap';
-import { draggable } from '../utils/draggable'
+import {
+  Transform,
+  Animation,
+  TooltipOptions,
+  EffectOptions,
+  TeachingOptions,
+  AnimationStep,
+} from "../interfaces/common";
+import { Polygon } from "../interfaces/geometry";
+import { getTheme } from "../theme";
+import { gsap } from "gsap";
+import { draggable } from "../utils/draggable";
 
 /**
  * 创建一个多边形对象
  * @param points 多边形的顶点数组，每个点包含x和y坐标
  * @returns 多边形对象，包含多种操作方法
  */
-export function polygon(points: { x: number, y: number }[]): Polygon {
+export function polygon(points: { x: number; y: number }[]): Polygon {
   // 创建SVG组元素作为容器
   const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
 
   // 创建SVG路径元素
-  const polygon = document.createElementNS("http://www.w3.org/2000/svg", "path");
+  const polygon = document.createElementNS(
+    "http://www.w3.org/2000/svg",
+    "path",
+  );
   const d = pointsToPath(points);
   polygon.setAttribute("d", d);
 
@@ -31,9 +41,12 @@ export function polygon(points: { x: number, y: number }[]): Polygon {
   polygon.setAttribute("fill-opacity", "0.1");
 
   // 创建顶点控制点和保存初始位置
-  const startPositions = points.map(point => ({ x: point.x, y: point.y }));
+  const startPositions = points.map((point) => ({ x: point.x, y: point.y }));
   const vertices = points.map((point, index) => {
-    const vertex = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    const vertex = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "circle",
+    );
     vertex.setAttribute("r", "4");
     vertex.setAttribute("fill", theme.colors.primary);
     vertex.setAttribute("cx", point.x.toString());
@@ -45,7 +58,7 @@ export function polygon(points: { x: number, y: number }[]): Polygon {
 
   // 将多边形和顶点控制点添加到组中
   group.appendChild(polygon);
-  vertices.forEach(vertex => group.appendChild(vertex));
+  vertices.forEach((vertex) => group.appendChild(vertex));
 
   let dragEnabled = false;
 
@@ -53,7 +66,7 @@ export function polygon(points: { x: number, y: number }[]): Polygon {
   function updateVertexPosition(index: number) {
     const vertex = vertices[index];
     vertex.setAttribute("cx", points[index].x.toString());
-    vertex.setAttribute("cy", (points[index].y).toString());
+    vertex.setAttribute("cy", points[index].y.toString());
   }
 
   // 更新多边形路径的函数
@@ -101,7 +114,10 @@ export function polygon(points: { x: number, y: number }[]): Polygon {
       return rtn;
     },
     // 添加注释
-    annotate: (text: string, position?: 'top' | 'bottom' | 'left' | 'right') => {
+    annotate: (
+      text: string,
+      position?: "top" | "bottom" | "left" | "right",
+    ) => {
       return rtn;
     },
     // 脉冲动画
@@ -122,16 +138,16 @@ export function polygon(points: { x: number, y: number }[]): Polygon {
     },
     // 锁定交互
     lock: () => {
-      polygon.style.pointerEvents = 'none';
+      polygon.style.pointerEvents = "none";
       return rtn;
     },
     // 解锁交互
     unlock: () => {
-      polygon.style.pointerEvents = 'all';
+      polygon.style.pointerEvents = "all";
       return rtn;
     },
     // 限制范围
-    restrict: (bounds: { x: [number, number], y: [number, number] }) => {
+    restrict: (bounds: { x: [number, number]; y: [number, number] }) => {
       return rtn;
     },
     // 网格对齐
@@ -139,17 +155,20 @@ export function polygon(points: { x: number, y: number }[]): Polygon {
       return rtn;
     },
     // 连接其他多边形
-    connect: (target: Polygon, options?: { elastic?: boolean, distance?: number, strength?: number }) => {
+    connect: (
+      target: Polygon,
+      options?: { elastic?: boolean; distance?: number; strength?: number },
+    ) => {
       return rtn;
     },
     // 显示多边形
     show: () => {
-      polygon.style.display = '';
+      polygon.style.display = "";
       return rtn;
     },
     // 隐藏多边形
     hide: () => {
-      polygon.style.display = 'none';
+      polygon.style.display = "none";
       return rtn;
     },
     // 设置透明度
@@ -160,21 +179,25 @@ export function polygon(points: { x: number, y: number }[]): Polygon {
     // 移除多边形
     remove: () => {
       group.remove();
-
     },
     draggable: enableDragging,
-  }
+  };
 
   /**
    * 将点数组转换为SVG路径数据
    * @param points 点数组
    * @returns SVG路径数据字符串
    */
-  function pointsToPath(points: { x: number, y: number }[]): string {
-    if (points.length === 0) return '';
-    return `M ${points[0].x} ${-points[0].y} ` +
-      points.slice(1).map(p => `L ${p.x} ${-p.y}`).join(' ') +
-      ' Z';
+  function pointsToPath(points: { x: number; y: number }[]): string {
+    if (points.length === 0) return "";
+    return (
+      `M ${points[0].x} ${-points[0].y} ` +
+      points
+        .slice(1)
+        .map((p) => `L ${p.x} ${-p.y}`)
+        .join(" ") +
+      " Z"
+    );
   }
 
   /**
@@ -182,7 +205,7 @@ export function polygon(points: { x: number, y: number }[]): Polygon {
    * @param points 新的顶点数组
    * @returns 多边形对象
    */
-  function setPoints(points: { x: number, y: number }[]) {
+  function setPoints(points: { x: number; y: number }[]) {
     polygon.setAttribute("d", pointsToPath(points));
     return rtn;
   }
@@ -193,7 +216,7 @@ export function polygon(points: { x: number, y: number }[]): Polygon {
    * @param point 新的顶点坐标
    * @returns 多边形对象
    */
-  function setPoint(index: number, point: { x: number, y: number }) {
+  function setPoint(index: number, point: { x: number; y: number }) {
     const points = getPoints();
     points[index] = point;
     polygon.setAttribute("d", pointsToPath(points));
@@ -204,12 +227,12 @@ export function polygon(points: { x: number, y: number }[]): Polygon {
    * 获取多边形的所有顶点
    * @returns 顶点数组
    */
-  function getPoints(): { x: number, y: number }[] {
-    const d = polygon.getAttribute("d") || '';
+  function getPoints(): { x: number; y: number }[] {
+    const d = polygon.getAttribute("d") || "";
     const commands = d.split(/(?=[MLZ])/);
     return commands
-      .filter(cmd => cmd.trim().length > 0 && cmd[0] !== 'Z')
-      .map(cmd => {
+      .filter((cmd) => cmd.trim().length > 0 && cmd[0] !== "Z")
+      .map((cmd) => {
         const [x, y] = cmd.slice(1).trim().split(/\s+/);
         return { x: Number(x), y: -Number(y) };
       });
@@ -221,7 +244,7 @@ export function polygon(points: { x: number, y: number }[]): Polygon {
    * @param point 新顶点坐标
    * @returns 多边形对象
    */
-  function insertBefore(index: number, point: { x: number, y: number }) {
+  function insertBefore(index: number, point: { x: number; y: number }) {
     const points = getPoints();
     points.splice(index, 0, point);
     polygon.setAttribute("d", pointsToPath(points));
@@ -234,7 +257,7 @@ export function polygon(points: { x: number, y: number }[]): Polygon {
    * @param point 新顶点坐标
    * @returns 多边形对象
    */
-  function insertAfter(index: number, point: { x: number, y: number }) {
+  function insertAfter(index: number, point: { x: number; y: number }) {
     const points = getPoints();
     points.splice(index + 1, 0, point);
     polygon.setAttribute("d", pointsToPath(points));
@@ -281,17 +304,21 @@ export function polygon(points: { x: number, y: number }[]): Polygon {
    * @returns 多边形对象
    */
   function style(options: {
-    strokeColor?: string,
-    strokeWidth?: number,
-    fillColor?: string,
-    opacity?: number,
-    dashArray?: string
+    strokeColor?: string;
+    strokeWidth?: number;
+    fillColor?: string;
+    opacity?: number;
+    dashArray?: string;
   }) {
-    if (options.strokeColor) polygon.setAttribute('stroke', options.strokeColor);
-    if (options.strokeWidth) polygon.setAttribute('stroke-width', options.strokeWidth.toString());
-    if (options.fillColor) polygon.setAttribute('fill', options.fillColor);
-    if (options.opacity) polygon.setAttribute('opacity', options.opacity.toString());
-    if (options.dashArray) polygon.setAttribute('stroke-dasharray', options.dashArray);
+    if (options.strokeColor)
+      polygon.setAttribute("stroke", options.strokeColor);
+    if (options.strokeWidth)
+      polygon.setAttribute("stroke-width", options.strokeWidth.toString());
+    if (options.fillColor) polygon.setAttribute("fill", options.fillColor);
+    if (options.opacity)
+      polygon.setAttribute("opacity", options.opacity.toString());
+    if (options.dashArray)
+      polygon.setAttribute("stroke-dasharray", options.dashArray);
     return rtn;
   }
 
@@ -305,8 +332,8 @@ export function polygon(points: { x: number, y: number }[]): Polygon {
     const length = polygon.getTotalLength();
     polygon.style.strokeDasharray = length.toString();
     polygon.style.strokeDashoffset = length.toString();
-    polygon.style.transition = `stroke-dashoffset ${duration}ms ${easing || 'linear'}`;
-    setTimeout(() => polygon.style.strokeDashoffset = '0', 0);
+    polygon.style.transition = `stroke-dashoffset ${duration}ms ${easing || "linear"}`;
+    setTimeout(() => (polygon.style.strokeDashoffset = "0"), 0);
     return rtn;
   }
 
@@ -321,8 +348,8 @@ export function polygon(points: { x: number, y: number }[]): Polygon {
     const targetPath = target.node();
     gsap.to(polygon, {
       duration: duration / 1000,
-      attr: { d: targetPath.getAttribute('d') },
-      ease: "power1.inOut"
+      attr: { d: targetPath.getAttribute("d") },
+      ease: "power1.inOut",
     });
     return rtn;
   }
@@ -390,7 +417,7 @@ export function polygon(points: { x: number, y: number }[]): Polygon {
    * @param point 要检查的点
    * @returns 多边形对象
    */
-  function contains(point: { x: number, y: number }) {
+  function contains(point: { x: number; y: number }) {
     // Implementation for checking if a point is inside the polygon
     return rtn;
   }
@@ -400,7 +427,7 @@ export function polygon(points: { x: number, y: number }[]): Polygon {
    * @param polygon 要检查的多边形
    * @returns 多边形对象
    */
-  function intersects(polygon: { x: number, y: number }[]) {
+  function intersects(polygon: { x: number; y: number }[]) {
     // Implementation for checking intersection
     return rtn;
   }
@@ -447,7 +474,7 @@ export function polygon(points: { x: number, y: number }[]): Polygon {
    * @returns 多边形对象
    */
   function transform(options: Transform) {
-    let transform = '';
+    let transform = "";
     if (options.translate) {
       transform += `translate(${options.translate[0]},${options.translate[1]}) `;
     }
@@ -467,7 +494,7 @@ export function polygon(points: { x: number, y: number }[]): Polygon {
     if (options.origin) {
       polygon.style.transformOrigin = `${options.origin[0]}px ${options.origin[1]}px`;
     }
-    polygon.setAttribute('transform', transform.trim());
+    polygon.setAttribute("transform", transform.trim());
     return rtn;
   }
 
@@ -481,14 +508,19 @@ export function polygon(points: { x: number, y: number }[]): Polygon {
     if (options.properties) {
       Object.entries(options.properties).forEach(([prop, { from, to }]) => {
         polygon.style.setProperty(prop, from);
-        animations.push(`${prop} ${options.duration || 300}ms ${options.easing || 'ease'}`);
+        animations.push(
+          `${prop} ${options.duration || 300}ms ${options.easing || "ease"}`,
+        );
         setTimeout(() => polygon.style.setProperty(prop, to), 0);
       });
     }
-    polygon.style.transition = animations.join(', ');
+    polygon.style.transition = animations.join(", ");
     options.onStart?.();
     if (options.onEnd) {
-      setTimeout(options.onEnd, (options.duration || 300) + (options.delay || 0));
+      setTimeout(
+        options.onEnd,
+        (options.duration || 300) + (options.delay || 0),
+      );
     }
     return rtn;
   }
@@ -503,7 +535,7 @@ export function polygon(points: { x: number, y: number }[]): Polygon {
     polygon.addEventListener(type, handler);
     return {
       remove: () => polygon.removeEventListener(type, handler),
-      rtn
+      rtn,
     };
   }
 
@@ -541,8 +573,9 @@ export function polygon(points: { x: number, y: number }[]): Polygon {
       polygon.classList.add(names);
     }
     return {
-      remove: () => polygon.classList.remove(...(Array.isArray(names) ? names : [names])),
-      rtn
+      remove: () =>
+        polygon.classList.remove(...(Array.isArray(names) ? names : [names])),
+      rtn,
     };
   }
 
@@ -552,9 +585,12 @@ export function polygon(points: { x: number, y: number }[]): Polygon {
    * @param options 提示选项，包括位置、样式等
    * @returns 多边形对象
    */
-  function tooltip(content: string | HTMLElement, options: TooltipOptions = {}) {
-    const tip = document.createElement('div');
-    if (typeof content === 'string') {
+  function tooltip(
+    content: string | HTMLElement,
+    options: TooltipOptions = {},
+  ) {
+    const tip = document.createElement("div");
+    if (typeof content === "string") {
       tip.textContent = content;
     } else {
       tip.appendChild(content);
@@ -562,25 +598,25 @@ export function polygon(points: { x: number, y: number }[]): Polygon {
     if (options.className) tip.className = options.className;
     if (options.style) Object.assign(tip.style, options.style);
 
-    polygon.addEventListener('mouseenter', (e) => {
+    polygon.addEventListener("mouseenter", (e) => {
       document.body.appendChild(tip);
       const rect = polygon.getBoundingClientRect();
       const [offsetX = 0, offsetY = 0] = options.offset || [0, 0];
 
       switch (options.position) {
-        case 'top':
+        case "top":
           tip.style.left = `${rect.left + rect.width / 2 + offsetX}px`;
           tip.style.top = `${rect.top - tip.offsetHeight + offsetY}px`;
           break;
-        case 'bottom':
+        case "bottom":
           tip.style.left = `${rect.left + rect.width / 2 + offsetX}px`;
           tip.style.top = `${rect.bottom + offsetY}px`;
           break;
-        case 'left':
+        case "left":
           tip.style.left = `${rect.left - tip.offsetWidth + offsetX}px`;
           tip.style.top = `${rect.top + rect.height / 2 + offsetY}px`;
           break;
-        case 'right':
+        case "right":
           tip.style.left = `${rect.right + offsetX}px`;
           tip.style.top = `${rect.top + rect.height / 2 + offsetY}px`;
           break;
@@ -590,7 +626,7 @@ export function polygon(points: { x: number, y: number }[]): Polygon {
       }
     });
 
-    polygon.addEventListener('mouseleave', () => {
+    polygon.addEventListener("mouseleave", () => {
       tip.remove();
     });
 
@@ -603,16 +639,19 @@ export function polygon(points: { x: number, y: number }[]): Polygon {
    * @param options 效果选项，包括颜色、强度等
    * @returns 多边形对象
    */
-  function effect(type: 'glow' | 'shadow' | 'blur', options: EffectOptions = {}) {
-    const { color = '#000', strength = 5, spread = 0 } = options;
+  function effect(
+    type: "glow" | "shadow" | "blur",
+    options: EffectOptions = {},
+  ) {
+    const { color = "#000", strength = 5, spread = 0 } = options;
     switch (type) {
-      case 'glow':
+      case "glow":
         polygon.style.filter = `drop-shadow(0 0 ${strength}px ${color})`;
         break;
-      case 'shadow':
+      case "shadow":
         polygon.style.filter = `drop-shadow(${spread}px ${spread}px ${strength}px ${color})`;
         break;
-      case 'blur':
+      case "blur":
         polygon.style.filter = `blur(${strength}px)`;
         break;
     }
@@ -631,14 +670,15 @@ export function polygon(points: { x: number, y: number }[]): Polygon {
       let endDragY = 0;
       let isDragging = false;
 
-      draggable(vertex,
+      draggable(
+        vertex,
         (_x, _y) => true,
         (x, y) => {
           if (!isDragging) {
             startDragX = x;
             startDragY = y;
-            endDragX = Number(vertex.getAttribute('cx'));
-            endDragY = Number(vertex.getAttribute('cy'));
+            endDragX = Number(vertex.getAttribute("cx"));
+            endDragY = Number(vertex.getAttribute("cy"));
             isDragging = true;
           }
 
@@ -653,17 +693,15 @@ export function polygon(points: { x: number, y: number }[]): Polygon {
           // 更新视图
           updateVertexPosition(index);
           updatePolygonPath();
-        }
+        },
       );
 
       // 添加鼠标抬起事件处理
       const handleMouseUp = () => {
         isDragging = false;
       };
-      vertex.addEventListener('mouseup', handleMouseUp);
+      vertex.addEventListener("mouseup", handleMouseUp);
     });
-
-
 
     return rtn;
   }

@@ -8,7 +8,7 @@
  * @returns {Symbol} 代表左方向的Symbol
  */
 export function left() {
-  return Symbol('left');
+  return Symbol("left");
 }
 
 /**
@@ -16,7 +16,7 @@ export function left() {
  * @returns {Symbol} 代表右方向的Symbol
  */
 export function right() {
-  return Symbol('right');
+  return Symbol("right");
 }
 
 /**
@@ -24,7 +24,7 @@ export function right() {
  * @returns {Symbol} 代表上方向的Symbol
  */
 export function up() {
-  return Symbol('up');
+  return Symbol("up");
 }
 
 /**
@@ -32,10 +32,14 @@ export function up() {
  * @returns {Symbol} 代表下方向的Symbol
  */
 export function down() {
-  return Symbol('down');
+  return Symbol("down");
 }
 
 /**
  * Direction类型定义，表示四个基本方向的联合类型
  */
-export type Direction = ReturnType<typeof left> | ReturnType<typeof right> | ReturnType<typeof up> | ReturnType<typeof down>;
+export type Direction =
+  | ReturnType<typeof left>
+  | ReturnType<typeof right>
+  | ReturnType<typeof up>
+  | ReturnType<typeof down>;

@@ -11,6 +11,7 @@ const coord = coordinate(width: number, height: number);
 ```
 
 ### 参数
+
 - `width: number` - 坐标系宽度
 - `height: number` - 坐标系高度
 
@@ -71,7 +72,7 @@ coord.axisStyle(options: {
 隐藏坐标轴。
 
 ```typescript
-coord.hideAxis()
+coord.hideAxis();
 ```
 
 ### hideGrid()
@@ -79,7 +80,7 @@ coord.hideAxis()
 隐藏网格。
 
 ```typescript
-coord.hideGrid()
+coord.hideGrid();
 ```
 
 ### hideLabels()
@@ -87,7 +88,7 @@ coord.hideGrid()
 隐藏标签。
 
 ```typescript
-coord.hideLabels()
+coord.hideLabels();
 ```
 
 ### zoom()
@@ -119,7 +120,7 @@ coord.snap(enable: boolean)
 导出为SVG。
 
 ```typescript
-const url = coord.exportSVG()
+const url = coord.exportSVG();
 ```
 
 ### addMarker()
@@ -152,4 +153,4 @@ coord.addText(x: number, y: number, text: string, options?: {
 
 ```typescript
 coord.theme(name: 'light' | 'dark')
-``` 
+```

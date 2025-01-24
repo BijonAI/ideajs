@@ -12,9 +12,12 @@ import { Renderable } from "./field";
  * @returns 包含各种组操作方法的对象
  */
 export function group(x: number, y: number) {
-  const groupElement = document.createElementNS("http://www.w3.org/2000/svg", "g");
+  const groupElement = document.createElementNS(
+    "http://www.w3.org/2000/svg",
+    "g",
+  );
   groupElement.setAttribute("transform", `translate(${x}, ${y})`);
-  
+
   const rtn = {
     groupElement,
     add: (element: Renderable) => {
@@ -38,7 +41,7 @@ export function group(x: number, y: number) {
     find,
     forEach,
     transform,
-  }
+  };
 
   /**
    * 对组应用平移变换
@@ -78,7 +81,7 @@ export function group(x: number, y: number) {
    * @returns 组对象
    */
   function opacity(value: number) {
-    groupElement.setAttribute('opacity', value.toString());
+    groupElement.setAttribute("opacity", value.toString());
     return rtn;
   }
 
@@ -88,7 +91,7 @@ export function group(x: number, y: number) {
    * @returns 组对象
    */
   function visibility(visible: boolean) {
-    groupElement.style.display = visible ? 'block' : 'none';
+    groupElement.style.display = visible ? "block" : "none";
     return rtn;
   }
 
@@ -98,11 +101,11 @@ export function group(x: number, y: number) {
    * @returns 组对象
    */
   function animate(options: {
-    duration: number,
-    translate?: [number, number],
-    scale?: [number, number],
-    rotate?: number,
-    opacity?: number
+    duration: number;
+    translate?: [number, number];
+    scale?: [number, number];
+    rotate?: number;
+    opacity?: number;
   }) {
     groupElement.style.transition = `transform ${options.duration}ms, opacity ${options.duration}ms`;
     // Apply animations...
@@ -115,12 +118,15 @@ export function group(x: number, y: number) {
    * @returns 组对象
    */
   function clip(path: SVGPathElement) {
-    const clipPath = document.createElementNS("http://www.w3.org/2000/svg", "clipPath");
-    const id = 'clip-' + Math.random().toString(36).substr(2, 9);
-    clipPath.setAttribute('id', id);
+    const clipPath = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "clipPath",
+    );
+    const id = "clip-" + Math.random().toString(36).substr(2, 9);
+    clipPath.setAttribute("id", id);
     clipPath.appendChild(path);
     groupElement.appendChild(clipPath);
-    groupElement.setAttribute('clip-path', `url(#${id})`);
+    groupElement.setAttribute("clip-path", `url(#${id})`);
     return rtn;
   }
 
@@ -130,28 +136,37 @@ export function group(x: number, y: number) {
    * @param value 滤镜值
    * @returns 组对象
    */
-  function filter(type: 'blur' | 'shadow' | 'glow', value: number) {
-    const filter = document.createElementNS("http://www.w3.org/2000/svg", "filter");
-    const id = 'filter-' + Math.random().toString(36).substr(2, 9);
-    filter.setAttribute('id', id);
-    
+  function filter(type: "blur" | "shadow" | "glow", value: number) {
+    const filter = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "filter",
+    );
+    const id = "filter-" + Math.random().toString(36).substr(2, 9);
+    filter.setAttribute("id", id);
+
     switch (type) {
-      case 'blur':
-        const blur = document.createElementNS("http://www.w3.org/2000/svg", "feGaussianBlur");
-        blur.setAttribute('stdDeviation', value.toString());
+      case "blur":
+        const blur = document.createElementNS(
+          "http://www.w3.org/2000/svg",
+          "feGaussianBlur",
+        );
+        blur.setAttribute("stdDeviation", value.toString());
         filter.appendChild(blur);
         break;
-      case 'shadow':
-        const offset = document.createElementNS("http://www.w3.org/2000/svg", "feOffset");
-        offset.setAttribute('dx', value.toString());
-        offset.setAttribute('dy', value.toString());
+      case "shadow":
+        const offset = document.createElementNS(
+          "http://www.w3.org/2000/svg",
+          "feOffset",
+        );
+        offset.setAttribute("dx", value.toString());
+        offset.setAttribute("dy", value.toString());
         filter.appendChild(offset);
         break;
       // Add more filter types...
     }
-    
+
     groupElement.appendChild(filter);
-    groupElement.setAttribute('filter', `url(#${id})`);
+    groupElement.setAttribute("filter", `url(#${id})`);
     return rtn;
   }
 
@@ -162,27 +177,27 @@ export function group(x: number, y: number) {
    */
   function drag(onDrag?: (x: number, y: number) => void) {
     let startX: number, startY: number;
-    
-    groupElement.addEventListener('mousedown', (e) => {
+
+    groupElement.addEventListener("mousedown", (e) => {
       startX = e.clientX;
       startY = e.clientY;
-      
+
       const onMouseMove = (e: MouseEvent) => {
         const dx = e.clientX - startX;
         const dy = e.clientY - startY;
         translate(dx, dy);
         onDrag?.(dx, dy);
       };
-      
+
       const onMouseUp = () => {
-        document.removeEventListener('mousemove', onMouseMove);
-        document.removeEventListener('mouseup', onMouseUp);
+        document.removeEventListener("mousemove", onMouseMove);
+        document.removeEventListener("mouseup", onMouseUp);
       };
-      
-      document.addEventListener('mousemove', onMouseMove);
-      document.addEventListener('mouseup', onMouseUp);
+
+      document.addEventListener("mousemove", onMouseMove);
+      document.addEventListener("mouseup", onMouseUp);
     });
-    
+
     return rtn;
   }
 
@@ -249,10 +264,10 @@ export function group(x: number, y: number) {
    * @returns 组对象
    */
   function transform(matrix: DOMMatrix | string) {
-    if (typeof matrix === 'string') {
-      groupElement.setAttribute('transform', matrix);
+    if (typeof matrix === "string") {
+      groupElement.setAttribute("transform", matrix);
     } else {
-      groupElement.setAttribute('transform', matrix.toString());
+      groupElement.setAttribute("transform", matrix.toString());
     }
     return rtn;
   }
@@ -262,21 +277,32 @@ export function group(x: number, y: number) {
    * @returns 新的组对象
    */
   function clone() {
-    const clonedGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
+    const clonedGroup = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "g",
+    );
     // 复制所有属性
-    Array.from(groupElement.attributes).forEach(attr => {
+    Array.from(groupElement.attributes).forEach((attr) => {
       clonedGroup.setAttribute(attr.name, attr.value);
     });
-    
+
     // 深度克隆所有子元素
-    Array.from(groupElement.children).forEach(child => {
+    Array.from(groupElement.children).forEach((child) => {
       clonedGroup.appendChild(child.cloneNode(true));
     });
-    
+
     // 返回一个新的 group 实例
     return group(
-      parseFloat(clonedGroup.getAttribute('transform')?.match(/translate\((.*?),(.*?)\)/)?.[1] || '0'),
-      parseFloat(clonedGroup.getAttribute('transform')?.match(/translate\((.*?),(.*?)\)/)?.[2] || '0')
+      parseFloat(
+        clonedGroup
+          .getAttribute("transform")
+          ?.match(/translate\((.*?),(.*?)\)/)?.[1] || "0",
+      ),
+      parseFloat(
+        clonedGroup
+          .getAttribute("transform")
+          ?.match(/translate\((.*?),(.*?)\)/)?.[2] || "0",
+      ),
     ).add({ node: () => clonedGroup });
   }
 

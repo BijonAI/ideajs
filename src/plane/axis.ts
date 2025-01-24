@@ -13,8 +13,14 @@
  */
 export function axis(x1: number, y1: number, x2: number, y2: number) {
   const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
-  const mainLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
-  const arrow = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
+  const mainLine = document.createElementNS(
+    "http://www.w3.org/2000/svg",
+    "line",
+  );
+  const arrow = document.createElementNS(
+    "http://www.w3.org/2000/svg",
+    "polygon",
+  );
   const ticks = document.createElementNS("http://www.w3.org/2000/svg", "g");
   const labels = document.createElementNS("http://www.w3.org/2000/svg", "g");
 
@@ -45,7 +51,7 @@ export function axis(x1: number, y1: number, x2: number, y2: number) {
     stroke,
     ticks: setTicks,
     labels: setLabels,
-  }
+  };
 
   /**
    * 调整箭头位置和角度
@@ -55,7 +61,7 @@ export function axis(x1: number, y1: number, x2: number, y2: number) {
    * @param y2 终点y坐标
    */
   function adjustArrow(x1: number, y1: number, x2: number, y2: number) {
-    const angle = Math.atan2(y2 - y1, x2 - x1) * 180 / Math.PI - 90;
+    const angle = (Math.atan2(y2 - y1, x2 - x1) * 180) / Math.PI - 90;
     arrow.setAttribute("transform", `translate(${x2}, ${y2}) rotate(${angle})`);
   }
 
@@ -68,7 +74,12 @@ export function axis(x1: number, y1: number, x2: number, y2: number) {
   function from(x: number, y: number) {
     mainLine.setAttribute("x1", x.toString());
     mainLine.setAttribute("y1", y.toString());
-    adjustArrow(x, y, Number(mainLine.getAttribute("x2")), Number(mainLine.getAttribute("y2")));
+    adjustArrow(
+      x,
+      y,
+      Number(mainLine.getAttribute("x2")),
+      Number(mainLine.getAttribute("y2")),
+    );
     updateTicks();
     return rtn;
   }
@@ -82,7 +93,12 @@ export function axis(x1: number, y1: number, x2: number, y2: number) {
   function to(x: number, y: number) {
     mainLine.setAttribute("x2", x.toString());
     mainLine.setAttribute("y2", y.toString());
-    adjustArrow(Number(mainLine.getAttribute("x1")), Number(mainLine.getAttribute("y1")), x, y);
+    adjustArrow(
+      Number(mainLine.getAttribute("x1")),
+      Number(mainLine.getAttribute("y1")),
+      x,
+      y,
+    );
     updateTicks();
     return rtn;
   }
@@ -117,14 +133,17 @@ export function axis(x1: number, y1: number, x2: number, y2: number) {
 
     // 创建刻度线
     for (let i = 0; i <= tickCount; i++) {
-      const tick = document.createElementNS("http://www.w3.org/2000/svg", "line");
+      const tick = document.createElementNS(
+        "http://www.w3.org/2000/svg",
+        "line",
+      );
       const x = x1 + Math.cos(angle) * interval * i;
       const y = y1 + Math.sin(angle) * interval * i;
 
-      tick.setAttribute("x1", (x - Math.sin(angle) * length / 2).toString());
-      tick.setAttribute("y1", (y + Math.cos(angle) * length / 2).toString());
-      tick.setAttribute("x2", (x + Math.sin(angle) * length / 2).toString());
-      tick.setAttribute("y2", (y - Math.cos(angle) * length / 2).toString());
+      tick.setAttribute("x1", (x - (Math.sin(angle) * length) / 2).toString());
+      tick.setAttribute("y1", (y + (Math.cos(angle) * length) / 2).toString());
+      tick.setAttribute("x2", (x + (Math.sin(angle) * length) / 2).toString());
+      tick.setAttribute("y2", (y - (Math.cos(angle) * length) / 2).toString());
       tick.setAttribute("stroke", mainLine.getAttribute("stroke"));
       tick.setAttribute("stroke-width", "1");
 
@@ -140,7 +159,11 @@ export function axis(x1: number, y1: number, x2: number, y2: number) {
    * @param format 格式化函数
    * @returns 坐标轴对象
    */
-  function setLabels(start: number, step: number = 1, format: (n: number) => string = String) {
+  function setLabels(
+    start: number,
+    step: number = 1,
+    format: (n: number) => string = String,
+  ) {
     labels.innerHTML = "";
     const x1 = Number(mainLine.getAttribute("x1"));
     const y1 = Number(mainLine.getAttribute("y1"));
@@ -154,7 +177,10 @@ export function axis(x1: number, y1: number, x2: number, y2: number) {
 
     // 创建刻度标签
     for (let i = 0; i <= tickCount; i++) {
-      const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      const text = document.createElementNS(
+        "http://www.w3.org/2000/svg",
+        "text",
+      );
       const x = x1 + Math.cos(angle) * interval * i;
       const y = y1 + Math.sin(angle) * interval * i;
 
@@ -172,13 +198,24 @@ export function axis(x1: number, y1: number, x2: number, y2: number) {
    * 更新刻度线位置
    */
   function updateTicks() {
-    const tickLength = ticks.children.length > 0 ?
-      Math.abs(Number(ticks.children[0].getAttribute("y2")) - Number(ticks.children[0].getAttribute("y1"))) :
-      10;
-    const interval = ticks.children.length > 0 ?
-      Math.sqrt((Number(ticks.children[1].getAttribute("x1")) - Number(ticks.children[0].getAttribute("x1"))) ** 2 +
-        (Number(ticks.children[1].getAttribute("y1")) - Number(ticks.children[0].getAttribute("y1"))) ** 2) :
-      0;
+    const tickLength =
+      ticks.children.length > 0
+        ? Math.abs(
+            Number(ticks.children[0].getAttribute("y2")) -
+              Number(ticks.children[0].getAttribute("y1")),
+          )
+        : 10;
+    const interval =
+      ticks.children.length > 0
+        ? Math.sqrt(
+            (Number(ticks.children[1].getAttribute("x1")) -
+              Number(ticks.children[0].getAttribute("x1"))) **
+              2 +
+              (Number(ticks.children[1].getAttribute("y1")) -
+                Number(ticks.children[0].getAttribute("y1"))) **
+                2,
+          )
+        : 0;
 
     if (interval > 0) {
       setTicks(interval, tickLength);

@@ -7,18 +7,21 @@ A powerful mathematical visualization library for interactive geometry and funct
 ## Features 特性
 
 - **Interactive Geometry 交互式几何**
+
   - Basic shapes (point, line, circle, etc.) 基础图形(点、线、圆等)
   - Drag & drop support 支持拖拽
   - Constraints & measurements 约束和测量
   - Grid snapping 网格吸附
 
 - **Function Plotting 函数绘图**
+
   - Smooth curve rendering 平滑曲线渲染
   - Derivatives & integrals 导数和积分
   - Discontinuity handling 不连续点处理
   - Asymptotes & intersections 渐近线和交点
 
 - **Rich Interactions 丰富的交互**
+
   - Mouse & touch events 鼠标和触摸事件
   - Tooltips & annotations 工具提示和标注
   - Animations & effects 动画和特效
@@ -33,20 +36,17 @@ A powerful mathematical visualization library for interactive geometry and funct
 ## Quick Start 快速开始
 
 ```typescript
-import { field, coordinate, func } from 'idea-js';
+import { field, coordinate, func } from "idea-js";
 
 // Create canvas 创建画布
 const canvas = field(800, 600);
 
 // Create coordinate system 创建坐标系
-const coord = coordinate(800, 600)
-  .origin(400, 300)
-  .grid(50)
-  .unit(50);
+const coord = coordinate(800, 600).origin(400, 300).grid(50).unit(50);
 
 // Plot function 绘制函数
-const f = func(x => Math.sin(x), [-2 * Math.PI, 2 * Math.PI])
-  .stroke('blue')
+const f = func((x) => Math.sin(x), [-2 * Math.PI, 2 * Math.PI])
+  .stroke("blue")
   .animate(1000);
 
 // Add to canvas 添加到画布

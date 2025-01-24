@@ -3,10 +3,17 @@
  * @description 圆弧绘制模块，提供创建和操作SVG圆弧的功能
  */
 
-import { getTheme } from '../theme';
-import { Arc } from '../interfaces/geometry';
-import { Transform, Animation, TooltipOptions, EffectOptions, TeachingOptions, AnimationStep } from '../interfaces/common';
-import { gsap } from 'gsap';
+import { getTheme } from "../theme";
+import { Arc } from "../interfaces/geometry";
+import {
+  Transform,
+  Animation,
+  TooltipOptions,
+  EffectOptions,
+  TeachingOptions,
+  AnimationStep,
+} from "../interfaces/common";
+import { gsap } from "gsap";
 
 /**
  * 创建一个圆弧对象
@@ -44,18 +51,18 @@ export function arc(x: number, y: number, radius: number = 50): Arc {
     effect,
     // 缩放方法
     scale: (x: number, y: number = x) => {
-      const currentD = arc.getAttribute('d') || '';
+      const currentD = arc.getAttribute("d") || "";
       const scaledD = currentD.replace(/[\d.-]+/g, (match) => {
         const num = parseFloat(match);
         return (num * x).toString();
       });
-      arc.setAttribute('d', scaledD);
+      arc.setAttribute("d", scaledD);
       return rtn;
     },
     // 偏移方法
     offset: (x: number, y: number) => {
-      const transform = arc.getAttribute('transform') || '';
-      arc.setAttribute('transform', transform + ` translate(${x},${y})`);
+      const transform = arc.getAttribute("transform") || "";
+      arc.setAttribute("transform", transform + ` translate(${x},${y})`);
       return rtn;
     },
     // 以下方法为占位符，保持接口一致性
@@ -65,9 +72,11 @@ export function arc(x: number, y: number, radius: number = 50): Arc {
     domain: (min: number, max: number) => rtn,
     // 样式设置
     style: (options: any) => {
-      if (options.color) arc.setAttribute('stroke', options.color);
-      if (options.width) arc.setAttribute('stroke-width', options.width.toString());
-      if (options.opacity) arc.setAttribute('opacity', options.opacity.toString());
+      if (options.color) arc.setAttribute("stroke", options.color);
+      if (options.width)
+        arc.setAttribute("stroke-width", options.width.toString());
+      if (options.opacity)
+        arc.setAttribute("opacity", options.opacity.toString());
       return rtn;
     },
     // 高亮显示
@@ -75,7 +84,10 @@ export function arc(x: number, y: number, radius: number = 50): Arc {
       return rtn;
     },
     // 添加注释
-    annotate: (text: string, position?: 'top' | 'bottom' | 'left' | 'right') => {
+    annotate: (
+      text: string,
+      position?: "top" | "bottom" | "left" | "right",
+    ) => {
       return rtn;
     },
     // 脉冲动画
@@ -96,16 +108,16 @@ export function arc(x: number, y: number, radius: number = 50): Arc {
     },
     // 锁定交互
     lock: () => {
-      arc.style.pointerEvents = 'none';
+      arc.style.pointerEvents = "none";
       return rtn;
     },
     // 解锁交互
     unlock: () => {
-      arc.style.pointerEvents = 'all';
+      arc.style.pointerEvents = "all";
       return rtn;
     },
     // 限制范围
-    restrict: (bounds: { x: [number, number], y: [number, number] }) => {
+    restrict: (bounds: { x: [number, number]; y: [number, number] }) => {
       return rtn;
     },
     // 网格对齐
@@ -113,7 +125,10 @@ export function arc(x: number, y: number, radius: number = 50): Arc {
       return rtn;
     },
     // 连接其他圆弧
-    connect: (target: Arc, options?: { elastic?: boolean, distance?: number, strength?: number }) => {
+    connect: (
+      target: Arc,
+      options?: { elastic?: boolean; distance?: number; strength?: number },
+    ) => {
       return rtn;
     },
     // 绘制动画
@@ -125,25 +140,22 @@ export function arc(x: number, y: number, radius: number = 50): Arc {
         arc.style.strokeDasharray = length.toString();
         arc.style.strokeDashoffset = length.toString();
 
-        arc.animate([
-          { strokeDashoffset: length },
-          { strokeDashoffset: 0 }
-        ], {
+        arc.animate([{ strokeDashoffset: length }, { strokeDashoffset: 0 }], {
           duration,
-          easing: 'ease-in-out',
-          fill: 'forwards'
+          easing: "ease-in-out",
+          fill: "forwards",
         });
       });
       return rtn;
     },
     // 显示圆弧
     show: () => {
-      arc.style.display = '';
+      arc.style.display = "";
       return rtn;
     },
     // 隐藏圆弧
     hide: () => {
-      arc.style.display = 'none';
+      arc.style.display = "none";
       return rtn;
     },
     // 设置透明度
@@ -161,12 +173,12 @@ export function arc(x: number, y: number, radius: number = 50): Arc {
       const targetArc = target.node();
       gsap.to(arc, {
         duration: duration / 1000,
-        attr: { d: targetArc.getAttribute('d') },
-        ease: "power1.inOut"
+        attr: { d: targetArc.getAttribute("d") },
+        ease: "power1.inOut",
       });
       return rtn;
-    }
-  }
+    },
+  };
 
   /**
    * 设置圆弧起始角度
@@ -220,7 +232,7 @@ export function arc(x: number, y: number, radius: number = 50): Arc {
    * @returns 圆弧对象
    */
   function transform(options: Transform) {
-    let transform = '';
+    let transform = "";
     if (options.translate) {
       transform += `translate(${options.translate[0]},${options.translate[1]}) `;
     }
@@ -240,7 +252,7 @@ export function arc(x: number, y: number, radius: number = 50): Arc {
     if (options.origin) {
       arc.style.transformOrigin = `${options.origin[0]}px ${options.origin[1]}px`;
     }
-    arc.setAttribute('transform', transform.trim());
+    arc.setAttribute("transform", transform.trim());
     return rtn;
   }
 
@@ -254,14 +266,19 @@ export function arc(x: number, y: number, radius: number = 50): Arc {
     if (options.properties) {
       Object.entries(options.properties).forEach(([prop, { from, to }]) => {
         arc.style.setProperty(prop, from);
-        animations.push(`${prop} ${options.duration || 300}ms ${options.easing || 'ease'}`);
+        animations.push(
+          `${prop} ${options.duration || 300}ms ${options.easing || "ease"}`,
+        );
         setTimeout(() => arc.style.setProperty(prop, to), 0);
       });
     }
-    arc.style.transition = animations.join(', ');
+    arc.style.transition = animations.join(", ");
     options.onStart?.();
     if (options.onEnd) {
-      setTimeout(options.onEnd, (options.duration || 300) + (options.delay || 0));
+      setTimeout(
+        options.onEnd,
+        (options.duration || 300) + (options.delay || 0),
+      );
     }
     return rtn;
   }
@@ -276,7 +293,7 @@ export function arc(x: number, y: number, radius: number = 50): Arc {
     arc.addEventListener(type, handler);
     return {
       remove: () => arc.removeEventListener(type, handler),
-      rtn
+      rtn,
     };
   }
 
@@ -314,8 +331,9 @@ export function arc(x: number, y: number, radius: number = 50): Arc {
       arc.classList.add(names);
     }
     return {
-      remove: () => arc.classList.remove(...(Array.isArray(names) ? names : [names])),
-      rtn
+      remove: () =>
+        arc.classList.remove(...(Array.isArray(names) ? names : [names])),
+      rtn,
     };
   }
 
@@ -325,9 +343,12 @@ export function arc(x: number, y: number, radius: number = 50): Arc {
    * @param options 提示选项，包括位置、样式等
    * @returns 圆弧对象
    */
-  function tooltip(content: string | HTMLElement, options: TooltipOptions = {}) {
-    const tip = document.createElement('div');
-    if (typeof content === 'string') {
+  function tooltip(
+    content: string | HTMLElement,
+    options: TooltipOptions = {},
+  ) {
+    const tip = document.createElement("div");
+    if (typeof content === "string") {
       tip.textContent = content;
     } else {
       tip.appendChild(content);
@@ -335,25 +356,25 @@ export function arc(x: number, y: number, radius: number = 50): Arc {
     if (options.className) tip.className = options.className;
     if (options.style) Object.assign(tip.style, options.style);
 
-    arc.addEventListener('mouseenter', (e) => {
+    arc.addEventListener("mouseenter", (e) => {
       document.body.appendChild(tip);
       const rect = arc.getBoundingClientRect();
       const [offsetX = 0, offsetY = 0] = options.offset || [0, 0];
 
       switch (options.position) {
-        case 'top':
+        case "top":
           tip.style.left = `${rect.left + rect.width / 2 + offsetX}px`;
           tip.style.top = `${rect.top - tip.offsetHeight + offsetY}px`;
           break;
-        case 'bottom':
+        case "bottom":
           tip.style.left = `${rect.left + rect.width / 2 + offsetX}px`;
           tip.style.top = `${rect.bottom + offsetY}px`;
           break;
-        case 'left':
+        case "left":
           tip.style.left = `${rect.left - tip.offsetWidth + offsetX}px`;
           tip.style.top = `${rect.top + rect.height / 2 + offsetY}px`;
           break;
-        case 'right':
+        case "right":
           tip.style.left = `${rect.right + offsetX}px`;
           tip.style.top = `${rect.top + rect.height / 2 + offsetY}px`;
           break;
@@ -363,7 +384,7 @@ export function arc(x: number, y: number, radius: number = 50): Arc {
       }
     });
 
-    arc.addEventListener('mouseleave', () => {
+    arc.addEventListener("mouseleave", () => {
       tip.remove();
     });
 
@@ -376,16 +397,19 @@ export function arc(x: number, y: number, radius: number = 50): Arc {
    * @param options 效果选项，包括颜色、强度等
    * @returns 圆弧对象
    */
-  function effect(type: 'glow' | 'shadow' | 'blur', options: EffectOptions = {}) {
-    const { color = '#000', strength = 5, spread = 0 } = options;
+  function effect(
+    type: "glow" | "shadow" | "blur",
+    options: EffectOptions = {},
+  ) {
+    const { color = "#000", strength = 5, spread = 0 } = options;
     switch (type) {
-      case 'glow':
+      case "glow":
         arc.style.filter = `drop-shadow(0 0 ${strength}px ${color})`;
         break;
-      case 'shadow':
+      case "shadow":
         arc.style.filter = `drop-shadow(${spread}px ${spread}px ${strength}px ${color})`;
         break;
-      case 'blur':
+      case "blur":
         arc.style.filter = `blur(${strength}px)`;
         break;
     }
@@ -403,11 +427,16 @@ export function arc(x: number, y: number, radius: number = 50): Arc {
  * @param angleInDegrees 角度（度）
  * @returns 笛卡尔坐标点
  */
-function polarToCartesian(centerX: number, centerY: number, radius: number, angleInDegrees: number) {
-  const angleInRadians = (angleInDegrees - 90) * Math.PI / 180.0;
+function polarToCartesian(
+  centerX: number,
+  centerY: number,
+  radius: number,
+  angleInDegrees: number,
+) {
+  const angleInRadians = ((angleInDegrees - 90) * Math.PI) / 180.0;
   return {
-    x: centerX + (radius * Math.cos(angleInRadians)),
-    y: centerY + (radius * Math.sin(angleInRadians))
+    x: centerX + radius * Math.cos(angleInRadians),
+    y: centerY + radius * Math.sin(angleInRadians),
   };
 }
 
@@ -420,7 +449,13 @@ function polarToCartesian(centerX: number, centerY: number, radius: number, angl
  * @param endAngle 结束角度（度）
  * @returns SVG路径数据字符串
  */
-function describeArc(x: number, y: number, radius: number, startAngle: number, endAngle: number) {
+function describeArc(
+  x: number,
+  y: number,
+  radius: number,
+  startAngle: number,
+  endAngle: number,
+) {
   const start = polarToCartesian(x, y, radius, endAngle);
   const end = polarToCartesian(x, y, radius, startAngle);
 
@@ -428,7 +463,16 @@ function describeArc(x: number, y: number, radius: number, startAngle: number, e
   const sweepFlag = "1";
 
   return [
-    "M", start.x, start.y,
-    "A", radius, radius, 0, largeArcFlag, sweepFlag, end.x, end.y
+    "M",
+    start.x,
+    start.y,
+    "A",
+    radius,
+    radius,
+    0,
+    largeArcFlag,
+    sweepFlag,
+    end.x,
+    end.y,
   ].join(" ");
 }

@@ -11,6 +11,7 @@ const f = func(fn: (x: number) => number, xRange: [number, number]);
 ```
 
 ### 参数
+
 - `fn: (x: number) => number` - 函数定义
 - `xRange: [number, number]` - x轴范围
 
@@ -83,7 +84,7 @@ f.discontinuity(points: number[])
 绘制导函数。
 
 ```typescript
-f.derivative()
+f.derivative();
 ```
 
 ### integral()
@@ -107,7 +108,7 @@ f.intersection(g: Function)
 标记极值点。
 
 ```typescript
-f.extrema()
+f.extrema();
 ```
 
 ### asymptotes()
@@ -115,7 +116,7 @@ f.extrema()
 显示渐近线。
 
 ```typescript
-f.asymptotes()
+f.asymptotes();
 ```
 
 ### highlight()
@@ -139,5 +140,5 @@ f.label(text: string, x: number)
 添加工具提示。
 
 ```typescript
-f.tooltip()
-``` 
+f.tooltip();
+```

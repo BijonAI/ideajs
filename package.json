@@ -3,16 +3,17 @@
   "version": "1.0.0",
   "description": "SVG-based mathematical graph library.",
   "scripts": {
-    "build": "vite build",
-    "dev": "vite",
-    "preview": "vite preview",
-    "test": "vite test"
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "preview": "pnpm vite preview",
+    "serve": "pnpm vite test"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
     "@types/node": "^20.11.0",
+    "prettier": "3.4.2",
     "tsup": "^8.3.5",
     "typescript": "^5.7.2",
     "vite": "^5.0.0"

@@ -10,7 +10,7 @@ import { TeachingOptions } from "./interfaces/common";
  * 可渲染对象的接口定义
  * 任何实现此接口的对象都必须提供node方法返回SVG元素
  */
-export type Renderable = object & { node: () => SVGElement }
+export type Renderable = object & { node: () => SVGElement };
 
 /**
  * 创建一个绘图场域
@@ -42,7 +42,7 @@ export function field(width: number, height: number) {
     presentation,
     enableSnap,
     teachingMode,
-  }
+  };
 
   /**
    * 设置场域的原点
@@ -53,7 +53,7 @@ export function field(width: number, height: number) {
   function origin(x: number, y: number) {
     originPoint[0] = x;
     originPoint[1] = y;
-    g.setAttribute('transform', `translate(${x}, ${y})`);
+    g.setAttribute("transform", `translate(${x}, ${y})`);
     return rtn;
   }
 
@@ -66,7 +66,7 @@ export function field(width: number, height: number) {
   function direct(x: Direction, y: Direction) {
     const xValue = x === left() ? -1 : x === right() ? 1 : 0;
     const yValue = y === up() ? -1 : y === down() ? 1 : 0;
-    g.setAttribute('transform', `translate(${xValue}, ${yValue})`);
+    g.setAttribute("transform", `translate(${xValue}, ${yValue})`);
     return rtn;
   }
 
@@ -126,7 +126,7 @@ export function field(width: number, height: number) {
    * @returns 场域对象
    */
   function clear() {
-    g.innerHTML = '';
+    g.innerHTML = "";
     return rtn;
   }
 
@@ -147,7 +147,7 @@ export function field(width: number, height: number) {
   function toDataURL() {
     const serializer = new XMLSerializer();
     const source = serializer.serializeToString(svg);
-    return 'data:image/svg+xml;base64,' + btoa(source);
+    return "data:image/svg+xml;base64," + btoa(source);
   }
 
   /**
@@ -159,7 +159,7 @@ export function field(width: number, height: number) {
    * @returns 场域对象
    */
   function viewBox(x: number, y: number, width: number, height: number) {
-    svg.setAttribute('viewBox', `${x} ${y} ${width} ${height}`);
+    svg.setAttribute("viewBox", `${x} ${y} ${width} ${height}`);
     return rtn;
   }
 
@@ -169,7 +169,7 @@ export function field(width: number, height: number) {
    * @returns 场域对象
    */
   function zoom(scale: number) {
-    g.setAttribute('transform', `scale(${scale})`);
+    g.setAttribute("transform", `scale(${scale})`);
     return rtn;
   }
 
@@ -178,35 +178,40 @@ export function field(width: number, height: number) {
    * @param steps 演示步骤
    * @returns 场域对象
    */
-  function presentation(steps: {
-    elements: Renderable[],
-    duration: number,
-    description?: string
-  }[]) {
+  function presentation(
+    steps: {
+      elements: Renderable[];
+      duration: number;
+      description?: string;
+    }[],
+  ) {
     let currentStep = 0;
-    
+
     function playStep() {
       if (currentStep >= steps.length) return;
-      
+
       const step = steps[currentStep];
       clear();
-      
-      step.elements.forEach(element => add(element));
-      
+
+      step.elements.forEach((element) => add(element));
+
       if (step.description) {
-        const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        const text = document.createElementNS(
+          "http://www.w3.org/2000/svg",
+          "text",
+        );
         text.textContent = step.description;
         text.setAttribute("x", "10");
         text.setAttribute("y", "30");
         svg.appendChild(text);
       }
-      
+
       currentStep++;
       if (currentStep < steps.length) {
         setTimeout(playStep, step.duration);
       }
     }
-    
+
     playStep();
     return rtn;
   }
@@ -218,18 +223,18 @@ export function field(width: number, height: number) {
    */
   function enableSnap(size: number) {
     const snapToGrid = (value: number) => Math.round(value / size) * size;
-    
-    svg.addEventListener('mousemove', (e) => {
-      Array.from(g.children).forEach(child => {
-        if (child.getAttribute('data-draggable')) {
+
+    svg.addEventListener("mousemove", (e) => {
+      Array.from(g.children).forEach((child) => {
+        if (child.getAttribute("data-draggable")) {
           const rect = svg.getBoundingClientRect();
           const x = snapToGrid(e.clientX - rect.left);
           const y = snapToGrid(e.clientY - rect.top);
-          child.setAttribute('transform', `translate(${x}, ${y})`);
+          child.setAttribute("transform", `translate(${x}, ${y})`);
         }
       });
     });
-    
+
     return rtn;
   }
 
@@ -239,18 +244,24 @@ export function field(width: number, height: number) {
    * @returns 场域对象
    */
   function teachingMode(options: TeachingOptions = {}) {
-    const overlay = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+    const overlay = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "rect",
+    );
     overlay.setAttribute("width", width.toString());
     overlay.setAttribute("height", height.toString());
     overlay.setAttribute("fill", "none");
     overlay.setAttribute("pointer-events", "none");
     svg.appendChild(overlay);
-    
+
     if (options.annotations) {
-      const annotationLayer = document.createElementNS("http://www.w3.org/2000/svg", "g");
+      const annotationLayer = document.createElementNS(
+        "http://www.w3.org/2000/svg",
+        "g",
+      );
       svg.appendChild(annotationLayer);
     }
-    
+
     return rtn;
   }
 

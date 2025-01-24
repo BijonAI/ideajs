@@ -3,11 +3,18 @@
  * @description 向量对象的实现，提供创建和操作SVG向量的功能，包括箭头的绘制和变换
  */
 
-import { getTheme } from '../theme';
-import { Vector } from '../interfaces/geometry';
-import { Transform, Animation, TooltipOptions, EffectOptions, TeachingOptions, AnimationStep } from '../interfaces/common';
-import gsap from 'gsap';
-import { draggable } from '../utils/draggable';
+import { getTheme } from "../theme";
+import { Vector } from "../interfaces/geometry";
+import {
+  Transform,
+  Animation,
+  TooltipOptions,
+  EffectOptions,
+  TeachingOptions,
+  AnimationStep,
+} from "../interfaces/common";
+import gsap from "gsap";
+import { draggable } from "../utils/draggable";
 
 /**
  * 创建一个向量对象
@@ -33,7 +40,10 @@ export function vector(x1: number, y1: number, x2: number, y2: number): Vector {
   line.setAttribute("y2", (-y2 + y1).toString());
 
   // 创建箭头元素
-  const arrow = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
+  const arrow = document.createElementNS(
+    "http://www.w3.org/2000/svg",
+    "polygon",
+  );
   arrow.setAttribute("points", `-5,-4 0,0 5,-4 0,8`);
   arrow.setAttribute("stroke", "none");
   arrow.setAttribute("fill", theme.colors.primary);
@@ -41,10 +51,13 @@ export function vector(x1: number, y1: number, x2: number, y2: number): Vector {
   // 更新箭头位置和方向
   function updateArrow() {
     const dx = Number(line.getAttribute("x2")) - x1;
-    const dy = Number(line.getAttribute("y2")) - (-y1);  // 注意y轴方向
+    const dy = Number(line.getAttribute("y2")) - -y1; // 注意y轴方向
     // 使用起点到终点的方向计算角度
-    const angle = Math.atan2(dy, dx) * 180 / Math.PI;
-    arrow.setAttribute("transform", `translate(${line.getAttribute("x2")},${line.getAttribute("y2")}) rotate(${angle - 90})`);
+    const angle = (Math.atan2(dy, dx) * 180) / Math.PI;
+    arrow.setAttribute(
+      "transform",
+      `translate(${line.getAttribute("x2")},${line.getAttribute("y2")}) rotate(${angle - 90})`,
+    );
   }
 
   // 将元素添加到向量组中
@@ -84,7 +97,10 @@ export function vector(x1: number, y1: number, x2: number, y2: number): Vector {
       return rtn;
     },
     // 添加注释
-    annotate: (text: string, position?: 'top' | 'bottom' | 'left' | 'right') => {
+    annotate: (
+      text: string,
+      position?: "top" | "bottom" | "left" | "right",
+    ) => {
       return rtn;
     },
     // 脉冲动画
@@ -105,16 +121,16 @@ export function vector(x1: number, y1: number, x2: number, y2: number): Vector {
     },
     // 锁定交互
     lock: () => {
-      vector.style.pointerEvents = 'none';
+      vector.style.pointerEvents = "none";
       return rtn;
     },
     // 解锁交互
     unlock: () => {
-      vector.style.pointerEvents = 'all';
+      vector.style.pointerEvents = "all";
       return rtn;
     },
     // 限制范围
-    restrict: (bounds: { x: [number, number], y: [number, number] }) => {
+    restrict: (bounds: { x: [number, number]; y: [number, number] }) => {
       return rtn;
     },
     // 网格对齐
@@ -122,17 +138,20 @@ export function vector(x1: number, y1: number, x2: number, y2: number): Vector {
       return rtn;
     },
     // 连接其他向量
-    connect: (target: Vector, options?: { elastic?: boolean, distance?: number, strength?: number }) => {
+    connect: (
+      target: Vector,
+      options?: { elastic?: boolean; distance?: number; strength?: number },
+    ) => {
       return rtn;
     },
     // 显示向量
     show: () => {
-      vector.style.display = '';
+      vector.style.display = "";
       return rtn;
     },
     // 隐藏向量
     hide: () => {
-      vector.style.display = 'none';
+      vector.style.display = "none";
       return rtn;
     },
     // 设置透明度
@@ -150,15 +169,13 @@ export function vector(x1: number, y1: number, x2: number, y2: number): Vector {
       const targetVector = target.node();
       gsap.to(vector, {
         duration: duration / 1000,
-        attr: { transform: targetVector.getAttribute('transform') },
-        ease: "power1.inOut"
+        attr: { transform: targetVector.getAttribute("transform") },
+        ease: "power1.inOut",
       });
       return rtn;
     },
     draggable: enableDragging,
-  }
-
-
+  };
 
   /**
    * 设置向量的起点
@@ -202,7 +219,7 @@ export function vector(x1: number, y1: number, x2: number, y2: number): Vector {
    * @returns 向量对象
    */
   function transform(options: Transform) {
-    let transform = '';
+    let transform = "";
     if (options.translate) {
       transform += `translate(${options.translate[0]},${options.translate[1]}) `;
     }
@@ -222,7 +239,7 @@ export function vector(x1: number, y1: number, x2: number, y2: number): Vector {
     if (options.origin) {
       vector.style.transformOrigin = `${options.origin[0]}px ${options.origin[1]}px`;
     }
-    vector.setAttribute('transform', transform.trim());
+    vector.setAttribute("transform", transform.trim());
     return rtn;
   }
 
@@ -236,14 +253,19 @@ export function vector(x1: number, y1: number, x2: number, y2: number): Vector {
     if (options.properties) {
       Object.entries(options.properties).forEach(([prop, { from, to }]) => {
         vector.style.setProperty(prop, from);
-        animations.push(`${prop} ${options.duration || 300}ms ${options.easing || 'ease'}`);
+        animations.push(
+          `${prop} ${options.duration || 300}ms ${options.easing || "ease"}`,
+        );
         setTimeout(() => vector.style.setProperty(prop, to), 0);
       });
     }
-    vector.style.transition = animations.join(', ');
+    vector.style.transition = animations.join(", ");
     options.onStart?.();
     if (options.onEnd) {
-      setTimeout(options.onEnd, (options.duration || 300) + (options.delay || 0));
+      setTimeout(
+        options.onEnd,
+        (options.duration || 300) + (options.delay || 0),
+      );
     }
     return rtn;
   }
@@ -258,7 +280,7 @@ export function vector(x1: number, y1: number, x2: number, y2: number): Vector {
     vector.addEventListener(type, handler);
     return {
       remove: () => vector.removeEventListener(type, handler),
-      rtn
+      rtn,
     };
   }
 
@@ -296,8 +318,9 @@ export function vector(x1: number, y1: number, x2: number, y2: number): Vector {
       vector.classList.add(names);
     }
     return {
-      remove: () => vector.classList.remove(...(Array.isArray(names) ? names : [names])),
-      rtn
+      remove: () =>
+        vector.classList.remove(...(Array.isArray(names) ? names : [names])),
+      rtn,
     };
   }
 
@@ -307,9 +330,12 @@ export function vector(x1: number, y1: number, x2: number, y2: number): Vector {
    * @param options 提示选项，包括位置、样式等
    * @returns 向量对象
    */
-  function tooltip(content: string | HTMLElement, options: TooltipOptions = {}) {
-    const tip = document.createElement('div');
-    if (typeof content === 'string') {
+  function tooltip(
+    content: string | HTMLElement,
+    options: TooltipOptions = {},
+  ) {
+    const tip = document.createElement("div");
+    if (typeof content === "string") {
       tip.textContent = content;
     } else {
       tip.appendChild(content);
@@ -317,25 +343,25 @@ export function vector(x1: number, y1: number, x2: number, y2: number): Vector {
     if (options.className) tip.className = options.className;
     if (options.style) Object.assign(tip.style, options.style);
 
-    vector.addEventListener('mouseenter', (e) => {
+    vector.addEventListener("mouseenter", (e) => {
       document.body.appendChild(tip);
       const rect = vector.getBoundingClientRect();
       const [offsetX = 0, offsetY = 0] = options.offset || [0, 0];
 
       switch (options.position) {
-        case 'top':
+        case "top":
           tip.style.left = `${rect.left + rect.width / 2 + offsetX}px`;
           tip.style.top = `${rect.top - tip.offsetHeight + offsetY}px`;
           break;
-        case 'bottom':
+        case "bottom":
           tip.style.left = `${rect.left + rect.width / 2 + offsetX}px`;
           tip.style.top = `${rect.bottom + offsetY}px`;
           break;
-        case 'left':
+        case "left":
           tip.style.left = `${rect.left - tip.offsetWidth + offsetX}px`;
           tip.style.top = `${rect.top + rect.height / 2 + offsetY}px`;
           break;
-        case 'right':
+        case "right":
           tip.style.left = `${rect.right + offsetX}px`;
           tip.style.top = `${rect.top + rect.height / 2 + offsetY}px`;
           break;
@@ -345,7 +371,7 @@ export function vector(x1: number, y1: number, x2: number, y2: number): Vector {
       }
     });
 
-    vector.addEventListener('mouseleave', () => {
+    vector.addEventListener("mouseleave", () => {
       tip.remove();
     });
 
@@ -358,16 +384,19 @@ export function vector(x1: number, y1: number, x2: number, y2: number): Vector {
    * @param options 效果选项，包括颜色、强度等
    * @returns 向量对象
    */
-  function effect(type: 'glow' | 'shadow' | 'blur', options: EffectOptions = {}) {
-    const { color = '#000', strength = 5, spread = 0 } = options;
+  function effect(
+    type: "glow" | "shadow" | "blur",
+    options: EffectOptions = {},
+  ) {
+    const { color = "#000", strength = 5, spread = 0 } = options;
     switch (type) {
-      case 'glow':
+      case "glow":
         vector.style.filter = `drop-shadow(0 0 ${strength}px ${color})`;
         break;
-      case 'shadow':
+      case "shadow":
         vector.style.filter = `drop-shadow(${spread}px ${spread}px ${strength}px ${color})`;
         break;
-      case 'blur':
+      case "blur":
         vector.style.filter = `blur(${strength}px)`;
         break;
     }
@@ -388,10 +417,11 @@ export function vector(x1: number, y1: number, x2: number, y2: number): Vector {
     let startVectorY = 0;
 
     // 在向量末端区域添加拖拽功能
-    arrow.style.cursor = 'move';
-    arrow.style.pointerEvents = 'all';
+    arrow.style.cursor = "move";
+    arrow.style.pointerEvents = "all";
 
-    draggable(arrow,
+    draggable(
+      arrow,
       (_x, _y) => true,
       (x, y) => {
         if (!isDragging) {
@@ -408,24 +438,24 @@ export function vector(x1: number, y1: number, x2: number, y2: number): Vector {
 
         // 更新向量终点位置
         const newX = startVectorX + dx;
-        const newY = startVectorY + dy;  // 注意y轴方向相反
+        const newY = startVectorY + dy; // 注意y轴方向相反
 
         line.setAttribute("x2", newX.toString());
         line.setAttribute("y2", newY.toString());
         updateArrow();
-      }
+      },
     );
 
     // 状态管理
-    arrow.addEventListener('mousedown', (e) => {
+    arrow.addEventListener("mousedown", (e) => {
       isDragging = true;
       // 阻止默认的文本选择行为
       e.preventDefault();
       // 禁用文本选择
-      document.body.style.userSelect = 'none';
+      document.body.style.userSelect = "none";
     });
 
-    window.addEventListener('mouseup', () => {
+    window.addEventListener("mouseup", () => {
       if (isDragging) {
         isDragging = false;
         startDragX = 0;
@@ -433,7 +463,7 @@ export function vector(x1: number, y1: number, x2: number, y2: number): Vector {
         startVectorX = 0;
         startVectorY = 0;
         // 恢复文本选择
-        document.body.style.userSelect = '';
+        document.body.style.userSelect = "";
       }
     });
 

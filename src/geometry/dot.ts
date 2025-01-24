@@ -4,8 +4,8 @@
  */
 
 import { draggable } from "../utils/draggable";
-import { getTheme } from '../theme';
-import { TeachingOptions, AnimationStep } from '../interfaces/common';
+import { getTheme } from "../theme";
+import { TeachingOptions, AnimationStep } from "../interfaces/common";
 import { Dot } from "../interfaces/geometry";
 
 /**
@@ -16,7 +16,10 @@ import { Dot } from "../interfaces/geometry";
  */
 export function dot(x: number, y: number) {
   // 创建SVG圆点元素
-  const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+  const circle = document.createElementNS(
+    "http://www.w3.org/2000/svg",
+    "circle",
+  );
   circle.setAttribute("cx", x.toString());
   circle.setAttribute("cy", y.toString());
   circle.setAttribute("r", "4");
@@ -42,10 +45,16 @@ export function dot(x: number, y: number) {
     onSelect,
     // 设置点可拖拽
     draggable(condition?: (x: number, y: number) => boolean) {
-      draggable(circle, condition, () => dragEvents.forEach(callback => callback(
-        Number(circle.getAttribute('cx')) + Number(circle.transform.baseVal[0].matrix.e),
-        Number(circle.getAttribute('cy')) + Number(circle.transform.baseVal[0].matrix.f),
-      )));
+      draggable(circle, condition, () =>
+        dragEvents.forEach((callback) =>
+          callback(
+            Number(circle.getAttribute("cx")) +
+              Number(circle.transform.baseVal[0].matrix.e),
+            Number(circle.getAttribute("cy")) +
+              Number(circle.transform.baseVal[0].matrix.f),
+          ),
+        ),
+      );
       return rtn;
     },
     onDrag,
@@ -63,12 +72,21 @@ export function dot(x: number, y: number) {
       return rtn;
     },
     // 添加注释
-    annotate: (text: string, position?: 'top' | 'bottom' | 'left' | 'right') => {
-      const annotation = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    annotate: (
+      text: string,
+      position?: "top" | "bottom" | "left" | "right",
+    ) => {
+      const annotation = document.createElementNS(
+        "http://www.w3.org/2000/svg",
+        "text",
+      );
       annotation.textContent = text;
-      annotation.setAttribute('x', circle.getAttribute('cx') || '0');
-      annotation.setAttribute('y', (Number(circle.getAttribute('cy')) - 10).toString());
-      annotation.setAttribute('text-anchor', 'middle');
+      annotation.setAttribute("x", circle.getAttribute("cx") || "0");
+      annotation.setAttribute(
+        "y",
+        (Number(circle.getAttribute("cy")) - 10).toString(),
+      );
+      annotation.setAttribute("text-anchor", "middle");
       circle.parentNode?.appendChild(annotation);
       return rtn;
     },
@@ -90,16 +108,16 @@ export function dot(x: number, y: number) {
     },
     // 锁定交互
     lock: () => {
-      circle.style.pointerEvents = 'none';
+      circle.style.pointerEvents = "none";
       return rtn;
     },
     // 解锁交互
     unlock: () => {
-      circle.style.pointerEvents = 'all';
+      circle.style.pointerEvents = "all";
       return rtn;
     },
     // 限制范围
-    restrict: (bounds: { x: [number, number], y: [number, number] }) => {
+    restrict: (bounds: { x: [number, number]; y: [number, number] }) => {
       return rtn;
     },
     // 网格对齐
@@ -107,11 +125,14 @@ export function dot(x: number, y: number) {
       return rtn;
     },
     // 连接其他点
-    connect: (target: Dot, options?: { elastic?: boolean, distance?: number, strength?: number }) => {
+    connect: (
+      target: Dot,
+      options?: { elastic?: boolean; distance?: number; strength?: number },
+    ) => {
       return rtn;
     },
     move,
-  }
+  };
 
   /**
    * 获取SVG圆点元素
@@ -187,13 +208,13 @@ export function dot(x: number, y: number) {
    * @returns 点对象
    */
   function focus(color: string) {
-    focusEvents.forEach(callback => callback());
+    focusEvents.forEach((callback) => callback());
     const oldColor = circle.getAttribute("stroke");
-    circle.addEventListener('mouseover', () => {
-      console.log('focus', color);
+    circle.addEventListener("mouseover", () => {
+      console.log("focus", color);
       circle.setAttribute("stroke", color);
     });
-    circle.addEventListener('mouseout', () => {
+    circle.addEventListener("mouseout", () => {
       circle.setAttribute("stroke", oldColor);
     });
     return rtn;
@@ -212,21 +233,21 @@ export function dot(x: number, y: number) {
    * @returns 点对象
    */
   function select(color: string) {
-    selectEvents.forEach(callback => callback());
+    selectEvents.forEach((callback) => callback());
     const oldColor = circle.getAttribute("stroke");
     let isMouseOver = false;
-    circle.addEventListener('mousedown', () => {
+    circle.addEventListener("mousedown", () => {
       isMouseOver = true;
     });
-    circle.addEventListener('mouseout', () => {
+    circle.addEventListener("mouseout", () => {
       isMouseOver = false;
     });
-    circle.addEventListener('click', () => {
+    circle.addEventListener("click", () => {
       if (isMouseOver) {
         circle.setAttribute("stroke", color);
       }
     });
-    document.addEventListener('click', () => {
+    document.addEventListener("click", () => {
       if (!isMouseOver) {
         circle.setAttribute("stroke", oldColor);
       }
@@ -249,20 +270,25 @@ export function dot(x: number, y: number) {
     fillOpacity?: number;
     cursor?: string;
     filter?: string;
-    visibility?: 'visible' | 'hidden';
-    pointerEvents?: 'none' | 'all';
+    visibility?: "visible" | "hidden";
+    pointerEvents?: "none" | "all";
   }) {
-    if (options.radius) circle.setAttribute('r', options.radius.toString());
-    if (options.strokeWidth) circle.setAttribute('stroke-width', options.strokeWidth.toString());
-    if (options.strokeColor) circle.setAttribute('stroke', options.strokeColor);
-    if (options.strokeOpacity) circle.setAttribute('stroke-opacity', options.strokeOpacity.toString());
-    if (options.strokeDasharray) circle.setAttribute('stroke-dasharray', options.strokeDasharray);
-    if (options.fillColor) circle.setAttribute('fill', options.fillColor);
-    if (options.fillOpacity) circle.setAttribute('fill-opacity', options.fillOpacity.toString());
+    if (options.radius) circle.setAttribute("r", options.radius.toString());
+    if (options.strokeWidth)
+      circle.setAttribute("stroke-width", options.strokeWidth.toString());
+    if (options.strokeColor) circle.setAttribute("stroke", options.strokeColor);
+    if (options.strokeOpacity)
+      circle.setAttribute("stroke-opacity", options.strokeOpacity.toString());
+    if (options.strokeDasharray)
+      circle.setAttribute("stroke-dasharray", options.strokeDasharray);
+    if (options.fillColor) circle.setAttribute("fill", options.fillColor);
+    if (options.fillOpacity)
+      circle.setAttribute("fill-opacity", options.fillOpacity.toString());
     if (options.cursor) circle.style.cursor = options.cursor;
     if (options.filter) circle.style.filter = options.filter;
     if (options.visibility) circle.style.visibility = options.visibility;
-    if (options.pointerEvents) circle.style.pointerEvents = options.pointerEvents;
+    if (options.pointerEvents)
+      circle.style.pointerEvents = options.pointerEvents;
     return rtn;
   }
 
@@ -278,7 +304,7 @@ export function dot(x: number, y: number) {
     skew?: [number, number];
     origin?: [number, number];
   }) {
-    let transform = '';
+    let transform = "";
     if (options.translate) {
       transform += `translate(${options.translate[0]},${options.translate[1]}) `;
     }
@@ -298,7 +324,7 @@ export function dot(x: number, y: number) {
     if (options.origin) {
       circle.style.transformOrigin = `${options.origin[0]}px ${options.origin[1]}px`;
     }
-    circle.setAttribute('transform', transform.trim());
+    circle.setAttribute("transform", transform.trim());
     return rtn;
   }
 
@@ -324,14 +350,19 @@ export function dot(x: number, y: number) {
     if (options.properties) {
       Object.entries(options.properties).forEach(([prop, { from, to }]) => {
         circle.style.setProperty(prop, from);
-        animations.push(`${prop} ${options.duration || 300}ms ${options.easing || 'ease'}`);
+        animations.push(
+          `${prop} ${options.duration || 300}ms ${options.easing || "ease"}`,
+        );
         setTimeout(() => circle.style.setProperty(prop, to), 0);
       });
     }
-    circle.style.transition = animations.join(', ');
+    circle.style.transition = animations.join(", ");
     options.onStart?.();
     if (options.onEnd) {
-      setTimeout(options.onEnd, (options.duration || 300) + (options.delay || 0));
+      setTimeout(
+        options.onEnd,
+        (options.duration || 300) + (options.delay || 0),
+      );
     }
     return rtn;
   }
@@ -346,7 +377,7 @@ export function dot(x: number, y: number) {
     circle.addEventListener(type, handler);
     return {
       remove: () => circle.removeEventListener(type, handler),
-      rtn
+      rtn,
     };
   }
 
@@ -384,8 +415,9 @@ export function dot(x: number, y: number) {
       circle.classList.add(names);
     }
     return {
-      remove: () => circle.classList.remove(...(Array.isArray(names) ? names : [names])),
-      rtn
+      remove: () =>
+        circle.classList.remove(...(Array.isArray(names) ? names : [names])),
+      rtn,
     };
   }
 
@@ -395,14 +427,17 @@ export function dot(x: number, y: number) {
    * @param options 提示选项，包括位置、偏移和样式
    * @returns 点对象
    */
-  function tooltip(content: string | HTMLElement, options: {
-    position?: 'top' | 'bottom' | 'left' | 'right';
-    offset?: [number, number];
-    className?: string;
-    style?: Partial<CSSStyleDeclaration>;
-  } = {}) {
-    const tip = document.createElement('div');
-    if (typeof content === 'string') {
+  function tooltip(
+    content: string | HTMLElement,
+    options: {
+      position?: "top" | "bottom" | "left" | "right";
+      offset?: [number, number];
+      className?: string;
+      style?: Partial<CSSStyleDeclaration>;
+    } = {},
+  ) {
+    const tip = document.createElement("div");
+    if (typeof content === "string") {
       tip.textContent = content;
     } else {
       tip.appendChild(content);
@@ -410,14 +445,14 @@ export function dot(x: number, y: number) {
     if (options.className) tip.className = options.className;
     if (options.style) Object.assign(tip.style, options.style);
 
-    circle.addEventListener('mouseenter', () => {
+    circle.addEventListener("mouseenter", () => {
       document.body.appendChild(tip);
       const rect = circle.getBoundingClientRect();
       // Position tooltip based on options.position
       // ...
     });
 
-    circle.addEventListener('mouseleave', () => {
+    circle.addEventListener("mouseleave", () => {
       tip.remove();
     });
 
@@ -430,20 +465,23 @@ export function dot(x: number, y: number) {
    * @param options 效果选项，包括颜色、强度等
    * @returns 点对象
    */
-  function effect(type: 'glow' | 'shadow' | 'blur', options: {
-    color?: string;
-    strength?: number;
-    spread?: number;
-  } = {}) {
-    const { color = '#000', strength = 5, spread = 0 } = options;
+  function effect(
+    type: "glow" | "shadow" | "blur",
+    options: {
+      color?: string;
+      strength?: number;
+      spread?: number;
+    } = {},
+  ) {
+    const { color = "#000", strength = 5, spread = 0 } = options;
     switch (type) {
-      case 'glow':
+      case "glow":
         circle.style.filter = `drop-shadow(0 0 ${strength}px ${color})`;
         break;
-      case 'shadow':
+      case "shadow":
         circle.style.filter = `drop-shadow(${spread}px ${spread}px ${strength}px ${color})`;
         break;
-      case 'blur':
+      case "blur":
         circle.style.filter = `blur(${strength}px)`;
         break;
     }
