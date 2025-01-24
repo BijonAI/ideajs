@@ -391,7 +391,7 @@ export function vector(x1: number, y1: number, x2: number, y2: number): Vector {
     arrow.style.cursor = 'move';
     arrow.style.pointerEvents = 'all';
 
-    const destroy = draggable(arrow,
+    draggable(arrow,
       (_x, _y) => true,
       (x, y) => {
         if (!isDragging) {

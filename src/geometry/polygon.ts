@@ -7,6 +7,7 @@ import { Transform, Animation, TooltipOptions, EffectOptions, TeachingOptions, A
 import { Polygon } from '../interfaces/geometry';
 import { getTheme } from '../theme';
 import { gsap } from 'gsap';
+import { draggable } from '../utils/draggable'
 
 /**
  * 创建一个多边形对象
@@ -14,21 +15,56 @@ import { gsap } from 'gsap';
  * @returns 多边形对象，包含多种操作方法
  */
 export function polygon(points: { x: number, y: number }[]): Polygon {
+  // 创建SVG组元素作为容器
+  const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
+
   // 创建SVG路径元素
   const polygon = document.createElementNS("http://www.w3.org/2000/svg", "path");
   const d = pointsToPath(points);
   polygon.setAttribute("d", d);
-  
+
   // 应用主题样式
   const theme = getTheme();
   polygon.setAttribute("stroke-width", theme.sizes.function.toString());
   polygon.setAttribute("stroke", theme.colors.primary);
   polygon.setAttribute("fill", theme.colors.background);
   polygon.setAttribute("fill-opacity", "0.1");
-  
+
+  // 创建顶点控制点和保存初始位置
+  const startPositions = points.map(point => ({ x: point.x, y: point.y }));
+  const vertices = points.map((point, index) => {
+    const vertex = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    vertex.setAttribute("r", "4");
+    vertex.setAttribute("fill", theme.colors.primary);
+    vertex.setAttribute("cx", point.x.toString());
+    vertex.setAttribute("cy", (-point.y).toString());
+    vertex.style.cursor = "move";
+    vertex.style.pointerEvents = "all";
+    return vertex;
+  });
+
+  // 将多边形和顶点控制点添加到组中
+  group.appendChild(polygon);
+  vertices.forEach(vertex => group.appendChild(vertex));
+
+  let dragEnabled = false;
+
+  // 更新顶点位置的函数
+  function updateVertexPosition(index: number) {
+    const vertex = vertices[index];
+    vertex.setAttribute("cx", points[index].x.toString());
+    vertex.setAttribute("cy", (points[index].y).toString());
+  }
+
+  // 更新多边形路径的函数
+  function updatePolygonPath() {
+    const d = pointsToPath(points);
+    polygon.setAttribute("d", d);
+  }
+
   // 返回对象，包含所有可用的操作方法
   const rtn = {
-    node: () => polygon,
+    node: () => group,
     points,
     setPoints,
     setPoint,
@@ -95,7 +131,7 @@ export function polygon(points: { x: number, y: number }[]): Polygon {
       return rtn;
     },
     // 限制范围
-    restrict: (bounds: {x: [number, number], y: [number, number]}) => {
+    restrict: (bounds: { x: [number, number], y: [number, number] }) => {
       return rtn;
     },
     // 网格对齐
@@ -103,7 +139,7 @@ export function polygon(points: { x: number, y: number }[]): Polygon {
       return rtn;
     },
     // 连接其他多边形
-    connect: (target: Polygon, options?: {elastic?: boolean, distance?: number, strength?: number}) => {
+    connect: (target: Polygon, options?: { elastic?: boolean, distance?: number, strength?: number }) => {
       return rtn;
     },
     // 显示多边形
@@ -123,8 +159,10 @@ export function polygon(points: { x: number, y: number }[]): Polygon {
     },
     // 移除多边形
     remove: () => {
-      polygon.remove();
-    }
+      group.remove();
+
+    },
+    draggable: enableDragging,
   }
 
   /**
@@ -134,9 +172,9 @@ export function polygon(points: { x: number, y: number }[]): Polygon {
    */
   function pointsToPath(points: { x: number, y: number }[]): string {
     if (points.length === 0) return '';
-    return `M ${points[0].x} ${points[0].y} ` + 
-           points.slice(1).map(p => `L ${p.x} ${p.y}`).join(' ') + 
-           ' Z';
+    return `M ${points[0].x} ${-points[0].y} ` +
+      points.slice(1).map(p => `L ${p.x} ${-p.y}`).join(' ') +
+      ' Z';
   }
 
   /**
@@ -173,7 +211,7 @@ export function polygon(points: { x: number, y: number }[]): Polygon {
       .filter(cmd => cmd.trim().length > 0 && cmd[0] !== 'Z')
       .map(cmd => {
         const [x, y] = cmd.slice(1).trim().split(/\s+/);
-        return { x: Number(x), y: Number(y) };
+        return { x: Number(x), y: -Number(y) };
       });
   }
 
@@ -523,39 +561,39 @@ export function polygon(points: { x: number, y: number }[]): Polygon {
     }
     if (options.className) tip.className = options.className;
     if (options.style) Object.assign(tip.style, options.style);
-    
+
     polygon.addEventListener('mouseenter', (e) => {
       document.body.appendChild(tip);
       const rect = polygon.getBoundingClientRect();
       const [offsetX = 0, offsetY = 0] = options.offset || [0, 0];
-      
+
       switch (options.position) {
         case 'top':
-          tip.style.left = `${rect.left + rect.width/2 + offsetX}px`;
+          tip.style.left = `${rect.left + rect.width / 2 + offsetX}px`;
           tip.style.top = `${rect.top - tip.offsetHeight + offsetY}px`;
           break;
         case 'bottom':
-          tip.style.left = `${rect.left + rect.width/2 + offsetX}px`;
+          tip.style.left = `${rect.left + rect.width / 2 + offsetX}px`;
           tip.style.top = `${rect.bottom + offsetY}px`;
           break;
         case 'left':
           tip.style.left = `${rect.left - tip.offsetWidth + offsetX}px`;
-          tip.style.top = `${rect.top + rect.height/2 + offsetY}px`;
+          tip.style.top = `${rect.top + rect.height / 2 + offsetY}px`;
           break;
         case 'right':
           tip.style.left = `${rect.right + offsetX}px`;
-          tip.style.top = `${rect.top + rect.height/2 + offsetY}px`;
+          tip.style.top = `${rect.top + rect.height / 2 + offsetY}px`;
           break;
         default:
           tip.style.left = `${e.pageX + offsetX}px`;
           tip.style.top = `${e.pageY + offsetY}px`;
       }
     });
-    
+
     polygon.addEventListener('mouseleave', () => {
       tip.remove();
     });
-    
+
     return rtn;
   }
 
@@ -578,6 +616,55 @@ export function polygon(points: { x: number, y: number }[]): Polygon {
         polygon.style.filter = `blur(${strength}px)`;
         break;
     }
+    return rtn;
+  }
+
+  function enableDragging() {
+    if (dragEnabled) return rtn;
+    dragEnabled = true;
+
+    // 为每个顶点添加拖拽功能
+    vertices.forEach((vertex, index) => {
+      let startDragX = 0;
+      let startDragY = 0;
+      let endDragX = 0;
+      let endDragY = 0;
+      let isDragging = false;
+
+      draggable(vertex,
+        (_x, _y) => true,
+        (x, y) => {
+          if (!isDragging) {
+            startDragX = x;
+            startDragY = y;
+            endDragX = Number(vertex.getAttribute('cx'));
+            endDragY = Number(vertex.getAttribute('cy'));
+            isDragging = true;
+          }
+
+          // 使用初始保存的位置计算偏移
+          const dx = x - startDragX;
+          const dy = y - startDragY;
+
+          // 更新顶点位置
+          points[index].x = endDragX + dx;
+          points[index].y = endDragY + dy;
+
+          // 更新视图
+          updateVertexPosition(index);
+          updatePolygonPath();
+        }
+      );
+
+      // 添加鼠标抬起事件处理
+      const handleMouseUp = () => {
+        isDragging = false;
+      };
+      vertex.addEventListener('mouseup', handleMouseUp);
+    });
+
+
+
     return rtn;
   }
 

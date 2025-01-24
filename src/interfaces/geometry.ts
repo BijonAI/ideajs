@@ -126,6 +126,7 @@ export interface Polygon extends CommonMethods<Polygon> {
   stroke(color?: string): Polygon;                  // 设置描边颜色
   fill(color?: string): Polygon;                    // 设置填充颜色
   style(options: PolygonStyle): Polygon;            // 设置样式
+  draggable(condition?: (x: number, y: number) => boolean): Dot;  // 设置可拖动
 }
 
 /**

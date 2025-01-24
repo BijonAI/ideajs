@@ -3,20 +3,20 @@ import { draggable } from '../utils/draggable';
 
 export function coordinate(width: number, height: number) {
   const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
-  const background = document.createElementNS("http://www.w3.org/2000/svg", "rect"); 
+  const background = document.createElementNS("http://www.w3.org/2000/svg", "rect");
   const grid = document.createElementNS("http://www.w3.org/2000/svg", "g");
   const axes = document.createElementNS("http://www.w3.org/2000/svg", "g");
   const labels = document.createElementNS("http://www.w3.org/2000/svg", "g");
   const content = document.createElementNS("http://www.w3.org/2000/svg", "g");
 
-  let unit = 50; 
+  let unit = 50;
 
   background.setAttribute("width", width.toString());
   background.setAttribute("height", height.toString());
-  background.setAttribute("x", (-width/2).toString());
-  background.setAttribute("y", (-height/2).toString());
+  background.setAttribute("x", (-width / 2).toString());
+  background.setAttribute("y", (-height / 2).toString());
   background.setAttribute("fill", "transparent");
-  background.style.pointerEvents = "all"; 
+  background.style.pointerEvents = "all";
 
   group.appendChild(background);
   group.appendChild(grid);
@@ -79,7 +79,7 @@ export function coordinate(width: number, height: number) {
     addMarker,
     addText,
     theme,
-    draggable: enableDragging,  
+    draggable: enableDragging,
   }
 
   function origin(x: number, y: number) {
@@ -101,7 +101,7 @@ export function coordinate(width: number, height: number) {
     if (grid.children.length > 0) {
       setGrid(unit);
     }
-    if (axes.children.length > 4) { 
+    if (axes.children.length > 4) {
       setTicks(unit);
     }
     Array.from(content.children).forEach(child => {
@@ -154,7 +154,7 @@ export function coordinate(width: number, height: number) {
   }
 
   function setTicks(interval: number, length: number = 6) {
-    while (axes.children.length > 4) { 
+    while (axes.children.length > 4) {
       axes.removeChild(axes.lastChild);
     }
 
@@ -377,7 +377,7 @@ export function coordinate(width: number, height: number) {
   let dragEnabled = false;
 
   function enableDragging() {
-    if (dragEnabled) return rtn;  
+    if (dragEnabled) return rtn;
 
     dragEnabled = true;
 

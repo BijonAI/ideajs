@@ -34,7 +34,7 @@ const dot = idea.dot(-500, 500)
 //   })
 //   .scale(50)
 
-// // 创建一个心形曲线
+// 创建一个心形曲线
 // const heart = idea.parametric(
 //   t => [16 * Math.pow(Math.sin(t), 3) / 16,
 //   (13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t)) / 16],
@@ -62,9 +62,13 @@ const dot = idea.dot(-500, 500)
 //   })
 //   .scale(25)
 
+//使用polygon.ts绘制多边形
+const polygon = idea.polygon([{ x: 0, y: 0 }, { x: 200, y: 0 }, { x: 100, y: 100 }, { x: 0, y: 100 }]).draggable()
+
 // 添加到坐标系
 coord.add(vector)
 coord.add(line)
+coord.add(polygon)
 // coord.add(heart)
 // coord.add(butterfly)
 // coord.add(vector)

@@ -18,15 +18,9 @@ export function dot(x: number, y: number) {
   // 创建SVG圆点元素
   const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
   circle.setAttribute("cx", x.toString());
-  circle.setAttribute("cy", (-y).toString());  // 注意y坐标需要取反
+  circle.setAttribute("cy", y.toString());
   circle.setAttribute("r", "4");
-  circle.setAttribute("stroke", getTheme().primary);  // 设置描边颜色
-  circle.setAttribute("fill", getTheme().primary);    // 设置填充颜色
   circle.setAttribute("stroke-width", "2");
-
-  // 创建SVG组来包含点
-  const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
-  group.appendChild(circle);
 
   // 拖拽事件回调数组
   const dragEvents: ((x: number, y: number) => void)[] = [];
@@ -48,7 +42,7 @@ export function dot(x: number, y: number) {
     onSelect,
     // 设置点可拖拽
     draggable(condition?: (x: number, y: number) => boolean) {
-      draggable(group, condition, () => dragEvents.forEach(callback => callback(
+      draggable(circle, condition, () => dragEvents.forEach(callback => callback(
         Number(circle.getAttribute('cx')) + Number(circle.transform.baseVal[0].matrix.e),
         Number(circle.getAttribute('cy')) + Number(circle.transform.baseVal[0].matrix.f),
       )));
@@ -75,7 +69,7 @@ export function dot(x: number, y: number) {
       annotation.setAttribute('x', circle.getAttribute('cx') || '0');
       annotation.setAttribute('y', (Number(circle.getAttribute('cy')) - 10).toString());
       annotation.setAttribute('text-anchor', 'middle');
-      group.appendChild(annotation);
+      circle.parentNode?.appendChild(annotation);
       return rtn;
     },
     // 脉冲动画
@@ -123,7 +117,7 @@ export function dot(x: number, y: number) {
    * 获取SVG圆点元素
    */
   function node() {
-    return group;
+    return circle;
   }
 
   /**
@@ -134,7 +128,7 @@ export function dot(x: number, y: number) {
    */
   function move(x: number, y: number) {
     circle.setAttribute("cx", x.toString());
-    circle.setAttribute("cy", (-y).toString());  // 注意y坐标需要取反
+    circle.setAttribute("cy", y.toString());
     return rtn;
   }
 
