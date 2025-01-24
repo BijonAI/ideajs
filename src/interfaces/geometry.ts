@@ -64,13 +64,13 @@ export interface Dot extends CommonMethods<Dot> {
   select(color: string): Dot;                       // 设置选中状态
   onFocus(callback: () => void): Dot;              // 焦点事件回调
   onSelect(callback: () => void): Dot;             // 选中事件回调
-  draggable(condition?: (x: number, y: number) => boolean): Dot;  // 设置可拖动
   onDrag(callback: (x: number, y: number) => void): Dot;         // 拖动事件回调
   connect(target: Renderable, options?: {           // 连接到目标对象
     elastic?: boolean,                              // 是否弹性连接
     distance?: number,                              // 连接距离
     strength?: number                               // 连接强度
   }): Dot;
+  draggable(condition?: (x: number, y: number) => boolean): Dot;  // 设置可拖动
 }
 
 /**
@@ -104,12 +104,12 @@ export interface Line extends CommonMethods<Line> {
     angle?: number,                                 // 固定角度
     parallel?: Line                                 // 平行于指定线
   }): Line;
-  draggable(condition?: (x: number, y: number) => boolean): Line;  // 设置可拖动
   connect(target: Renderable, options?: {           // 连接到目标对象
     elastic?: boolean,                              // 是否弹性连接
     distance?: number,                              // 连接距离
     strength?: number                               // 连接强度
   }): Line;
+  draggable(condition?: (x: number, y: number) => boolean): Line;  // 设置可拖动
 }
 
 /**
@@ -149,6 +149,7 @@ export interface Vector extends CommonMethods<Vector> {
   to(x2: number, y2: number): Vector;               // 设置终点
   stroke(color?: string): Vector;                   // 设置颜色
   scale(x: number, y?: number): Vector;             // 缩放向量
+  draggable(condition?: (x: number, y: number) => boolean): Vector;  // 设置可拖动
 }
 
 /**

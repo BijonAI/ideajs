@@ -53,58 +53,7 @@ export function vector(x1: number, y1: number, x2: number, y2: number): Vector {
 
   // 添加拖拽功能
   let isDragging = false;
-  let startDragX = 0;
-  let startDragY = 0;
-  let startVectorX = 0;
-  let startVectorY = 0;
-
-  // 在向量末端区域添加拖拽功能
-  arrow.style.cursor = 'move';
-  arrow.style.pointerEvents = 'all';
-
-  draggable(arrow,
-    (_x, _y) => true,
-    (x, y) => {
-      if (!isDragging) {
-        startDragX = x;
-        startDragY = y;
-        startVectorX = Number(line.getAttribute("x2"));
-        startVectorY = Number(line.getAttribute("y2"));
-        isDragging = true;
-      }
-
-      // 计算拖拽的相对位移
-      const dx = x - startDragX;
-      const dy = y - startDragY;
-
-      // 更新向量终点位置
-      const newX = startVectorX + dx;
-      const newY = startVectorY + dy;  // 注意y轴方向相反
-
-      line.setAttribute("x2", newX.toString());
-      line.setAttribute("y2", newY.toString());
-      updateArrow();
-    }
-  );
-
-  // 状态管理
-  arrow.addEventListener('mousedown', (e) => {
-    isDragging = true;
-    // 阻止默认的文本选择行为
-    e.preventDefault();
-    // 禁用文本选择
-    document.body.style.userSelect = 'none';
-  });
-
-  window.addEventListener('mouseup', () => {
-    if (isDragging) {
-      isDragging = false;
-      startDragX = 0;
-      startDragY = 0;
-      startVectorX = 0;
-      startVectorY = 0;
-    }
-  });
+  let dragEnabled = false;
 
   // 返回对象，包含所有可用的操作方法
   const rtn = {
@@ -205,8 +154,11 @@ export function vector(x1: number, y1: number, x2: number, y2: number): Vector {
         ease: "power1.inOut"
       });
       return rtn;
-    }
+    },
+    draggable: enableDragging,
   }
+
+
 
   /**
    * 设置向量的起点
@@ -419,6 +371,72 @@ export function vector(x1: number, y1: number, x2: number, y2: number): Vector {
         vector.style.filter = `blur(${strength}px)`;
         break;
     }
+    return rtn;
+  }
+
+  /**
+   * 启用向量的拖拽功能
+   * @returns 向量对象
+   */
+  function enableDragging() {
+    if (dragEnabled) return rtn;
+
+    dragEnabled = true;
+    let startDragX = 0;
+    let startDragY = 0;
+    let startVectorX = 0;
+    let startVectorY = 0;
+
+    // 在向量末端区域添加拖拽功能
+    arrow.style.cursor = 'move';
+    arrow.style.pointerEvents = 'all';
+
+    const destroy = draggable(arrow,
+      (_x, _y) => true,
+      (x, y) => {
+        if (!isDragging) {
+          startDragX = x;
+          startDragY = y;
+          startVectorX = Number(line.getAttribute("x2"));
+          startVectorY = Number(line.getAttribute("y2"));
+          isDragging = true;
+        }
+
+        // 计算拖拽的相对位移
+        const dx = x - startDragX;
+        const dy = y - startDragY;
+
+        // 更新向量终点位置
+        const newX = startVectorX + dx;
+        const newY = startVectorY + dy;  // 注意y轴方向相反
+
+        line.setAttribute("x2", newX.toString());
+        line.setAttribute("y2", newY.toString());
+        updateArrow();
+      }
+    );
+
+    // 状态管理
+    arrow.addEventListener('mousedown', (e) => {
+      isDragging = true;
+      // 阻止默认的文本选择行为
+      e.preventDefault();
+      // 禁用文本选择
+      document.body.style.userSelect = 'none';
+    });
+
+    window.addEventListener('mouseup', () => {
+      if (isDragging) {
+        isDragging = false;
+        startDragX = 0;
+        startDragY = 0;
+        startVectorX = 0;
+        startVectorY = 0;
+        // 恢复文本选择
+        document.body.style.userSelect = '';
+      }
+    });
+
     return rtn;
   }
 

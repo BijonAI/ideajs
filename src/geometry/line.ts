@@ -1,7 +1,7 @@
 import { getTheme } from '../theme';
 import { Line, LineStyle, MarkerOptions, GradientStop } from '../interfaces/geometry';
 import { Transform, Animation, TooltipOptions, EffectOptions, TeachingOptions, AnimationStep } from '../interfaces/common';
-import { draggable as draggableFn } from '../utils/draggable';
+import { draggable } from '../utils/draggable';
 import { gsap } from 'gsap';
 
 /**
@@ -54,97 +54,13 @@ export function line(x1: number, y1: number, x2: number, y2: number): Line {
 
   // 将元素添加到线段组中
   line.append(lineElement, startPoint, endPoint);
-  // updateEndPoint();
 
+  let dragEnabled = false;
   // 添加起点拖拽功能
   let isDraggingStart = false;
-  let startDragX = 0;
-  let startDragY = 0;
-  let startLineX = 0;
-  let startLineY = 0;
-
-  draggableFn(startPoint,
-    (_x, _y) => true,
-    (x, y) => {
-      if (!isDraggingStart) {
-        startDragX = x;
-        startDragY = y;
-        startLineX = Number(lineElement.getAttribute("x1"));
-        startLineY = Number(lineElement.getAttribute("y1"));
-        isDraggingStart = true;
-      }
-
-      const dx = x - startDragX + x1;
-      const dy = y - startDragY - y1;
-
-      // 更新线段起点位置
-      const newX = startLineX + dx;
-      const newY = startLineY + dy;
-
-      lineElement.setAttribute("x1", newX.toString());
-      lineElement.setAttribute("y1", newY.toString());
-    }
-  );
-
-  // 添加终点拖拽功能
   let isDraggingEnd = false;
-  let endDragX = 0;
-  let endDragY = 0;
-  let endLineX = 0;
-  let endLineY = 0;
+  // updateEndPoint();
 
-  draggableFn(endPoint,
-    (_x, _y) => true,
-    (x, y) => {
-      if (!isDraggingEnd) {
-        endDragX = x;
-        endDragY = y;
-        endLineX = Number(lineElement.getAttribute("x2"));
-        endLineY = Number(lineElement.getAttribute("y2"));
-        isDraggingEnd = true;
-      }
-
-      const dx = x - endDragX + x2;
-      const dy = y - endDragY - y2;
-
-      const newX = endLineX + dx;
-      const newY = endLineY + dy;
-
-      lineElement.setAttribute("x2", newX.toString());
-      lineElement.setAttribute("y2", newY.toString());
-    }
-  );
-
-  // 状态管理
-  startPoint.addEventListener('mousedown', (e) => {
-    isDraggingStart = true;
-    e.preventDefault();
-    document.body.style.userSelect = 'none';
-  });
-
-  endPoint.addEventListener('mousedown', (e) => {
-    isDraggingEnd = true;
-    e.preventDefault();
-    document.body.style.userSelect = 'none';
-  });
-
-  window.addEventListener('mouseup', () => {
-    if (isDraggingStart) {
-      isDraggingStart = false;
-      startDragX = 0;
-      startDragY = 0;
-      startLineX = 0;
-      startLineY = 0;
-    }
-    if (isDraggingEnd) {
-      isDraggingEnd = false;
-      endDragX = 0;
-      endDragY = 0;
-      endLineX = 0;
-      endLineY = 0;
-    }
-    document.body.style.userSelect = 'none';
-  });
 
   // 返回线段对象
   const rtn = {
@@ -185,7 +101,6 @@ export function line(x1: number, y1: number, x2: number, y2: number): Line {
     restrict,  // 限制范围
     snap,  // 吸附
     connect,  // 连接线段
-    draggable,  // 使线段可拖动
     show: () => {
       line.style.display = '';  // 显示线段
       return rtn;
@@ -221,7 +136,8 @@ export function line(x1: number, y1: number, x2: number, y2: number): Line {
       // 对线段进行缩放
       lineElement.setAttribute("d", `M ${x1 * x} ${-y1 * y} L ${x2 * x} ${-y2 * y}`);
       return rtn;
-    }
+    },
+    draggable: enableDragging,
   };
 
   function from(x: number, y: number) {
@@ -232,7 +148,7 @@ export function line(x1: number, y1: number, x2: number, y2: number): Line {
   function to(x: number, y: number) {
     lineElement.setAttribute("x2", x.toString());
     lineElement.setAttribute("y2", y.toString());
-    updateEndPoint();
+    // updateEndPoint();
     return rtn;
   }
 
@@ -702,9 +618,99 @@ export function line(x1: number, y1: number, x2: number, y2: number): Line {
     return rtn;
   }
 
-  function draggable(condition?: (x: number, y: number) => boolean) {
-    draggableFn(lineElement, condition);
+  function enableDragging() {
+    if (dragEnabled) return rtn;
+    dragEnabled = true;
+
+    let startDragX = 0;
+    let startDragY = 0;
+    let startLineX = 0;
+    let startLineY = 0;
+
+    draggable(startPoint,
+      (_x, _y) => true,
+      (x, y) => {
+        if (!isDraggingStart) {
+          startDragX = x;
+          startDragY = y;
+          startLineX = Number(lineElement.getAttribute("x1"));
+          startLineY = Number(lineElement.getAttribute("y1"));
+          isDraggingStart = true;
+        }
+
+        const dx = x - startDragX + x1;
+        const dy = y - startDragY - y1;
+
+        // 更新线段起点位置
+        const newX = startLineX + dx;
+        const newY = startLineY + dy;
+
+        lineElement.setAttribute("x1", newX.toString());
+        lineElement.setAttribute("y1", newY.toString());
+      }
+    );
+
+    // 添加终点拖拽功能
+    let endDragX = 0;
+    let endDragY = 0;
+    let endLineX = 0;
+    let endLineY = 0;
+
+    draggable(endPoint,
+      (_x, _y) => true,
+      (x, y) => {
+        if (!isDraggingEnd) {
+          endDragX = x;
+          endDragY = y;
+          endLineX = Number(lineElement.getAttribute("x2"));
+          endLineY = Number(lineElement.getAttribute("y2"));
+          isDraggingEnd = true;
+        }
+
+        const dx = x - endDragX + x2;
+        const dy = y - endDragY - y2;
+
+        const newX = endLineX + dx;
+        const newY = endLineY + dy;
+
+        lineElement.setAttribute("x2", newX.toString());
+        lineElement.setAttribute("y2", newY.toString());
+      }
+    );
+
+    // 状态管理
+    startPoint.addEventListener('mousedown', (e) => {
+      isDraggingStart = true;
+      e.preventDefault();
+      document.body.style.userSelect = 'none';
+    });
+
+    endPoint.addEventListener('mousedown', (e) => {
+      isDraggingEnd = true;
+      e.preventDefault();
+      document.body.style.userSelect = 'none';
+    });
+
+    window.addEventListener('mouseup', () => {
+      if (isDraggingStart) {
+        isDraggingStart = false;
+        startDragX = 0;
+        startDragY = 0;
+        startLineX = 0;
+        startLineY = 0;
+      }
+      if (isDraggingEnd) {
+        isDraggingEnd = false;
+        endDragX = 0;
+        endDragY = 0;
+        endLineX = 0;
+        endLineY = 0;
+      }
+      document.body.style.userSelect = 'none';
+    });
+
     return rtn;
+
   }
 
   return rtn;

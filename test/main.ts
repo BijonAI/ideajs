@@ -16,9 +16,11 @@ const coord = idea.coordinate(800, 600)
   .draggable()       // 启用拖拽功能
 
 // 创建线段
-// const line = idea.line(100, 100, 200, 200)
-//   .effect('glow', { color: 'pink', strength: 5, spread: 0 })
+const line = idea.line(100, 100, 200, 200)
+  .effect('glow', { color: 'pink', strength: 5, spread: 0 })
+  .draggable()
 
+const dot = idea.dot(-500, 500)
 // 创建一个简单的圆
 // const circle = idea.parametric(
 //   t => [Math.cos(t), Math.sin(t)],
@@ -32,7 +34,6 @@ const coord = idea.coordinate(800, 600)
 //   })
 //   .scale(50)
 
-const arc = idea.arc(100, 100, 50, 0, 360)
 // // 创建一个心形曲线
 // const heart = idea.parametric(
 //   t => [16 * Math.pow(Math.sin(t), 3) / 16,
@@ -62,7 +63,8 @@ const arc = idea.arc(100, 100, 50, 0, 360)
 //   .scale(25)
 
 // 添加到坐标系
-coord.add(arc)
+coord.add(vector)
+coord.add(line)
 // coord.add(heart)
 // coord.add(butterfly)
 // coord.add(vector)
@@ -70,6 +72,7 @@ coord.add(arc)
 
 // 添加坐标系到画布
 canvas.add(coord)
+canvas.add(dot)
 
 // 添加动画效果
 // circle.animateDrawing(1000)
