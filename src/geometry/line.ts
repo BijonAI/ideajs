@@ -163,21 +163,32 @@ export function line(x1: number, y1: number, x2: number, y2: number): Line {
     draggable: enableDragging,
   };
 
-  function from(x: number, y: number) {
-    line.setAttribute("transform", `translate(${x}, ${y})`);
+  function from(_x1: number, _y1: number) {
+    x1 = _x1;
+    y1 = _y1;
+    lineElement.setAttribute("x1", x1.toString());
+    lineElement.setAttribute("y1", (-y1).toString());
+    startPoint.setAttribute("cx", x1.toString());
+    startPoint.setAttribute("cy", (-y1).toString());
     return rtn;
   }
 
-  function to(x: number, y: number) {
-    lineElement.setAttribute("x2", x.toString());
-    lineElement.setAttribute("y2", y.toString());
-    // updateEndPoint();
+  function to(_x2: number, _y2: number) {
+    x2 = _x2;
+    y2 = _y2;
+    lineElement.setAttribute("x2", x2.toString());
+    lineElement.setAttribute("y2", (-y2).toString());
+    endPoint.setAttribute("cx", x2.toString());
+    endPoint.setAttribute("cy", (-y2).toString());
     return rtn;
   }
 
   function stroke(color?: string) {
     const theme = getTheme();
-    lineElement.setAttribute("stroke", color || theme.colors.primary);
+    const finalColor = color ? color : theme.colors.primary;
+    lineElement.setAttribute("stroke", finalColor);
+    startPoint.setAttribute("fill", finalColor);
+    endPoint.setAttribute("fill", finalColor);
     return rtn;
   }
 
@@ -192,6 +203,12 @@ export function line(x1: number, y1: number, x2: number, y2: number): Line {
     filter?: string;
     visibility?: "visible" | "hidden";
     pointerEvents?: "none" | "all";
+    pointSize?: number;
+    pointColor?: string;
+    pointOpacity?: number;
+    pointFill?: string;
+    pointStroke?: string;
+    pointStrokeWidth?: number;
   }) {
     if (options.strokeWidth)
       lineElement.setAttribute("stroke-width", options.strokeWidth.toString());
@@ -213,27 +230,63 @@ export function line(x1: number, y1: number, x2: number, y2: number): Line {
     if (options.visibility) lineElement.style.visibility = options.visibility;
     if (options.pointerEvents)
       lineElement.style.pointerEvents = options.pointerEvents;
+    if (options.pointSize) {
+      startPoint.setAttribute("r", options.pointSize.toString());
+      endPoint.setAttribute("r", options.pointSize.toString());
+    }
+    if (options.pointColor) {
+      startPoint.setAttribute("fill", options.pointColor);
+      endPoint.setAttribute("fill", options.pointColor);
+    }
+    if (options.pointOpacity) {
+      startPoint.setAttribute("fill-opacity", options.pointOpacity.toString());
+      endPoint.setAttribute("fill-opacity", options.pointOpacity.toString());
+    }
+    if (options.pointFill) {
+      startPoint.setAttribute("fill", options.pointFill);
+      endPoint.setAttribute("fill", options.pointFill);
+    }
+    if (options.pointStroke) {
+      startPoint.setAttribute("stroke", options.pointStroke);
+      endPoint.setAttribute("stroke", options.pointStroke);
+    }
+    if (options.pointStrokeWidth) {
+      startPoint.setAttribute(
+        "stroke-width",
+        options.pointStrokeWidth.toString(),
+      );
+      endPoint.setAttribute(
+        "stroke-width",
+        options.pointStrokeWidth.toString(),
+      );
+    }
     return rtn;
   }
 
   function length() {
-    const x = Number(lineElement.getAttribute("x2"));
-    const y = Number(lineElement.getAttribute("y2"));
-    return Math.sqrt(x * x + y * y);
+    const x1 = Number(lineElement.getAttribute("x1"));
+    const x2 = Number(lineElement.getAttribute("x2"));
+    const y1 = Number(lineElement.getAttribute("y1"));
+    const y2 = Number(lineElement.getAttribute("y2"));
+    return Math.sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1));
   }
 
   function angle() {
-    const x = Number(lineElement.getAttribute("x2"));
-    const y = Number(lineElement.getAttribute("y2"));
-    return (Math.atan2(y, x) * 180) / Math.PI;
+    const x1 = Number(lineElement.getAttribute("x1"));
+    const y1 = Number(lineElement.getAttribute("y1"));
+    const x2 = Number(lineElement.getAttribute("x2"));
+    const y2 = Number(lineElement.getAttribute("y2"));
+    return (Math.atan2(y2 - y1, x2 - x1) * 180) / Math.PI;
   }
 
   function midpoint() {
-    const x = Number(lineElement.getAttribute("x2"));
-    const y = Number(lineElement.getAttribute("y2"));
+    const x1 = Number(lineElement.getAttribute("x1"));
+    const x2 = Number(lineElement.getAttribute("x2"));
+    const y1 = Number(lineElement.getAttribute("y1"));
+    const y2 = Number(lineElement.getAttribute("y2"));
     return {
-      x: x / 2,
-      y: y / 2,
+      x: (x1 + x2) / 2,
+      y: (y1 + y2) / 2,
     };
   }
 
@@ -361,48 +414,150 @@ export function line(x1: number, y1: number, x2: number, y2: number): Line {
   }
 
   function transform(options: Transform) {
-    let transform = "";
+    const currentX1 = Number(lineElement.getAttribute("x1"));
+    const currentY1 = -Number(lineElement.getAttribute("y1"));
+    const currentX2 = Number(lineElement.getAttribute("x2"));
+    const currentY2 = -Number(lineElement.getAttribute("y2"));
+
+    let newX1 = currentX1;
+    let newY1 = currentY1;
+    let newX2 = currentX2;
+    let newY2 = currentY2;
+
     if (options.translate) {
-      transform += `translate(${options.translate[0]},${options.translate[1]}) `;
+      newX1 += options.translate[0];
+      newY1 += options.translate[1];
+      newX2 += options.translate[0];
+      newY2 += options.translate[1];
     }
+
     if (options.scale) {
-      if (Array.isArray(options.scale)) {
-        transform += `scale(${options.scale[0]},${options.scale[1]}) `;
-      } else {
-        transform += `scale(${options.scale}) `;
-      }
+      const originX = options.origin ? options.origin[0] : currentX1;
+      const originY = options.origin ? options.origin[1] : currentY1;
+      const scaleX = Array.isArray(options.scale)
+        ? options.scale[0]
+        : options.scale;
+      const scaleY = Array.isArray(options.scale)
+        ? options.scale[1]
+        : options.scale;
+
+      newX1 = originX + (currentX1 - originX) * scaleX;
+      newY1 = originY + (currentY1 - originY) * scaleY;
+      newX2 = originX + (currentX2 - originX) * scaleX;
+      newY2 = originY + (currentY2 - originY) * scaleY;
     }
+
     if (options.rotate) {
-      transform += `rotate(${options.rotate}) `;
+      const originX = options.origin ? options.origin[0] : currentX1;
+      const originY = options.origin ? options.origin[1] : currentY1;
+      const angle = (options.rotate * Math.PI) / 180;
+      const cos = Math.cos(angle);
+      const sin = Math.sin(angle);
+
+      // 旋转起点
+      const dx1 = currentX1 - originX;
+      const dy1 = currentY1 - originY;
+      newX1 = originX + dx1 * cos - dy1 * sin;
+      newY1 = originY + dx1 * sin + dy1 * cos;
+
+      // 旋转终点
+      const dx2 = currentX2 - originX;
+      const dy2 = currentY2 - originY;
+      newX2 = originX + dx2 * cos - dy2 * sin;
+      newY2 = originY + dx2 * sin + dy2 * cos;
     }
+
     if (options.skew) {
-      transform += `skew(${options.skew[0]},${options.skew[1]}) `;
+      const originX = options.origin ? options.origin[0] : currentX1;
+      const originY = options.origin ? options.origin[1] : currentY1;
+      const skewX = (options.skew[0] * Math.PI) / 180;
+      const skewY = (options.skew[1] * Math.PI) / 180;
+
+      // 倾斜起点
+      const dx1 = currentX1 - originX;
+      const dy1 = currentY1 - originY;
+      newX1 = originX + dx1 + dy1 * Math.tan(skewX);
+      newY1 = originY + dy1 + dx1 * Math.tan(skewY);
+
+      // 倾斜终点
+      const dx2 = currentX2 - originX;
+      const dy2 = currentY2 - originY;
+      newX2 = originX + dx2 + dy2 * Math.tan(skewX);
+      newY2 = originY + dy2 + dx2 * Math.tan(skewY);
     }
+
     if (options.origin) {
-      lineElement.style.transformOrigin = `${options.origin[0]}px ${options.origin[1]}px`;
+      const [originX, originY] = options.origin;
+      newX1 = originX;
+      newY1 = originY;
     }
-    lineElement.setAttribute("transform", transform.trim());
+
+    // 更新向量位置
+    x1 = newX1;
+    y1 = newY1;
+    x2 = newX2;
+    y2 = newY2;
+
+    startPoint.setAttribute("cx", x1.toString());
+    startPoint.setAttribute("cy", (-y1).toString());
+    endPoint.setAttribute("cx", x2.toString());
+    endPoint.setAttribute("cy", (-y2).toString());
+    lineElement.setAttribute("x1", x1.toString());
+    lineElement.setAttribute("y1", (-y1).toString());
+    lineElement.setAttribute("x2", x2.toString());
+    lineElement.setAttribute("y2", (-y2).toString());
     return rtn;
   }
 
   function animation(options: Animation) {
-    const animations: string[] = [];
-    if (options.properties) {
-      Object.entries(options.properties).forEach(([prop, { from, to }]) => {
-        lineElement.style.setProperty(prop, from);
-        animations.push(
-          `${prop} ${options.duration || 300}ms ${options.easing || "ease"}`,
-        );
-        setTimeout(() => lineElement.style.setProperty(prop, to), 0);
-      });
+    const startX1 = x1;
+    const startY1 = y1;
+    const startX2 = x2;
+    const startY2 = y2;
+    const endX1 = options.properties?.x1?.to ?? x1;
+    const endY1 = options.properties?.y1?.to ?? y1;
+    const endX2 = options.properties?.x2?.to ?? x2;
+    const endY2 = options.properties?.y2?.to ?? y2;
+
+    const duration = options.duration || 300;
+    const startTime = performance.now();
+
+    function animate(currentTime: number) {
+      const elapsed = currentTime - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+
+      const easeProgress = options.easing
+        ? gsap.parseEase(options.easing)(progress)
+        : progress;
+
+      // 计算当前位置
+      x1 = startX1 + (endX1 - startX1) * easeProgress;
+      y1 = startY1 + (endY1 - startY1) * easeProgress;
+      x2 = startX2 + (endX2 - startX2) * easeProgress;
+      y2 = startY2 + (endY2 - startY2) * easeProgress;
+
+      // 更新视图
+      startPoint.setAttribute("cx", x1.toString());
+      startPoint.setAttribute("cy", (-y1).toString());
+      endPoint.setAttribute("cx", x2.toString());
+      endPoint.setAttribute("cy", (-y2).toString());
+      lineElement.setAttribute("x1", x1.toString());
+      lineElement.setAttribute("y1", (-y1).toString());
+      lineElement.setAttribute("x2", x2.toString());
+      lineElement.setAttribute("y2", (-y2).toString());
+
+      if (progress < 1) {
+        requestAnimationFrame(animate);
+      } else {
+        options.onEnd?.();
+      }
     }
-    lineElement.style.transition = animations.join(", ");
+
     options.onStart?.();
-    if (options.onEnd) {
-      setTimeout(
-        options.onEnd,
-        (options.duration || 300) + (options.delay || 0),
-      );
+    if (options.delay) {
+      setTimeout(() => requestAnimationFrame(animate), options.delay);
+    } else {
+      requestAnimationFrame(animate);
     }
     return rtn;
   }
@@ -519,8 +674,10 @@ export function line(x1: number, y1: number, x2: number, y2: number): Line {
 
     if (options.showLength) {
       const length = Math.sqrt(
-        Math.pow(Number(lineElement.getAttribute("x2")), 2) +
-          Math.pow(Number(lineElement.getAttribute("y2")), 2),
+        Number(lineElement.getAttribute("x2")) *
+          Number(lineElement.getAttribute("x2")) +
+          Number(lineElement.getAttribute("y2")) *
+            Number(lineElement.getAttribute("y2")),
       );
       const text = document.createElementNS(
         "http://www.w3.org/2000/svg",
@@ -622,16 +779,36 @@ export function line(x1: number, y1: number, x2: number, y2: number): Line {
     );
     annotation.textContent = text;
 
-    const x = (x1 + x2) / 2;
-    const y = (-y1 - y2) / 2;
-
-    annotation.setAttribute("x", x.toString());
-    annotation.setAttribute(
-      "y",
-      (position === "bottom" ? y + 20 : y - 10).toString(),
-    );
+    // 设置文本样式
+    annotation.setAttribute("font-size", "12");
+    annotation.setAttribute("fill", getTheme().colors.text);
+    annotation.setAttribute("paint-order", "stroke");
+    annotation.setAttribute("stroke", "white");
+    annotation.setAttribute("stroke-width", "1");
     annotation.setAttribute("text-anchor", "middle");
+    annotation.setAttribute("dominant-baseline", "middle");
 
+    // 更新注释位置
+    const updatePosition = () => {
+      const { x, y } = midpoint();
+      annotation.setAttribute("x", x.toString());
+      annotation.setAttribute(
+        "y",
+        (position === "bottom" ? y + 20 : y - 10).toString(),
+      );
+    };
+
+    // 初始化位置
+    updatePosition();
+
+    // 添加观察者
+    const observer = new MutationObserver(updatePosition);
+    observer.observe(lineElement, {
+      attributes: true,
+      attributeFilter: ["x1", "y1", "x2", "y2"],
+    });
+
+    // 将注释添加到线段组中
     lineElement.parentNode?.appendChild(annotation);
     return rtn;
   }

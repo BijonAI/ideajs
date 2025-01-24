@@ -39,6 +39,7 @@ export function polygon(points: { x: number; y: number }[]): Polygon {
   polygon.setAttribute("stroke", theme.colors.primary);
   polygon.setAttribute("fill", theme.colors.background);
   polygon.setAttribute("fill-opacity", "0.1");
+  polygon.style.pointerEvents = "stroke"; // 只在边框上响应事件
 
   // 创建顶点控制点和保存初始位置
   const startPositions = points.map((point) => ({ x: point.x, y: point.y }));
@@ -63,11 +64,11 @@ export function polygon(points: { x: number; y: number }[]): Polygon {
   let dragEnabled = false;
 
   // 更新顶点位置的函数
-  function updateVertexPosition(index: number) {
-    const vertex = vertices[index];
-    vertex.setAttribute("cx", points[index].x.toString());
-    vertex.setAttribute("cy", points[index].y.toString());
-  }
+  // function updateVertexPosition(index: number) {
+  //   const vertex = vertices[index];
+  //   vertex.setAttribute("cx", (points[index].x).toString());
+  //   vertex.setAttribute("cy", (-points[index].y).toString());
+  // }
 
   // 更新多边形路径的函数
   function updatePolygonPath() {
@@ -677,8 +678,8 @@ export function polygon(points: { x: number; y: number }[]): Polygon {
           if (!isDragging) {
             startDragX = x;
             startDragY = y;
-            endDragX = Number(vertex.getAttribute("cx"));
-            endDragY = Number(vertex.getAttribute("cy"));
+            endDragX = points[index].x;
+            endDragY = points[index].y;
             isDragging = true;
           }
 
@@ -688,19 +689,23 @@ export function polygon(points: { x: number; y: number }[]): Polygon {
 
           // 更新顶点位置
           points[index].x = endDragX + dx;
-          points[index].y = endDragY + dy;
+          points[index].y = endDragY - dy;
 
           // 更新视图
-          updateVertexPosition(index);
           updatePolygonPath();
         },
       );
 
       // 添加鼠标抬起事件处理
       const handleMouseUp = () => {
+        startDragX = 0;
+        startDragY = 0;
+        endDragX = 0;
+        endDragY = 0;
         isDragging = false;
       };
       vertex.addEventListener("mouseup", handleMouseUp);
+      document.body.style.userSelect = "none";
     });
 
     return rtn;

@@ -1,28 +1,27 @@
-import * as idea from "../src";
+import * as idea from '../src'
 
 // 创建画布
-const canvas = idea.field(800, 600);
-document.body.appendChild(canvas.node());
+const canvas = idea.field(800, 600)
+document.body.appendChild(canvas.node())
 
-const vector = idea.vector(0, 0, 30, 40);
+const vector = idea.vector(0, 0, 30, 40)
+  .draggable()
 
 // 创建坐标系
-const coord = idea
-  .coordinate(800, 600)
-  .origin(400, 300) // 设置原点在中心
-  .unit(50) // 设置单位长度
-  .grid(50) // 设置网格大小
-  .ticks(50) // 设置刻度间隔
-  .labels(50) // 设置标签间隔
-  .draggable(); // 启用拖拽功能
+const coord = idea.coordinate(800, 600)
+  .origin(400, 300)  // 设置原点在中心
+  .unit(50)          // 设置单位长度
+  .grid(50)          // 设置网格大小
+  .ticks(50)         // 设置刻度间隔
+  .labels(50)        // 设置标签间隔
+  .draggable()       // 启用拖拽功能
 
 // 创建线段
-const line = idea
-  .line(100, 100, 200, 200)
-  .effect("glow", { color: "pink", strength: 5, spread: 0 })
-  .draggable();
+const line = idea.line(100, 100, 200, 200)
+  .effect('glow', { color: 'pink', strength: 5, spread: 0 })
+  .draggable()
 
-const dot = idea.dot(-500, 500);
+const dot = idea.dot(-500, 500)
 // 创建一个简单的圆
 // const circle = idea.parametric(
 //   t => [Math.cos(t), Math.sin(t)],
@@ -65,27 +64,19 @@ const dot = idea.dot(-500, 500);
 //   .scale(25)
 
 //使用polygon.ts绘制多边形
-const polygon = idea
-  .polygon([
-    { x: 0, y: 0 },
-    { x: 200, y: 0 },
-    { x: 100, y: 100 },
-    { x: 0, y: 100 },
-  ])
-  .draggable();
+const polygon = idea.polygon([{ x: 0, y: 0 }, { x: 100, y: 0 }, { x: 100, y: 100 }, { x: 0, y: 100 }]).draggable()
 
 // 添加到坐标系
-coord.add(vector);
-coord.add(line);
-coord.add(polygon);
+coord.add(vector)
+coord.add(line)
+coord.add(polygon)
 // coord.add(heart)
 // coord.add(butterfly)
 // coord.add(vector)
 // coord.add(line)
 
 // 添加坐标系到画布
-canvas.add(coord);
-canvas.add(dot);
+canvas.add(coord)
 
 // 添加动画效果
 // circle.animateDrawing(1000)

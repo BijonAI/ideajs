@@ -29,6 +29,12 @@ export interface LineStyle extends CommonStyle {
   strokeDasharray?: string; // 虚线样式
   lineCap?: "butt" | "round" | "square"; // 线条端点样式
   lineJoin?: "miter" | "round" | "bevel"; // 线条连接点样式
+  pointColor?: string; // 线条端点颜色
+  pointSize?: number; // 线条端点大小
+  pointOpacity?: number; // 线条端点透明度
+  pointFill?: string; // 线条端点填充颜色
+  pointStroke?: string; // 线条端点描边颜色
+  pointStrokeWidth?: number; // 线条端点描边宽度
 }
 
 /**
