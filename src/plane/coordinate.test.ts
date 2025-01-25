@@ -94,7 +94,10 @@ export function coordinate() {
     return rtn;
   }
 
+  let tickSpacing: number;
   function setTicks(space: number = 50) {
+    tickSpacing = space;
+
     // X轴刻度
     for (
       let x = Math.floor(viewBox.x / space + 1) * space;
@@ -395,7 +398,7 @@ export function coordinate() {
     axis.innerHTML = "";
 
     setAxis();
-    setTicks();
+    setTicks(tickSpacing);
     elements.forEach((element) => {
       axis.appendChild(element.node());
     });

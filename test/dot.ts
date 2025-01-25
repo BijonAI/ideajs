@@ -5,14 +5,7 @@ const canvas = idea.field(1000, 800);
 document.body.appendChild(canvas.node());
 
 // 创建坐标系
-const coord = idea
-  .coordinate(1000, 800)
-  .origin(500, 400)
-  .unit(50)
-  .grid(50)
-  .ticks(50)
-  .labels(50)
-  .draggable();
+const coord = idea.coordinate().axis().ticks(50);
 
 // 创建点
 const dot = idea
