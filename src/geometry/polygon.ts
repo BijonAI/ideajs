@@ -731,29 +731,24 @@ export function polygon(points: { x: number; y: number }[]): Polygon {
         const elapsed = currentTime - startTime;
         const progress = Math.min(elapsed / duration, 1);
 
-        // 使用内置的缓动函数替代 GSAP
         const easeProgress = options.easing
           ? easeInOut(progress)
           : progress;
 
-        // 更新顶点位置
         Object.entries(vertexAnimations).forEach(([prop, { from, to }]) => {
-          // 使用简单的命名格式：x1, y1, x2, y2, ...
-          const coord = prop.charAt(0);  // 'x' 或 'y'
-          const index = parseInt(prop.slice(1)) - 1;  // 从1开始的索引转为0开始
+          const coord = prop.charAt(0); 
+          const index = parseInt(prop.slice(1)) - 1;
           if (!isNaN(index) && index < points.length) {
             points[index][coord as 'x' | 'y'] = from + (to - from) * easeProgress;
           }
         });
 
-        // 更新多边形路径和顶点可视化点
         updatePolygonPath();
-        // 更新顶点可视化点的位置
         points.forEach((point, index) => {
           const vertexPoint = group.querySelector(`circle[data-vertex="${index}"]`);
           if (vertexPoint) {
             vertexPoint.setAttribute('cx', point.x.toString());
-            vertexPoint.setAttribute('cy', (-point.y).toString());  // 使用负的y坐标
+            vertexPoint.setAttribute('cy', (-point.y).toString()); 
           }
         });
 

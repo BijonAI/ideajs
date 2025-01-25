@@ -105,6 +105,7 @@ coord.add(f);
 - effect, 效果
 - highlight, 高亮
 - annotate, 注释
+- draggable, 可拖动
 
 ### vector
 
@@ -118,6 +119,7 @@ coord.add(f);
 - effect, 效果
 - highlight, 高亮
 - annotate, 注释
+- draggable, 可拖动
 
 ### polygon
 
@@ -131,7 +133,18 @@ coord.add(f);
 - fill, 设置多边形的填充颜色
 - style, 设置多边形的样式
 - animation, 多边形动画效果
-- transform // 设置变换
+- transform 设置变换
+- draggable, 可拖动
+
+### arc
+
+- from, 设置起始点
+- to, 设置结束点
+- stroke, 设置线段颜色
+- fill, 设置填充颜色
+- transform, 设置变换
+- animation, 动画效果
+- 不可拖动
 
 ## License 许可
 

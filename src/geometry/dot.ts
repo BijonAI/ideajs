@@ -5,7 +5,7 @@
 
 import { draggable } from "../utils/draggable";
 import { getTheme } from "../theme";
-import { TeachingOptions, AnimationStep } from "../interfaces/common";
+import { TeachingOptions, AnimationStep,Animation } from "../interfaces/common";
 import { Dot } from "../interfaces/geometry";
 
 /**
@@ -23,7 +23,8 @@ export function dot(x: number, y: number) {
   circle.setAttribute("cx", x.toString());
   circle.setAttribute("cy", y.toString());
   circle.setAttribute("r", "4");
-  circle.setAttribute("stroke-width", "2");
+  circle.setAttribute("stroke-width", "4");
+  circle.style.cursor = "move";
 
   // 拖拽事件回调数组
   const dragEvents: ((x: number, y: number) => void)[] = [];
@@ -55,6 +56,7 @@ export function dot(x: number, y: number) {
           ),
         ),
       );
+      document.body.style.userSelect = "none";
       return rtn;
     },
     onDrag,
@@ -196,7 +198,7 @@ export function dot(x: number, y: number) {
   }
 
   // 焦点事件回调数组
-  const focusEvents = [];
+  const focusEvents: (() => void)[] = [];
   function onFocus(callback: () => void) {
     focusEvents.push(callback);
     return rtn;
@@ -209,7 +211,7 @@ export function dot(x: number, y: number) {
    */
   function focus(color: string) {
     focusEvents.forEach((callback) => callback());
-    const oldColor = circle.getAttribute("stroke");
+    const oldColor = circle.getAttribute("stroke") || "#000000";  // Provide default color if attribute is null
     circle.addEventListener("mouseover", () => {
       console.log("focus", color);
       circle.setAttribute("stroke", color);
@@ -221,7 +223,7 @@ export function dot(x: number, y: number) {
   }
 
   // 选择事件回调数组
-  const selectEvents = [];
+  const selectEvents: (() => void)[] = [];
   function onSelect(callback: () => void) {
     selectEvents.push(callback);
     return rtn;
@@ -234,7 +236,7 @@ export function dot(x: number, y: number) {
    */
   function select(color: string) {
     selectEvents.forEach((callback) => callback());
-    const oldColor = circle.getAttribute("stroke");
+    const oldColor = circle.getAttribute("stroke") || "#000000";  // Provide default color if attribute is null
     let isMouseOver = false;
     circle.addEventListener("mousedown", () => {
       isMouseOver = true;
@@ -333,27 +335,17 @@ export function dot(x: number, y: number) {
    * @param options 动画选项，包括属性、持续时间和回调函数
    * @returns 点对象
    */
-  function animation(options: {
-    duration?: number;
-    delay?: number;
-    easing?: string;
-    properties?: {
-      [key: string]: {
-        from: any;
-        to: any;
-      };
-    };
-    onStart?: () => void;
-    onEnd?: () => void;
-  }) {
+  function animation(options: Animation) {
     const animations: string[] = [];
     if (options.properties) {
       Object.entries(options.properties).forEach(([prop, { from, to }]) => {
-        circle.style.setProperty(prop, from);
+        // Map x1 to cx and y1 to cy
+        const mappedProp = prop === 'x1' ? 'cx' : prop === 'y1' ? 'cy' : prop;
+        circle.style.setProperty(mappedProp, from);
         animations.push(
-          `${prop} ${options.duration || 300}ms ${options.easing || "ease"}`,
+          `${mappedProp} ${options.duration || 300}ms ${options.easing || "ease"}`,
         );
-        setTimeout(() => circle.style.setProperty(prop, to), 0);
+        setTimeout(() => circle.style.setProperty(mappedProp, to), 0);
       });
     }
     circle.style.transition = animations.join(", ");

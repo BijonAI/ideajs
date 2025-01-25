@@ -27,7 +27,7 @@ export function arc(x: number, y: number, radius: number = 50): Arc {
   const arc = document.createElementNS("http://www.w3.org/2000/svg", "path");
 
   // 初始化为0度弧
-  arc.setAttribute("d", describeArc(x, y, radius, 0, 0));
+  arc.setAttribute("d", describeArc(x, -y, radius, 0, 0));
 
   // 应用主题样式
   const theme = getTheme();
@@ -171,9 +171,10 @@ export function arc(x: number, y: number, radius: number = 50): Arc {
     morph: (target: Arc, duration: number = 1000) => {
       if (!target?.node()) return rtn;
       const targetArc = target.node();
+      const pathData = targetArc.getAttribute("d") || arc.getAttribute("d") || "";
       gsap.to(arc, {
         duration: duration / 1000,
-        attr: { d: targetArc.getAttribute("d") },
+        attr: { d: pathData },
         ease: "power1.inOut",
       });
       return rtn;
@@ -263,15 +264,87 @@ export function arc(x: number, y: number, radius: number = 50): Arc {
    */
   function animation(options: Animation) {
     const animations: string[] = [];
+    let currentX = x;
+    let currentY = y;
+    let currentRadius = radius;
+    let currentStartAngle = Number(arc.dataset.startAngle || 0);
+    let currentEndAngle = Number(arc.dataset.endAngle || 0);
+
     if (options.properties) {
+      // 先设置初始位置
+      if (options.properties['x1']?.from !== undefined) {
+        currentX = Number(options.properties['x1'].from);
+      }
+      if (options.properties['y1']?.from !== undefined) {
+        currentY = Number(options.properties['y1'].from);
+      }
+      if (options.properties['r']?.from !== undefined) {
+        currentRadius = Number(options.properties['r'].from);
+      }
+      if (options.properties['startAngle']?.from !== undefined) {
+        currentStartAngle = Number(options.properties['startAngle'].from);
+      }
+      if (options.properties['endAngle']?.from !== undefined) {
+        currentEndAngle = Number(options.properties['endAngle'].from);
+      }
+
+      // 立即更新到初始位置
+      arc.setAttribute(
+        "d",
+        describeArc(currentX, currentY, currentRadius, currentStartAngle, currentEndAngle)
+      );
+
       Object.entries(options.properties).forEach(([prop, { from, to }]) => {
-        arc.style.setProperty(prop, from);
-        animations.push(
-          `${prop} ${options.duration || 300}ms ${options.easing || "ease"}`,
-        );
-        setTimeout(() => arc.style.setProperty(prop, to), 0);
+        if (prop === 'x1') currentX = Number(to);
+        else if (prop === 'y1') currentY = Number(to);
+        else if (prop === 'r') currentRadius = Number(to);
+        else if (prop === 'startAngle') currentStartAngle = Number(to);
+        else if (prop === 'endAngle') currentEndAngle = Number(to);
+        else {
+          arc.style.setProperty(prop, from);
+          animations.push(
+            `${prop} ${options.duration || 300}ms ${options.easing || "ease"}`,
+          );
+          setTimeout(() => arc.style.setProperty(prop, to), 0);
+        }
       });
+
+      if (options.properties['x1'] || options.properties['y1'] || options.properties['r'] || 
+          options.properties['startAngle'] || options.properties['endAngle']) {
+        const duration = options.duration || 300;
+        const startTime = performance.now();
+        const fromX = Number(options.properties['x1']?.from || x);
+        const fromY = Number(options.properties['y1']?.from || y);
+        const fromRadius = Number(options.properties['r']?.from || radius);
+        const fromStartAngle = Number(options.properties['startAngle']?.from || currentStartAngle);
+        const fromEndAngle = Number(options.properties['endAngle']?.from || currentEndAngle);
+        
+        function animate(currentTime: number) {
+          const elapsed = currentTime - startTime;
+          const progress = Math.min(elapsed / duration, 1);
+
+          const currentX = fromX + (Number(options.properties?.['x1']?.to || fromX) - fromX) * progress;
+          const currentY = fromY + (Number(options.properties?.['y1']?.to || fromY) - fromY) * progress;
+          const currentRadius = fromRadius + (Number(options.properties?.['r']?.to || fromRadius) - fromRadius) * progress;
+          const currentStartAngle = fromStartAngle + 
+            (Number(options.properties?.['startAngle']?.to || fromStartAngle) - fromStartAngle) * progress;
+          const currentEndAngle = fromEndAngle + 
+            (Number(options.properties?.['endAngle']?.to || fromEndAngle) - fromEndAngle) * progress;
+
+          arc.setAttribute(
+            "d",
+            describeArc(currentX, currentY, currentRadius, currentStartAngle, currentEndAngle)
+          );
+          
+          if (progress < 1) {
+            requestAnimationFrame(animate);
+          }
+        }
+        
+        requestAnimationFrame(animate);
+      }
     }
+
     arc.style.transition = animations.join(", ");
     options.onStart?.();
     if (options.onEnd) {
@@ -420,12 +493,7 @@ export function arc(x: number, y: number, radius: number = 50): Arc {
 }
 
 /**
- * 将极坐标转换为笛卡尔坐标
- * @param centerX 中心点x坐标
- * @param centerY 中心点y坐标
- * @param radius 半径
- * @param angleInDegrees 角度（度）
- * @returns 笛卡尔坐标点
+ * 将角度转换为SVG坐标点
  */
 function polarToCartesian(
   centerX: number,
@@ -433,7 +501,8 @@ function polarToCartesian(
   radius: number,
   angleInDegrees: number,
 ) {
-  const angleInRadians = ((angleInDegrees - 90) * Math.PI) / 180.0;
+  // 转换为弧度，注意在SVG中y轴向下为正
+  const angleInRadians = (-angleInDegrees * Math.PI) / 180.0;
   return {
     x: centerX + radius * Math.cos(angleInRadians),
     y: centerY + radius * Math.sin(angleInRadians),
@@ -442,12 +511,6 @@ function polarToCartesian(
 
 /**
  * 生成圆弧SVG路径数据
- * @param x 圆心x坐标
- * @param y 圆心y坐标
- * @param radius 半径
- * @param startAngle 起始角度（度）
- * @param endAngle 结束角度（度）
- * @returns SVG路径数据字符串
  */
 function describeArc(
   x: number,
@@ -456,11 +519,41 @@ function describeArc(
   startAngle: number,
   endAngle: number,
 ) {
-  const start = polarToCartesian(x, y, radius, endAngle);
-  const end = polarToCartesian(x, y, radius, startAngle);
+  // 计算角度差
+  let angleDiff = (endAngle - startAngle) % 360;
+  if (angleDiff === 0 && endAngle !== startAngle) {
+    return [
+      "M",
+      x + radius,
+      -y,
+      "A",
+      radius,
+      radius,
+      0,
+      "1",
+      "0",
+      x - radius,
+      -y,
+      "A",
+      radius,
+      radius,
+      0,
+      "1",
+      "0",
+      x + radius,
+      -y,
+    ].join(" ");
+  }
 
-  const largeArcFlag = endAngle - startAngle <= 180 ? "0" : "1";
-  const sweepFlag = "1";
+  // 获取起点和终点坐标
+  const start = polarToCartesian(x, -y, radius, startAngle);
+  const end = polarToCartesian(x, -y, radius, endAngle);
+
+  // 确定是否使用大弧
+  const largeArcFlag = angleDiff > 180 ? "1" : "0";
+  
+  // 使用0表示逆时针方向
+  const sweepFlag = "0";
 
   return [
     "M",

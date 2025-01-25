@@ -299,13 +299,13 @@ export function parametric(
 
           const x2 =
             points[Math.floor((t2 * points.length) / (tMax - tMin))].x *
-              scaleX *
-              unit +
+            scaleX *
+            unit +
             offsetX;
           const y2 =
             -points[Math.floor((t2 * points.length) / (tMax - tMin))].y *
-              scaleY *
-              unit +
+            scaleY *
+            unit +
             offsetY;
 
           if (
@@ -507,7 +507,7 @@ export function parametric(
         const interpolatedPoints = currentPoints.map((currentPoint, i) => {
           const targetPoint =
             targetPoints[
-              Math.floor((i * targetPoints.length) / currentPoints.length)
+            Math.floor((i * targetPoints.length) / currentPoints.length)
             ];
           return {
             x: currentPoint.x * unit,

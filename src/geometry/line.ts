@@ -65,13 +65,6 @@ export function line(x1: number, y1: number, x2: number, y2: number): Line {
   endPoint.setAttribute("cy", (-y2).toString());
   endPoint.style.cursor = "move";
 
-  // 更新终点圆点位置
-  // function updateEndPoint() {
-  //   const x2 = Number(lineElement.getAttribute("x2"));
-  //   const y2 = Number(lineElement.getAttribute("y2"));
-  //   endPoint.setAttribute("cx", x2.toString());
-  //   endPoint.setAttribute("cy", y2.toString());
-  // }
 
   // 将元素添加到线段组中
   lineGroup.append(lineElement, startPoint, endPoint);
