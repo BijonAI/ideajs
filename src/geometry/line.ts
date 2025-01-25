@@ -25,8 +25,8 @@ import { gsap } from "gsap";
  * @returns 线段对象，包含一系列方法
  */
 export function line(x1: number, y1: number, x2: number, y2: number): Line {
-  const line = document.createElementNS("http://www.w3.org/2000/svg", "g");
-  // line.setAttribute("transform", `translate(${x1}, ${-y1})`);
+  const lineGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
+  // lineGroup.setAttribute("transform", `translate(${x1}, ${-y1})`);
 
   // 应用主题样式
   const theme = getTheme();
@@ -74,7 +74,7 @@ export function line(x1: number, y1: number, x2: number, y2: number): Line {
   // }
 
   // 将元素添加到线段组中
-  line.append(lineElement, startPoint, endPoint);
+  lineGroup.append(lineElement, startPoint, endPoint);
 
   let dragEnabled = false;
   // 添加起点拖拽功能
@@ -84,10 +84,11 @@ export function line(x1: number, y1: number, x2: number, y2: number): Line {
 
   // 返回线段对象
   const rtn = {
-    node: () => line, // 返回当前线段的 SVG 元素
+    node: () => lineGroup, // 返回当前线段的 SVG 元素
     from, // 设置起始点
     to, // 设置结束点
     stroke, // 设置线段颜色
+    fill, // 设置填充颜色
     style, // 设置样式
     transform, // 设置变换
     animation, // 动画效果
@@ -122,19 +123,19 @@ export function line(x1: number, y1: number, x2: number, y2: number): Line {
     snap, // 吸附
     connect, // 连接线段
     show: () => {
-      line.style.display = ""; // 显示线段
+      lineGroup.style.display = ""; // 显示线段
       return rtn;
     },
     hide: () => {
-      line.style.display = "none"; // 隐藏线段
+      lineGroup.style.display = "none"; // 隐藏线段
       return rtn;
     },
     opacity: (value: number) => {
-      line.style.opacity = value.toString(); // 设置透明度
+      lineGroup.style.opacity = value.toString(); // 设置透明度
       return rtn;
     },
     remove: () => {
-      line.remove(); // 移除线段
+      lineGroup.remove(); // 移除线段
     },
     morph: (target: Line, duration: number = 1000) => {
       // 变形动画，将线段从当前位置变化到目标位置
@@ -187,29 +188,21 @@ export function line(x1: number, y1: number, x2: number, y2: number): Line {
     const theme = getTheme();
     const finalColor = color ? color : theme.colors.primary;
     lineElement.setAttribute("stroke", finalColor);
+    startPoint.setAttribute("stroke", finalColor);
+    endPoint.setAttribute("stroke", finalColor);
+    return rtn;
+  }
+
+  function fill(color?: string) {
+    const theme = getTheme();
+    const finalColor = color ? color : theme.colors.secondary;
+    lineElement.setAttribute("fill", finalColor);
     startPoint.setAttribute("fill", finalColor);
     endPoint.setAttribute("fill", finalColor);
     return rtn;
   }
 
-  function style(options: {
-    strokeWidth?: number;
-    strokeColor?: string;
-    strokeOpacity?: number;
-    strokeDasharray?: string;
-    lineCap?: "butt" | "round" | "square";
-    lineJoin?: "miter" | "round" | "bevel";
-    cursor?: string;
-    filter?: string;
-    visibility?: "visible" | "hidden";
-    pointerEvents?: "none" | "all";
-    pointSize?: number;
-    pointColor?: string;
-    pointOpacity?: number;
-    pointFill?: string;
-    pointStroke?: string;
-    pointStrokeWidth?: number;
-  }) {
+  function style(options: LineStyle) {
     if (options.strokeWidth)
       lineElement.setAttribute("stroke-width", options.strokeWidth.toString());
     if (options.strokeColor)
@@ -360,7 +353,7 @@ export function line(x1: number, y1: number, x2: number, y2: number): Line {
       color?: string;
     } = {},
   ) {
-    const { size = 10, color = lineElement.getAttribute("stroke") } = options;
+    const { size = 10, color = lineElement.getAttribute("stroke") || "#000000" } = options;
     const defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
 
     if (options.start) {
@@ -510,56 +503,122 @@ export function line(x1: number, y1: number, x2: number, y2: number): Line {
   }
 
   function animation(options: Animation) {
-    const startX1 = x1;
-    const startY1 = y1;
-    const startX2 = x2;
-    const startY2 = y2;
-    const endX1 = options.properties?.x1?.to ?? x1;
-    const endY1 = options.properties?.y1?.to ?? y1;
-    const endX2 = options.properties?.x2?.to ?? x2;
-    const endY2 = options.properties?.y2?.to ?? y2;
+    const animations: string[] = [];
+    const styleProperties = new Set(['fill', 'stroke', 'stroke-width', 'opacity', 'stroke-opacity', 'fill-opacity']);
+    
+    // 分离样式属性和位置属性
+    const positionAnimations: {[key: string]: {from: number, to: number}} = {};
+    const styleAnimations: {[key: string]: {from: string, to: string}} = {};
+    
+    if (options.properties) {
+      Object.entries(options.properties).forEach(([prop, { from, to }]) => {
+        if (styleProperties.has(prop)) {
+          styleAnimations[prop] = { from, to };
+          animations.push(
+            `${prop} ${options.duration || 300}ms ${options.easing || "ease"}`,
+          );
+        } else {
+          // 处理位置动画
+          positionAnimations[prop] = { from: parseFloat(from), to: parseFloat(to) };
+        }
+      });
+    }
 
-    const duration = options.duration || 300;
-    const startTime = performance.now();
+    // 处理样式过渡
+    if (Object.keys(styleAnimations).length > 0) {
+      Object.entries(styleAnimations).forEach(([prop, { from }]) => {
+        lineElement.style.setProperty(prop, from);
+        startPoint.style.setProperty(prop, from);
+        endPoint.style.setProperty(prop, from);
+        setTimeout(() => {
+          lineElement.style.setProperty(prop, styleAnimations[prop].to);
+          startPoint.style.setProperty(prop, styleAnimations[prop].to);
+          endPoint.style.setProperty(prop, styleAnimations[prop].to);
+        }, 0);
+      });
+      lineElement.style.transition = animations.join(", ");
+      startPoint.style.transition = animations.join(", ");
+      endPoint.style.transition = animations.join(", ");
+    }
 
-    function animate(currentTime: number) {
-      const elapsed = currentTime - startTime;
-      const progress = Math.min(elapsed / duration, 1);
+    // 处理位置动画
+    if (Object.keys(positionAnimations).length > 0) {
+      const duration = options.duration || 300;
+      const startTime = performance.now();
 
-      const easeProgress = options.easing
-        ? gsap.parseEase(options.easing)(progress)
-        : progress;
+      function animate(currentTime: number) {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
 
-      // 计算当前位置
-      x1 = startX1 + (endX1 - startX1) * easeProgress;
-      y1 = startY1 + (endY1 - startY1) * easeProgress;
-      x2 = startX2 + (endX2 - startX2) * easeProgress;
-      y2 = startY2 + (endY2 - startY2) * easeProgress;
+        const easeProgress = options.easing
+          ? easeInOut(progress)
+          : progress;
 
-      // 更新视图
-      startPoint.setAttribute("cx", x1.toString());
-      startPoint.setAttribute("cy", (-y1).toString());
-      endPoint.setAttribute("cx", x2.toString());
-      endPoint.setAttribute("cy", (-y2).toString());
-      lineElement.setAttribute("x1", x1.toString());
-      lineElement.setAttribute("y1", (-y1).toString());
-      lineElement.setAttribute("x2", x2.toString());
-      lineElement.setAttribute("y2", (-y2).toString());
+        // 更新位置
+        Object.entries(positionAnimations).forEach(([prop, { from, to }]) => {
+          const value = from + (to - from) * easeProgress;
+          switch(prop) {
+            case 'x1':
+              x1 = value;
+              break;
+            case 'y1':
+              y1 = value;
+              break;
+            case 'x2':
+              x2 = value;
+              break;
+            case 'y2':
+              y2 = value;
+              break;
+          }
+        });
 
-      if (progress < 1) {
-        requestAnimationFrame(animate);
+        // 更新线段路径
+        updateLinePath();
+
+        if (progress < 1) {
+          requestAnimationFrame(animate);
+        } else {
+          options.onEnd?.();
+        }
+      }
+
+      options.onStart?.();
+      if (options.delay) {
+        setTimeout(() => requestAnimationFrame(animate), options.delay);
       } else {
-        options.onEnd?.();
+        requestAnimationFrame(animate);
+      }
+    } else {
+      // 如果只有样式动画，在结束时调用回调
+      if (options.onEnd) {
+        setTimeout(
+          options.onEnd,
+          (options.duration || 300) + (options.delay || 0),
+        );
       }
     }
 
-    options.onStart?.();
-    if (options.delay) {
-      setTimeout(() => requestAnimationFrame(animate), options.delay);
-    } else {
-      requestAnimationFrame(animate);
-    }
     return rtn;
+  }
+
+  // 内置缓动函数
+  function easeInOut(progress: number) {
+    return progress < 0.5
+      ? 2 * progress * progress
+      : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+  }
+
+  // 更新线段路径的辅助函数
+  function updateLinePath() {
+    startPoint.setAttribute("cx", x1.toString());
+    startPoint.setAttribute("cy", (-y1).toString());
+    endPoint.setAttribute("cx", x2.toString());
+    endPoint.setAttribute("cy", (-y2).toString());
+    lineElement.setAttribute("x1", x1.toString());
+    lineElement.setAttribute("y1", (-y1).toString());
+    lineElement.setAttribute("x2", x2.toString());
+    lineElement.setAttribute("y2", (-y2).toString());
   }
 
   function event(type: string, handler: (e: Event) => void) {

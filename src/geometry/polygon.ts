@@ -41,19 +41,19 @@ export function polygon(points: { x: number; y: number }[]): Polygon {
   polygon.setAttribute("fill-opacity", "0.1");
   polygon.style.pointerEvents = "stroke"; // 只在边框上响应事件
 
+  // Store vertex style
+  let vertexStyle = {
+    size: 8,  // 增大点的大小
+    color: theme.colors.primary,
+    opacity: 1,
+    fill: theme.colors.primary,
+    stroke: theme.colors.background,  // 使用背景色作为描边
+    strokeWidth: 2  // 增加描边宽度
+  };
+
   // 创建顶点控制点和保存初始位置
-  const startPositions = points.map((point) => ({ x: point.x, y: point.y }));
   const vertices = points.map((point, index) => {
-    const vertex = document.createElementNS(
-      "http://www.w3.org/2000/svg",
-      "circle",
-    );
-    vertex.setAttribute("r", "4");
-    vertex.setAttribute("fill", theme.colors.primary);
-    vertex.setAttribute("cx", point.x.toString());
-    vertex.setAttribute("cy", (-point.y).toString());
-    vertex.style.cursor = "move";
-    vertex.style.pointerEvents = "all";
+    const vertex = createVertex(point.x, point.y, index);
     return vertex;
   });
 
@@ -206,8 +206,20 @@ export function polygon(points: { x: number; y: number }[]): Polygon {
    * @param points 新的顶点数组
    * @returns 多边形对象
    */
-  function setPoints(points: { x: number; y: number }[]) {
+  function setPoints(points_: { x: number; y: number }[]) {
+    // Update the stored points array
+    points.length = 0;
+    points_.forEach(p => points.push({x: p.x, y: p.y}));
+    
     polygon.setAttribute("d", pointsToPath(points));
+ 
+    points.forEach((point, index) => {
+      if (vertices[index]) {
+        vertices[index].setAttribute("cx", point.x.toString());
+        vertices[index].setAttribute("cy", (-point.y).toString());
+      }
+    });
+
     return rtn;
   }
 
@@ -218,25 +230,17 @@ export function polygon(points: { x: number; y: number }[]): Polygon {
    * @returns 多边形对象
    */
   function setPoint(index: number, point: { x: number; y: number }) {
-    const points = getPoints();
-    points[index] = point;
+    // Update the stored points array
+    points[index] = { x: point.x, y: point.y };
+    
+    // Update the polygon path
     polygon.setAttribute("d", pointsToPath(points));
+    
+    // Update the vertex circle
+    vertices[index].setAttribute("cx", point.x.toString());
+    vertices[index].setAttribute("cy", (-point.y).toString());
+    
     return rtn;
-  }
-
-  /**
-   * 获取多边形的所有顶点
-   * @returns 顶点数组
-   */
-  function getPoints(): { x: number; y: number }[] {
-    const d = polygon.getAttribute("d") || "";
-    const commands = d.split(/(?=[MLZ])/);
-    return commands
-      .filter((cmd) => cmd.trim().length > 0 && cmd[0] !== "Z")
-      .map((cmd) => {
-        const [x, y] = cmd.slice(1).trim().split(/\s+/);
-        return { x: Number(x), y: -Number(y) };
-      });
   }
 
   /**
@@ -246,9 +250,20 @@ export function polygon(points: { x: number; y: number }[]): Polygon {
    * @returns 多边形对象
    */
   function insertBefore(index: number, point: { x: number; y: number }) {
-    const points = getPoints();
-    points.splice(index, 0, point);
+    // Insert the point into points array
+    points.splice(index, 0, { x: point.x, y: point.y });
+    
+    // Update the polygon path
     polygon.setAttribute("d", pointsToPath(points));
+    
+    // Create and insert new vertex circle
+    const vertex = createVertex(point.x, point.y, index);
+    vertices.splice(index, 0, vertex);
+    group.appendChild(vertex);
+    
+    // Update all vertex positions
+    updateVertexPositions();
+    
     return rtn;
   }
 
@@ -259,9 +274,16 @@ export function polygon(points: { x: number; y: number }[]): Polygon {
    * @returns 多边形对象
    */
   function insertAfter(index: number, point: { x: number; y: number }) {
-    const points = getPoints();
-    points.splice(index + 1, 0, point);
+    points.splice(index + 1, 0, { x: point.x, y: point.y });
+
     polygon.setAttribute("d", pointsToPath(points));
+
+    const vertex = createVertex(point.x, point.y, index + 1);
+    vertices.splice(index + 1, 0, vertex);
+    group.appendChild(vertex);
+  
+    updateVertexPositions();
+    
     return rtn;
   }
 
@@ -271,10 +293,65 @@ export function polygon(points: { x: number; y: number }[]): Polygon {
    * @returns 多边形对象
    */
   function remove(index: number) {
-    const points = getPoints();
     points.splice(index, 1);
     polygon.setAttribute("d", pointsToPath(points));
+    const vertex = vertices[index];
+    if (vertex && vertex.parentNode) {
+      vertex.parentNode.removeChild(vertex);
+    }
+    vertices.splice(index, 1);
+    updateVertexPositions();
     return rtn;
+  }
+
+  /**
+   * 更新所有顶点的位置
+   */
+  function updateVertexPositions() {
+    vertices.forEach((vertex, i) => {
+      if (points[i]) {
+        vertex.setAttribute("cx", points[i].x.toString());
+        vertex.setAttribute("cy", (-points[i].y).toString());
+      }
+    });
+  }
+
+  /**
+   * 创建一个新的顶点控制点
+   * @param x x坐标
+   * @param y y坐标
+   * @param index 顶点索引
+   * @returns 顶点控制点元素
+   */
+  function createVertex(x: number, y: number, index: number) {
+    const vertex = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "circle",
+    );
+    vertex.setAttribute("cx", x.toString());
+    vertex.setAttribute("cy", (-y).toString());
+    vertex.style.cursor = "move";
+    vertex.style.pointerEvents = "all";
+    
+    // Apply current vertex style
+    applyVertexStyle(vertex);
+    
+    // 添加数据属性用于动画更新
+    vertex.setAttribute("data-vertex", index.toString());
+    
+    return vertex;
+  }
+
+  /**
+   * 应用顶点样式到指定的顶点元素
+   * @param vertex 顶点元素
+   */
+  function applyVertexStyle(vertex: SVGCircleElement) {
+    vertex.setAttribute("r", vertexStyle.size.toString());
+    vertex.setAttribute("fill", vertexStyle.fill);
+    vertex.setAttribute("fill-opacity", vertexStyle.opacity.toString());
+    vertex.setAttribute("stroke", vertexStyle.stroke);
+    vertex.setAttribute("stroke-width", vertexStyle.strokeWidth.toString());
   }
 
   /**
@@ -284,7 +361,10 @@ export function polygon(points: { x: number; y: number }[]): Polygon {
    */
   function stroke(color?: string) {
     const theme = getTheme();
-    polygon.setAttribute("stroke", color || theme.colors.primary);
+    const finalColor = color ? color : theme.colors.primary;
+    polygon.setAttribute("stroke", finalColor);
+    // 修改所有端点的颜色
+    vertices.forEach((point) => point.setAttribute("strokes", finalColor));
     return rtn;
   }
 
@@ -296,6 +376,7 @@ export function polygon(points: { x: number; y: number }[]): Polygon {
   function fill(color?: string) {
     const theme = getTheme();
     polygon.setAttribute("fill", color || theme.colors.secondary);
+    vertices.forEach((point) => point.setAttribute("fill", color ? color : theme.colors.secondary));
     return rtn;
   }
 
@@ -305,21 +386,80 @@ export function polygon(points: { x: number; y: number }[]): Polygon {
    * @returns 多边形对象
    */
   function style(options: {
-    strokeColor?: string;
     strokeWidth?: number;
-    fillColor?: string;
-    opacity?: number;
-    dashArray?: string;
+    strokeColor?: string;
+    strokeOpacity?: number;
+    strokeDasharray?: string;
+    lineCap?: "butt" | "round" | "square";
+    lineJoin?: "miter" | "round" | "bevel";
+    cursor?: string;
+    filter?: string;
+    visibility?: "visible" | "hidden";
+    pointerEvents?: "none" | "all";
+    pointSize?: number;
+    pointColor?: string;
+    pointOpacity?: number;
+    pointFill?: string;
+    pointStroke?: string;
+    pointStrokeWidth?: number;
   }) {
-    if (options.strokeColor)
-      polygon.setAttribute("stroke", options.strokeColor);
-    if (options.strokeWidth)
+    // 线条样式
+    if (options.strokeWidth !== undefined)
       polygon.setAttribute("stroke-width", options.strokeWidth.toString());
-    if (options.fillColor) polygon.setAttribute("fill", options.fillColor);
-    if (options.opacity)
-      polygon.setAttribute("opacity", options.opacity.toString());
-    if (options.dashArray)
-      polygon.setAttribute("stroke-dasharray", options.dashArray);
+    if (options.strokeColor !== undefined)
+      polygon.setAttribute("stroke", options.strokeColor);
+    if (options.strokeOpacity !== undefined)
+      polygon.setAttribute("stroke-opacity", options.strokeOpacity.toString());
+    if (options.strokeDasharray !== undefined)
+      polygon.setAttribute("stroke-dasharray", options.strokeDasharray);
+    if (options.lineCap !== undefined)
+      polygon.setAttribute("stroke-linecap", options.lineCap);
+    if (options.lineJoin !== undefined)
+      polygon.setAttribute("stroke-linejoin", options.lineJoin);
+    
+    // 通用样式
+    if (options.cursor !== undefined) {
+      polygon.style.cursor = options.cursor;
+      vertices.forEach(point => point.style.cursor = options.cursor!);
+    }
+    if (options.filter !== undefined) {
+      polygon.setAttribute("filter", options.filter);
+      vertices.forEach(point => point.setAttribute("filter", options.filter!));
+    }
+    if (options.visibility !== undefined) {
+      polygon.style.visibility = options.visibility;
+      vertices.forEach(point => point.style.visibility = options.visibility!);
+    }
+    if (options.pointerEvents !== undefined) {
+      polygon.style.pointerEvents = options.pointerEvents;
+      vertices.forEach(point => point.style.pointerEvents = options.pointerEvents!);
+    }
+
+    // Update vertex style
+    if (options.pointSize !== undefined) {
+      vertexStyle.size = options.pointSize;
+    }
+    if (options.pointColor !== undefined) {
+      vertexStyle.color = options.pointColor;
+    }
+    if (options.pointOpacity !== undefined) {
+      vertexStyle.opacity = options.pointOpacity;
+    }
+    if (options.pointFill !== undefined) {
+      vertexStyle.fill = options.pointFill;
+    }
+    if (options.pointStroke !== undefined) {
+      vertexStyle.stroke = options.pointStroke;
+    }
+    if (options.pointStrokeWidth !== undefined) {
+      vertexStyle.strokeWidth = options.pointStrokeWidth;
+    }
+
+    // Apply style to all vertices
+    vertices.forEach(vertex => {
+      applyVertexStyle(vertex);
+    });
+
     return rtn;
   }
 
@@ -347,9 +487,10 @@ export function polygon(points: { x: number; y: number }[]): Polygon {
   function morph(target: Polygon, duration: number = 1000) {
     if (!target?.node()) return rtn;
     const targetPath = target.node();
+    const pathData = targetPath.getAttribute("d") || "";
     gsap.to(polygon, {
       duration: duration / 1000,
-      attr: { d: targetPath.getAttribute("d") },
+      attr: { d: pathData },
       ease: "power1.inOut",
     });
     return rtn;
@@ -470,32 +611,79 @@ export function polygon(points: { x: number; y: number }[]): Polygon {
   }
 
   /**
-   * 应用变换
+   * 变换多边形
    * @param options 变换选项，包括平移、缩放、旋转和倾斜
    * @returns 多边形对象
    */
   function transform(options: Transform) {
-    let transform = "";
-    if (options.translate) {
-      transform += `translate(${options.translate[0]},${options.translate[1]}) `;
-    }
-    if (options.scale) {
-      if (Array.isArray(options.scale)) {
-        transform += `scale(${options.scale[0]},${options.scale[1]}) `;
-      } else {
-        transform += `scale(${options.scale}) `;
+    // 对每个顶点应用变换
+    points.forEach((point, index) => {
+      let newX = point.x;
+      let newY = point.y;
+
+      // 平移变换
+      if (options.translate) {
+        newX += options.translate[0];
+        newY += options.translate[1];
       }
-    }
-    if (options.rotate) {
-      transform += `rotate(${options.rotate}) `;
-    }
-    if (options.skew) {
-      transform += `skew(${options.skew[0]},${options.skew[1]}) `;
-    }
+
+      // 缩放变换
+      if (options.scale) {
+        const scaleX = Array.isArray(options.scale) ? options.scale[0] : options.scale;
+        const scaleY = Array.isArray(options.scale) ? options.scale[1] : options.scale;
+        const originX = points[0].x;
+        const originY = points[0].y;
+
+        newX = originX + (point.x - originX) * scaleX;
+        newY = originY + (point.y - originY) * scaleY;
+      }
+
+      // 旋转变换
+      if (options.rotate) {
+        const angle = (options.rotate * Math.PI) / 180;
+        const cos = Math.cos(angle);
+        const sin = Math.sin(angle);
+        const originX = points[0].x;
+        const originY = points[0].y;
+
+        const dx = point.x - originX;
+        const dy = point.y - originY;
+        newX = originX + dx * cos - dy * sin;
+        newY = originY + dx * sin + dy * cos;
+      }
+
+      // 倾斜变换
+      if (options.skew) {
+        const skewX = (options.skew[0] * Math.PI) / 180;
+        const skewY = (options.skew[1] * Math.PI) / 180;
+        const originX = points[0].x;
+        const originY = points[0].y;
+
+        const dx = point.x - originX;
+        const dy = point.y - originY;
+        newX = originX + dx + dy * Math.tan(skewX);
+        newY = originY + dy + dx * Math.tan(skewY);
+      }
+
+      // 更新顶点位置
+      points[index] = { x: newX, y: newY };
+    });
+
+    // 如果指定了origin，直接设置第一个顶点的位置
     if (options.origin) {
-      polygon.style.transformOrigin = `${options.origin[0]}px ${options.origin[1]}px`;
+      points[0] = { x: options.origin[0], y: options.origin[1] };
     }
-    polygon.setAttribute("transform", transform.trim());
+    
+    points.forEach((point, index) => {
+      if (vertices[index]) {
+        vertices[index].setAttribute("cx", point.x.toString());
+        vertices[index].setAttribute("cy", (-point.y).toString());
+      }
+    });
+
+    // 更新多边形路径
+    updatePolygonPath();
+    
     return rtn;
   }
 
@@ -506,23 +694,92 @@ export function polygon(points: { x: number; y: number }[]): Polygon {
    */
   function animation(options: Animation) {
     const animations: string[] = [];
+    const styleProperties = new Set(['fill', 'stroke', 'stroke-width', 'opacity', 'stroke-opacity', 'fill-opacity']);
+
+    const vertexAnimations: {[key: string]: {from: number, to: number}} = {};
+    const styleAnimations: {[key: string]: {from: string, to: string}} = {};
+    
     if (options.properties) {
       Object.entries(options.properties).forEach(([prop, { from, to }]) => {
-        polygon.style.setProperty(prop, from);
-        animations.push(
-          `${prop} ${options.duration || 300}ms ${options.easing || "ease"}`,
-        );
-        setTimeout(() => polygon.style.setProperty(prop, to), 0);
+        if (styleProperties.has(prop)) {
+          styleAnimations[prop] = { from, to };
+          animations.push(
+            `${prop} ${options.duration || 300}ms ${options.easing || "ease"}`,
+          );
+        } else {
+          // 处理顶点动画
+          vertexAnimations[prop] = { from: parseFloat(from), to: parseFloat(to) };
+        }
       });
     }
-    polygon.style.transition = animations.join(", ");
-    options.onStart?.();
-    if (options.onEnd) {
-      setTimeout(
-        options.onEnd,
-        (options.duration || 300) + (options.delay || 0),
-      );
+
+    // 处理样式过渡
+    if (Object.keys(styleAnimations).length > 0) {
+      Object.entries(styleAnimations).forEach(([prop, { from }]) => {
+        polygon.style.setProperty(prop, from);
+        setTimeout(() => polygon.style.setProperty(prop, styleAnimations[prop].to), 0);
+      });
+      polygon.style.transition = animations.join(", ");
     }
+
+    // 处理顶点动画
+    if (Object.keys(vertexAnimations).length > 0) {
+      const duration = options.duration || 300;
+      const startTime = performance.now();
+
+      function animate(currentTime: number) {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+
+        // 使用内置的缓动函数替代 GSAP
+        const easeProgress = options.easing
+          ? easeInOut(progress)
+          : progress;
+
+        // 更新顶点位置
+        Object.entries(vertexAnimations).forEach(([prop, { from, to }]) => {
+          // 使用简单的命名格式：x1, y1, x2, y2, ...
+          const coord = prop.charAt(0);  // 'x' 或 'y'
+          const index = parseInt(prop.slice(1)) - 1;  // 从1开始的索引转为0开始
+          if (!isNaN(index) && index < points.length) {
+            points[index][coord as 'x' | 'y'] = from + (to - from) * easeProgress;
+          }
+        });
+
+        // 更新多边形路径和顶点可视化点
+        updatePolygonPath();
+        // 更新顶点可视化点的位置
+        points.forEach((point, index) => {
+          const vertexPoint = group.querySelector(`circle[data-vertex="${index}"]`);
+          if (vertexPoint) {
+            vertexPoint.setAttribute('cx', point.x.toString());
+            vertexPoint.setAttribute('cy', (-point.y).toString());  // 使用负的y坐标
+          }
+        });
+
+        if (progress < 1) {
+          requestAnimationFrame(animate);
+        } else {
+          options.onEnd?.();
+        }
+      }
+
+      options.onStart?.();
+      if (options.delay) {
+        setTimeout(() => requestAnimationFrame(animate), options.delay);
+      } else {
+        requestAnimationFrame(animate);
+      }
+    } else {
+      // 如果只有样式动画，在结束时调用回调
+      if (options.onEnd) {
+        setTimeout(
+          options.onEnd,
+          (options.duration || 300) + (options.delay || 0),
+        );
+      }
+    }
+
     return rtn;
   }
 
@@ -712,4 +969,11 @@ export function polygon(points: { x: number; y: number }[]): Polygon {
   }
 
   return rtn;
+}
+
+// 内置缓动函数
+function easeInOut(progress: number) {
+  return progress < 0.5
+    ? 2 * progress * progress
+    : 1 - Math.pow(-2 * progress + 2, 2) / 2;
 }

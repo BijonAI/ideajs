@@ -35,7 +35,7 @@ export interface Animation {
   properties?: {
     // 动画属性配置
     [key: string]: {
-      from: any; // 起始值
+      from?: any; // 起始值
       to: any; // 结束值
     };
   };

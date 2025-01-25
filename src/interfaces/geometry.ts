@@ -142,7 +142,7 @@ export interface Polygon extends CommonMethods<Polygon> {
   stroke(color?: string): Polygon; // 设置描边颜色
   fill(color?: string): Polygon; // 设置填充颜色
   style(options: PolygonStyle): Polygon; // 设置样式
-  draggable(condition?: (x: number, y: number) => boolean): Dot; // 设置可拖动
+  draggable(condition?: (x: number, y: number) => boolean): Polygon; // 设置可拖动
 }
 
 /**
@@ -165,6 +165,7 @@ export interface Vector extends CommonMethods<Vector> {
   from(x1: number, y1: number): Vector; // 设置起点
   to(x2: number, y2: number): Vector; // 设置终点
   stroke(color?: string): Vector; // 设置颜色
+  style(options: VectorStyle): Vector;
   scale(x: number, y?: number): Vector; // 缩放向量
   draggable(condition?: (x: number, y: number) => boolean): Vector; // 设置可拖动
 }
@@ -195,13 +196,36 @@ export interface FunctionStyle extends CommonStyle {
  * 多边形样式接口，继承CommonStyle
  */
 export interface PolygonStyle extends CommonStyle {
-  strokeWidth?: number; // 描边宽度
-  strokeColor?: string; // 描边颜色
-  strokeOpacity?: number; // 描边透明度
-  strokeDasharray?: string; // 描边虚线样式
-  fillColor?: string; // 填充颜色
-  fillOpacity?: number; // 填充透明度
-  lineJoin?: "miter" | "round" | "bevel"; // 顶点连接样式
+  strokeWidth?: number; // 线条宽度
+  strokeColor?: string; // 线条颜色
+  strokeOpacity?: number; // 线条透明度
+  strokeDasharray?: string; // 虚线样式
+  lineCap?: "butt" | "round" | "square"; // 线条端点样式
+  lineJoin?: "miter" | "round" | "bevel"; // 线条连接点样式
+  pointColor?: string; // 线条端点颜色
+  pointSize?: number; // 线条端点大小
+  pointOpacity?: number; // 线条端点透明度
+  pointFill?: string; // 线条端点填充颜色
+  pointStroke?: string; // 线条端点描边颜色
+  pointStrokeWidth?: number; // 线条端点描边宽度
+}
+
+/**
+ * 多边形样式接口，继承CommonStyle
+ */
+export interface VectorStyle extends CommonStyle {
+  strokeWidth?: number; // 线条宽度
+  strokeColor?: string; // 线条颜色
+  strokeOpacity?: number; // 线条透明度
+  strokeDasharray?: string; // 虚线样式
+  lineCap?: "butt" | "round" | "square"; // 线条端点样式
+  lineJoin?: "miter" | "round" | "bevel"; // 线条连接点样式
+  pointColor?: string; // 线条端点颜色
+  pointSize?: number; // 线条端点大小
+  pointOpacity?: number; // 线条端点透明度
+  pointFill?: string; // 线条端点填充颜色
+  pointStroke?: string; // 线条端点描边颜色
+  pointStrokeWidth?: number; // 线条端点描边宽度
 }
 
 /**

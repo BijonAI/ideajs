@@ -17,7 +17,7 @@ const coord = idea.coordinate(1000, 800)
 const line = idea.line(100, 100, 200, 200)
     // .from(50, 50)
     .to(200, 200)
-    .stroke("#FF0000")
+    .stroke("#FFFF00")
     .style({
         pointSize: 10,
         pointColor: "#FFFF00",
@@ -33,13 +33,25 @@ const line = idea.line(100, 100, 200, 200)
     .transform({ translate: [-50, -50] })
     .animation({
         duration: 5000,
+        delay: 1000,
         properties: {
-            x1: { from: 800, to: 200 },
-            y1: { from: 100, to: 200 },
-            x2: { from: 100, to: 200 },
-            y2: { from: 200, to: 300 }
+            // 样式属性动画
+            'fill': {from: "#FF000", to: "#00FF00"},
+            'stroke': {from: "#FF0000", to: "#00FF00"},
+            'opacity': {from: "1", to: "0.5"},
+            
+            // 顶点位置动画
+            'x1': {from: -500, to: 200},
+            'y1': {from: -100, to: 300},
+            'x2': {from: 0, to: 200},
+            'y2': {from: 0, to: 200},
         },
-        easing: 'power2.inOut'
+        onStart: () => {
+            console.log("Animation started");
+        },
+        onEnd: () => {
+            console.log("Animation completed");
+        }
     })
     // // .tooltip("向量<br>from (100, 100) to (100, 200)", {
     // //     position: 'top',

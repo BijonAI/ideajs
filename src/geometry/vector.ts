@@ -4,7 +4,7 @@
  */
 
 import { getTheme } from "../theme";
-import { Vector } from "../interfaces/geometry";
+import { Vector, VectorStyle } from "../interfaces/geometry";
 import {
   Transform,
   Animation,
@@ -49,6 +49,20 @@ export function vector(x1: number, y1: number, x2: number, y2: number): Vector {
   arrow.setAttribute("points", `-5,-4 0,0 5,-4 0,8`);
   arrow.setAttribute("stroke", "none");
   arrow.setAttribute("fill", theme.colors.primary);
+  arrow.style.cursor = "move";
+  arrow.style.pointerEvents = "all";
+
+  // 创建起点圆点（透明）
+  const startPoint = document.createElementNS(
+    "http://www.w3.org/2000/svg",
+    "circle",
+  );
+  startPoint.setAttribute("r", "8"); // 稍微大一点以便于点击
+  startPoint.setAttribute("opacity", "0"); // 设置为完全透明
+  startPoint.setAttribute("cx", x1.toString());
+  startPoint.setAttribute("cy", (-y1).toString());
+  startPoint.style.cursor = "move";
+  startPoint.style.pointerEvents = "all"; // 确保即使透明也能接收鼠标事件
 
   // 更新箭头位置和方向
   function updateArrow() {
@@ -65,12 +79,13 @@ export function vector(x1: number, y1: number, x2: number, y2: number): Vector {
   }
 
   // 将元素添加到向量组中
-  vector.append(line, arrow);
+  vector.append(line, startPoint, arrow);
   updateArrow();
 
   // 添加拖拽功能
-  let isDragging = false;
   let dragEnabled = false;
+  let isDraggingEnd = false;
+  let isDraggingStart = false;
 
   // 保存注释信息
   let annotations: {
@@ -87,6 +102,8 @@ export function vector(x1: number, y1: number, x2: number, y2: number): Vector {
     from,
     to,
     stroke,
+    fill,
+    style,
     // 缩放向量
     scale: (x: number, y: number = x) => {
       x1 *= x;
@@ -277,11 +294,13 @@ export function vector(x1: number, y1: number, x2: number, y2: number): Vector {
     },
     // 形状变形动画
     morph: (target: Vector, duration: number = 1000) => {
-      if (!target?.node()) return rtn;
+      if (!target || !target.node()) return rtn;
       const targetVector = target.node();
+      const transform = targetVector.getAttribute("transform");
+      if (!transform) return rtn;
       gsap.to(vector, {
         duration: duration / 1000,
-        attr: { transform: targetVector.getAttribute("transform") },
+        attr: { transform },
         ease: "power1.inOut",
       });
       return rtn;
@@ -300,6 +319,8 @@ export function vector(x1: number, y1: number, x2: number, y2: number): Vector {
     y1 = _y1;
     line.setAttribute("x1", x1.toString());
     line.setAttribute("y1", (-y1).toString());
+    startPoint.setAttribute("cx", x1.toString());
+    startPoint.setAttribute("cy", (-y1).toString());
     updateArrow();
     return rtn;
   }
@@ -327,7 +348,68 @@ export function vector(x1: number, y1: number, x2: number, y2: number): Vector {
   function stroke(color?: string) {
     const theme = getTheme();
     line.setAttribute("stroke", color ? color : theme.colors.primary);
+    arrow.setAttribute("stroke", color ? color : theme.colors.primary);
+    return rtn;
+  }
+
+  function fill(color?: string) {
+    const theme = getTheme();
+    line.setAttribute("stroke", color ? color : theme.colors.primary);
     arrow.setAttribute("fill", color ? color : theme.colors.primary);
+    return rtn;
+  }
+
+  function style(options: VectorStyle) {
+    if (options.strokeWidth)
+      line.setAttribute("stroke-width", options.strokeWidth.toString());
+    if (options.strokeColor)
+      line.setAttribute("stroke", options.strokeColor);
+    if (options.strokeOpacity)
+      line.setAttribute(
+        "stroke-opacity",
+        options.strokeOpacity.toString(),
+      );
+    if (options.strokeDasharray)
+      line.setAttribute("stroke-dasharray", options.strokeDasharray);
+    if (options.lineCap)
+      line.setAttribute("stroke-linecap", options.lineCap);
+    if (options.lineJoin)
+      line.setAttribute("stroke-linejoin", options.lineJoin);
+    if (options.cursor) line.style.cursor = options.cursor;
+    if (options.filter) line.style.filter = options.filter;
+    if (options.visibility) line.style.visibility = options.visibility;
+    if (options.pointerEvents)
+      line.style.pointerEvents = options.pointerEvents;
+    if (options.pointSize) {
+      startPoint.setAttribute("r", options.pointSize.toString());
+      arrow.setAttribute("r", options.pointSize.toString());
+    }
+    if (options.pointColor) {
+      startPoint.setAttribute("fill", options.pointColor);
+      arrow.setAttribute("fill", options.pointColor);
+    }
+    if (options.pointOpacity) {
+      startPoint.setAttribute("fill-opacity", options.pointOpacity.toString());
+      arrow.setAttribute("fill-opacity", options.pointOpacity.toString());
+    }
+    if (options.pointFill) {
+      startPoint.setAttribute("fill", options.pointFill);
+      arrow.setAttribute("fill", options.pointFill);
+    }
+    if (options.pointStroke) {
+      startPoint.setAttribute("stroke", options.pointStroke);
+      arrow.setAttribute("stroke", options.pointStroke);
+    }
+    if (options.pointStrokeWidth) {
+      startPoint.setAttribute(
+        "stroke-width",
+        options.pointStrokeWidth.toString(),
+      );
+      arrow.setAttribute(
+        "stroke-width",
+        options.pointStrokeWidth.toString(),
+      );
+    }
     return rtn;
   }
   /**
@@ -449,6 +531,8 @@ export function vector(x1: number, y1: number, x2: number, y2: number): Vector {
     line.setAttribute("y1", (-y1).toString());
     line.setAttribute("x2", x2.toString());
     line.setAttribute("y2", (-y2).toString());
+    startPoint.setAttribute("cx", x1.toString());
+    startPoint.setAttribute("cy", (-y1).toString());
     updateArrow();
 
     return rtn;
@@ -456,59 +540,122 @@ export function vector(x1: number, y1: number, x2: number, y2: number): Vector {
 
   /**
    * 应用动画效果
-   * @param options 动画选项，包括持续时间和回调函数
+   * @param options 动画选项，包括属性、持续时间和回调函数
    * @returns 向量对象
    */
   function animation(options: Animation) {
-    const startX1 = x1;
-    const startY1 = y1;
-    const startX2 = x2;
-    const startY2 = y2;
-    const endX1 = options.properties?.x1?.to ?? x1;
-    const endY1 = options.properties?.y1?.to ?? y1;
-    const endX2 = options.properties?.x2?.to ?? x2;
-    const endY2 = options.properties?.y2?.to ?? y2;
-
-    const duration = options.duration || 300;
-    const startTime = performance.now();
-
-    function animate(currentTime: number) {
-      const elapsed = currentTime - startTime;
-      const progress = Math.min(elapsed / duration, 1);
-
-      const easeProgress = options.easing
-        ? gsap.parseEase(options.easing)(progress)
-        : progress;
-
-      // 计算当前位置
-      x1 = startX1 + (endX1 - startX1) * easeProgress;
-      y1 = startY1 + (endY1 - startY1) * easeProgress;
-      x2 = startX2 + (endX2 - startX2) * easeProgress;
-      y2 = startY2 + (endY2 - startY2) * easeProgress;
-
-      // 更新视图
-      line.setAttribute("x1", x1.toString());
-      line.setAttribute("y1", (-y1).toString());
-      line.setAttribute("x2", x2.toString());
-      line.setAttribute("y2", (-y2).toString());
-      updateArrow();
-
-      if (progress < 1) {
-        requestAnimationFrame(animate);
-      } else {
-        options.onEnd?.();
-      }
+    const animations: string[] = [];
+    const styleProperties = new Set(['fill', 'stroke', 'stroke-width', 'opacity', 'stroke-opacity', 'fill-opacity']);
+    
+    // 分离样式属性和位置属性
+    const positionAnimations: {[key: string]: {from: number, to: number}} = {};
+    const styleAnimations: {[key: string]: {from: string, to: string}} = {};
+    
+    if (options.properties) {
+      Object.entries(options.properties).forEach(([prop, { from, to }]) => {
+        if (styleProperties.has(prop)) {
+          styleAnimations[prop] = { from, to };
+          animations.push(
+            `${prop} ${options.duration || 300}ms ${options.easing || "ease"}`,
+          );
+        } else {
+          // 处理位置动画
+          positionAnimations[prop] = { from: parseFloat(from), to: parseFloat(to) };
+        }
+      });
     }
 
-    options.onStart?.();
-    if (options.delay) {
-      setTimeout(() => requestAnimationFrame(animate), options.delay);
+    // 处理样式过渡
+    if (Object.keys(styleAnimations).length > 0) {
+      Object.entries(styleAnimations).forEach(([prop, { from }]) => {
+        line.style.setProperty(prop, from);
+        arrow.style.setProperty(prop, from);
+        setTimeout(() => {
+          line.style.setProperty(prop, styleAnimations[prop].to);
+          arrow.style.setProperty(prop, styleAnimations[prop].to);
+        }, 0);
+      });
+      line.style.transition = animations.join(", ");
+      arrow.style.transition = animations.join(", ");
+    }
+
+    // 处理位置动画
+    if (Object.keys(positionAnimations).length > 0) {
+      const duration = options.duration || 300;
+      const startTime = performance.now();
+
+      function animate(currentTime: number) {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+
+        const easeProgress = options.easing
+          ? easeInOut(progress)
+          : progress;
+
+        // 更新位置
+        Object.entries(positionAnimations).forEach(([prop, { from, to }]) => {
+          const value = from + (to - from) * easeProgress;
+          switch(prop) {
+            case 'x1':
+              x1 = value;
+              break;
+            case 'y1':
+              y1 = value;
+              break;
+            case 'x2':
+              x2 = value;
+              break;
+            case 'y2':
+              y2 = value;
+              break;
+          }
+        });
+
+        // 更新向量路径
+        updateVectorPath();
+
+        if (progress < 1) {
+          requestAnimationFrame(animate);
+        } else {
+          options.onEnd?.();
+        }
+      }
+
+      options.onStart?.();
+      if (options.delay) {
+        setTimeout(() => requestAnimationFrame(animate), options.delay);
+      } else {
+        requestAnimationFrame(animate);
+      }
     } else {
-      requestAnimationFrame(animate);
+      // 如果只有样式动画，在结束时调用回调
+      if (options.onEnd) {
+        setTimeout(
+          options.onEnd,
+          (options.duration || 300) + (options.delay || 0),
+        );
+      }
     }
 
     return rtn;
   }
+
+  // 内置缓动函数
+  function easeInOut(progress: number) {
+    return progress < 0.5
+      ? 2 * progress * progress
+      : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+  }
+
+  // 更新向量路径的辅助函数
+  function updateVectorPath() {
+    line.setAttribute("x1", x1.toString());
+    line.setAttribute("y1", (-y1).toString());
+    line.setAttribute("x2", x2.toString());
+    line.setAttribute("y2", (-y2).toString());
+    updateArrow();
+  }
+
   /**
    * 添加事件监听器
    * @param type 事件类型
@@ -703,38 +850,62 @@ export function vector(x1: number, y1: number, x2: number, y2: number): Vector {
     if (dragEnabled) return rtn;
 
     dragEnabled = true;
+
     let startDragX = 0;
     let startDragY = 0;
     let startVectorX = 0;
     let startVectorY = 0;
 
-    // 在向量末端区域添加拖拽功能
-    arrow.style.cursor = "move";
-    arrow.style.pointerEvents = "all";
+    // 起点拖拽
+    draggable(
+      startPoint,
+      (_x, _y) => true,
+      (x, y) => {
+        if (!isDraggingStart) {
+          startDragX = x;
+          startDragY = y;
+          startVectorX = Number(line.getAttribute("x1"));
+          startVectorY = Number(line.getAttribute("y1"));
+          isDraggingStart = true;
+        }
+
+        const dx = x - startDragX + x1;
+        const dy = y - startDragY - y1;
+
+        // 更新起点位置
+        const newX = startVectorX + dx;
+        const newY = startVectorY + dy;
+
+        line.setAttribute("x1", newX.toString());
+        line.setAttribute("y1", newY.toString());
+        updateArrow();
+      },
+    );
+
+    // 箭头拖拽
+    let endDragX = 0;
+    let endDragY = 0;
+    let endVectorX = 0;
+    let endVectorY = 0;
 
     draggable(
       arrow,
       (_x, _y) => true,
       (x, y) => {
-        if (!isDragging) {
-          startDragX = x;
-          startDragY = y;
-          startVectorX = x2; // 使用向量的实际终点坐标
-          startVectorY = y2;
-          isDragging = true;
+        if (!isDraggingEnd) {
+          endDragX = x;
+          endDragY = y;
+          endVectorX = Number(line.getAttribute("x2"));
+          endVectorY = Number(line.getAttribute("y2"));
+          isDraggingEnd = true;
         }
 
-        // 计算拖拽的相对位移
-        const dx = x - startDragX + x2;
-        const dy = y - startDragY - y2;
+        const dx = x - endDragX + x2;
+        const dy = y - endDragY - y2;
 
-        // 更新向量终点位置
+        const newX = endVectorX + dx;
+        const newY = endVectorY + dy;
 
-        // 更新线段起点位置
-        const newX = startVectorX + dx;
-        const newY = startVectorY + dy;
-
-        // 更新视图
         line.setAttribute("x2", newX.toString());
         line.setAttribute("y2", newY.toString());
         updateArrow();
@@ -742,20 +913,34 @@ export function vector(x1: number, y1: number, x2: number, y2: number): Vector {
     );
 
     // 状态管理
-    arrow.addEventListener("mousedown", (e) => {
-      isDragging = true;
-      // 阻止默认的文本选择行为
+    startPoint.addEventListener("mousedown", (e) => {
+      isDraggingStart = true;
       e.preventDefault();
-      // 禁用文本选择
+      document.body.style.userSelect = "none";
+    });
+
+    arrow.addEventListener("mousedown", (e) => {
+      isDraggingEnd = true;
+      e.preventDefault();
       document.body.style.userSelect = "none";
     });
 
     window.addEventListener("mouseup", () => {
-      if (isDragging) {
-        isDragging = false;
-        // 恢复文本选择
-        document.body.style.userSelect = "";
+      if (isDraggingStart) {
+        isDraggingStart = false;
+        startDragX = 0;
+        startDragY = 0;
+        startVectorX = 0;
+        startVectorY = 0;
       }
+      if (isDraggingEnd) {
+        isDraggingEnd = false;
+        endDragX = 0;
+        endDragY = 0;
+        endVectorX = 0;
+        endVectorY = 0;
+      }
+      document.body.style.userSelect = "";
     });
 
     return rtn;

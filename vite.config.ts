@@ -1,19 +1,19 @@
-import { defineConfig } from "vite";
-import { resolve } from "path";
+import { defineConfig } from 'vite'
+import { resolve } from 'path'
 
 export default defineConfig({
-  root: "./test",
+  root: './test',
   build: {
     lib: {
-      entry: resolve(__dirname, "src/index.ts"),
-      name: "ideajs",
-      fileName: "ideajs",
+      entry: resolve(__dirname, 'src/index.ts'),
+      name: 'ideajs',
+      fileName: 'ideajs',
     },
     rollupOptions: {
-      external: ["gsap"],
+      external: ['gsap'],
       output: {
         globals: {
-          gsap: "gsap",
+          gsap: 'gsap',
         },
       },
     },
@@ -21,4 +21,4 @@ export default defineConfig({
   server: {
     open: true,
   },
-});
+})

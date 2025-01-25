@@ -170,7 +170,10 @@ export function coordinate(width: number, height: number) {
 
   function setTicks(interval: number, length: number = 6) {
     while (axes.children.length > 4) {
-      axes.removeChild(axes.lastChild);
+      const lastChild = axes.lastChild;
+      if (lastChild) {
+        axes.removeChild(lastChild);
+      }
     }
 
     const verticalCount = Math.ceil(width / 2 / interval);
