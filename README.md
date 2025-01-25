@@ -57,7 +57,7 @@ coord.add(f);
 ## Documentation 文档
 
 - [Tutorials 教程](docs/tutorials/README.md)
-- [API Reference API参考](docs/api/README.md)
+- [API Reference API 参考](docs/api/README.md)
 - [Examples 示例](docs/examples/README.md)
 - [Contributing 贡献指南](CONTRIBUTING.md)
 
@@ -90,6 +90,48 @@ coord.add(f);
 - Annotations 标注
 - Voice guidance 语音引导
 - Exercise mode 练习模式
+
+## 当前可用
+
+### line
+
+- from, 设置起始点
+- to, 设置结束点
+- stroke, 设置线段颜色
+- fill, 设置填充颜色
+- style, 设置样式
+- transform, 设置变换
+- animation, 动画效果
+- effect, 效果
+- highlight, 高亮
+- annotate, 注释
+
+### vector
+
+- from, 设置起始点
+- to, 设置结束点
+- stroke, 设置线段颜色
+- fill, 设置填充颜色
+- style, 设置样式
+- transform, 设置变换
+- animation, 动画效果
+- effect, 效果
+- highlight, 高亮
+- annotate, 注释
+
+### polygon
+
+- points, 获取多边形的所有顶点
+- setPoints, 设置多边形的所有顶点
+- setPoint, 设置多边形的某个顶点
+- insertBefore, 在多边形的某个顶点之前插入顶点
+- insertAfter, 在多边形的某个顶点之后插入顶点
+- removePoint: remove, 移除多边形的某个顶点
+- stroke, 设置多边形的边框颜色
+- fill, 设置多边形的填充颜色
+- style, 设置多边形的样式
+- animation, 多边形动画效果
+- transform // 设置变换
 
 ## License 许可
 
