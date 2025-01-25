@@ -362,24 +362,18 @@ export function vector(x1: number, y1: number, x2: number, y2: number): Vector {
   function style(options: VectorStyle) {
     if (options.strokeWidth)
       line.setAttribute("stroke-width", options.strokeWidth.toString());
-    if (options.strokeColor)
-      line.setAttribute("stroke", options.strokeColor);
+    if (options.strokeColor) line.setAttribute("stroke", options.strokeColor);
     if (options.strokeOpacity)
-      line.setAttribute(
-        "stroke-opacity",
-        options.strokeOpacity.toString(),
-      );
+      line.setAttribute("stroke-opacity", options.strokeOpacity.toString());
     if (options.strokeDasharray)
       line.setAttribute("stroke-dasharray", options.strokeDasharray);
-    if (options.lineCap)
-      line.setAttribute("stroke-linecap", options.lineCap);
+    if (options.lineCap) line.setAttribute("stroke-linecap", options.lineCap);
     if (options.lineJoin)
       line.setAttribute("stroke-linejoin", options.lineJoin);
     if (options.cursor) line.style.cursor = options.cursor;
     if (options.filter) line.style.filter = options.filter;
     if (options.visibility) line.style.visibility = options.visibility;
-    if (options.pointerEvents)
-      line.style.pointerEvents = options.pointerEvents;
+    if (options.pointerEvents) line.style.pointerEvents = options.pointerEvents;
     if (options.pointSize) {
       startPoint.setAttribute("r", options.pointSize.toString());
       arrow.setAttribute("r", options.pointSize.toString());
@@ -405,10 +399,7 @@ export function vector(x1: number, y1: number, x2: number, y2: number): Vector {
         "stroke-width",
         options.pointStrokeWidth.toString(),
       );
-      arrow.setAttribute(
-        "stroke-width",
-        options.pointStrokeWidth.toString(),
-      );
+      arrow.setAttribute("stroke-width", options.pointStrokeWidth.toString());
     }
     return rtn;
   }
@@ -545,12 +536,20 @@ export function vector(x1: number, y1: number, x2: number, y2: number): Vector {
    */
   function animation(options: Animation) {
     const animations: string[] = [];
-    const styleProperties = new Set(['fill', 'stroke', 'stroke-width', 'opacity', 'stroke-opacity', 'fill-opacity']);
-    
+    const styleProperties = new Set([
+      "fill",
+      "stroke",
+      "stroke-width",
+      "opacity",
+      "stroke-opacity",
+      "fill-opacity",
+    ]);
+
     // 分离样式属性和位置属性
-    const positionAnimations: {[key: string]: {from: number, to: number}} = {};
-    const styleAnimations: {[key: string]: {from: string, to: string}} = {};
-    
+    const positionAnimations: { [key: string]: { from: number; to: number } } =
+      {};
+    const styleAnimations: { [key: string]: { from: string; to: string } } = {};
+
     if (options.properties) {
       Object.entries(options.properties).forEach(([prop, { from, to }]) => {
         if (styleProperties.has(prop)) {
@@ -560,7 +559,10 @@ export function vector(x1: number, y1: number, x2: number, y2: number): Vector {
           );
         } else {
           // 处理位置动画
-          positionAnimations[prop] = { from: parseFloat(from), to: parseFloat(to) };
+          positionAnimations[prop] = {
+            from: parseFloat(from),
+            to: parseFloat(to),
+          };
         }
       });
     }
@@ -588,24 +590,22 @@ export function vector(x1: number, y1: number, x2: number, y2: number): Vector {
         const elapsed = currentTime - startTime;
         const progress = Math.min(elapsed / duration, 1);
 
-        const easeProgress = options.easing
-          ? easeInOut(progress)
-          : progress;
+        const easeProgress = options.easing ? easeInOut(progress) : progress;
 
         // 更新位置
         Object.entries(positionAnimations).forEach(([prop, { from, to }]) => {
           const value = from + (to - from) * easeProgress;
-          switch(prop) {
-            case 'x1':
+          switch (prop) {
+            case "x1":
               x1 = value;
               break;
-            case 'y1':
+            case "y1":
               y1 = value;
               break;
-            case 'x2':
+            case "x2":
               x2 = value;
               break;
-            case 'y2':
+            case "y2":
               y2 = value;
               break;
           }

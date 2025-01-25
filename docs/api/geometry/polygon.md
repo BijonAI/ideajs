@@ -11,7 +11,6 @@ const poly = polygon(points: { x: number, y: number }[]);
 ```
 
 ### 参数
-
 - `points` - 顶点坐标数组
 
 ## 方法
@@ -81,7 +80,6 @@ poly.style(options: PolygonStyle)
 ```
 
 #### 参数
-
 ```typescript
 interface PolygonStyle {
   strokeWidth?: number;
@@ -90,11 +88,11 @@ interface PolygonStyle {
   strokeDasharray?: string;
   fillColor?: string;
   fillOpacity?: number;
-  lineJoin?: "miter" | "round" | "bevel";
+  lineJoin?: 'miter' | 'round' | 'bevel';
   cursor?: string;
   filter?: string;
-  visibility?: "visible" | "hidden";
-  pointerEvents?: "none" | "all";
+  visibility?: 'visible' | 'hidden';
+  pointerEvents?: 'none' | 'all';
 }
 ```
 
@@ -114,4 +112,4 @@ interface PolygonStyle {
 - lock()/unlock()
 - restrict()
 - snap()
-- connect()
+- connect() 

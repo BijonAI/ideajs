@@ -171,7 +171,8 @@ export function arc(x: number, y: number, radius: number = 50): Arc {
     morph: (target: Arc, duration: number = 1000) => {
       if (!target?.node()) return rtn;
       const targetArc = target.node();
-      const pathData = targetArc.getAttribute("d") || arc.getAttribute("d") || "";
+      const pathData =
+        targetArc.getAttribute("d") || arc.getAttribute("d") || "";
       gsap.to(arc, {
         duration: duration / 1000,
         attr: { d: pathData },
@@ -272,34 +273,40 @@ export function arc(x: number, y: number, radius: number = 50): Arc {
 
     if (options.properties) {
       // 先设置初始位置
-      if (options.properties['x1']?.from !== undefined) {
-        currentX = Number(options.properties['x1'].from);
+      if (options.properties["x1"]?.from !== undefined) {
+        currentX = Number(options.properties["x1"].from);
       }
-      if (options.properties['y1']?.from !== undefined) {
-        currentY = Number(options.properties['y1'].from);
+      if (options.properties["y1"]?.from !== undefined) {
+        currentY = Number(options.properties["y1"].from);
       }
-      if (options.properties['r']?.from !== undefined) {
-        currentRadius = Number(options.properties['r'].from);
+      if (options.properties["r"]?.from !== undefined) {
+        currentRadius = Number(options.properties["r"].from);
       }
-      if (options.properties['startAngle']?.from !== undefined) {
-        currentStartAngle = Number(options.properties['startAngle'].from);
+      if (options.properties["startAngle"]?.from !== undefined) {
+        currentStartAngle = Number(options.properties["startAngle"].from);
       }
-      if (options.properties['endAngle']?.from !== undefined) {
-        currentEndAngle = Number(options.properties['endAngle'].from);
+      if (options.properties["endAngle"]?.from !== undefined) {
+        currentEndAngle = Number(options.properties["endAngle"].from);
       }
 
       // 立即更新到初始位置
       arc.setAttribute(
         "d",
-        describeArc(currentX, currentY, currentRadius, currentStartAngle, currentEndAngle)
+        describeArc(
+          currentX,
+          currentY,
+          currentRadius,
+          currentStartAngle,
+          currentEndAngle,
+        ),
       );
 
       Object.entries(options.properties).forEach(([prop, { from, to }]) => {
-        if (prop === 'x1') currentX = Number(to);
-        else if (prop === 'y1') currentY = Number(to);
-        else if (prop === 'r') currentRadius = Number(to);
-        else if (prop === 'startAngle') currentStartAngle = Number(to);
-        else if (prop === 'endAngle') currentEndAngle = Number(to);
+        if (prop === "x1") currentX = Number(to);
+        else if (prop === "y1") currentY = Number(to);
+        else if (prop === "r") currentRadius = Number(to);
+        else if (prop === "startAngle") currentStartAngle = Number(to);
+        else if (prop === "endAngle") currentEndAngle = Number(to);
         else {
           arc.style.setProperty(prop, from);
           animations.push(
@@ -309,38 +316,68 @@ export function arc(x: number, y: number, radius: number = 50): Arc {
         }
       });
 
-      if (options.properties['x1'] || options.properties['y1'] || options.properties['r'] || 
-          options.properties['startAngle'] || options.properties['endAngle']) {
+      if (
+        options.properties["x1"] ||
+        options.properties["y1"] ||
+        options.properties["r"] ||
+        options.properties["startAngle"] ||
+        options.properties["endAngle"]
+      ) {
         const duration = options.duration || 300;
         const startTime = performance.now();
-        const fromX = Number(options.properties['x1']?.from || x);
-        const fromY = Number(options.properties['y1']?.from || y);
-        const fromRadius = Number(options.properties['r']?.from || radius);
-        const fromStartAngle = Number(options.properties['startAngle']?.from || currentStartAngle);
-        const fromEndAngle = Number(options.properties['endAngle']?.from || currentEndAngle);
-        
+        const fromX = Number(options.properties["x1"]?.from || x);
+        const fromY = Number(options.properties["y1"]?.from || y);
+        const fromRadius = Number(options.properties["r"]?.from || radius);
+        const fromStartAngle = Number(
+          options.properties["startAngle"]?.from || currentStartAngle,
+        );
+        const fromEndAngle = Number(
+          options.properties["endAngle"]?.from || currentEndAngle,
+        );
+
         function animate(currentTime: number) {
           const elapsed = currentTime - startTime;
           const progress = Math.min(elapsed / duration, 1);
 
-          const currentX = fromX + (Number(options.properties?.['x1']?.to || fromX) - fromX) * progress;
-          const currentY = fromY + (Number(options.properties?.['y1']?.to || fromY) - fromY) * progress;
-          const currentRadius = fromRadius + (Number(options.properties?.['r']?.to || fromRadius) - fromRadius) * progress;
-          const currentStartAngle = fromStartAngle + 
-            (Number(options.properties?.['startAngle']?.to || fromStartAngle) - fromStartAngle) * progress;
-          const currentEndAngle = fromEndAngle + 
-            (Number(options.properties?.['endAngle']?.to || fromEndAngle) - fromEndAngle) * progress;
+          const currentX =
+            fromX +
+            (Number(options.properties?.["x1"]?.to || fromX) - fromX) *
+              progress;
+          const currentY =
+            fromY +
+            (Number(options.properties?.["y1"]?.to || fromY) - fromY) *
+              progress;
+          const currentRadius =
+            fromRadius +
+            (Number(options.properties?.["r"]?.to || fromRadius) - fromRadius) *
+              progress;
+          const currentStartAngle =
+            fromStartAngle +
+            (Number(options.properties?.["startAngle"]?.to || fromStartAngle) -
+              fromStartAngle) *
+              progress;
+          const currentEndAngle =
+            fromEndAngle +
+            (Number(options.properties?.["endAngle"]?.to || fromEndAngle) -
+              fromEndAngle) *
+              progress;
 
           arc.setAttribute(
             "d",
-            describeArc(currentX, currentY, currentRadius, currentStartAngle, currentEndAngle)
+            describeArc(
+              currentX,
+              currentY,
+              currentRadius,
+              currentStartAngle,
+              currentEndAngle,
+            ),
           );
-          
+
           if (progress < 1) {
             requestAnimationFrame(animate);
           }
         }
-        
+
         requestAnimationFrame(animate);
       }
     }
@@ -551,7 +588,7 @@ function describeArc(
 
   // 确定是否使用大弧
   const largeArcFlag = angleDiff > 180 ? "1" : "0";
-  
+
   // 使用0表示逆时针方向
   const sweepFlag = "0";
 

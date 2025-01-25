@@ -7,13 +7,13 @@
 库提供了两个内置主题:
 
 ```typescript
-import { setTheme } from "math-components";
+import { setTheme } from 'math-components';
 
 // 切换到亮色主题
-setTheme("light");
+setTheme('light');
 
 // 切换到暗色主题
-setTheme("dark");
+setTheme('dark');
 ```
 
 ## 主题配置
@@ -23,38 +23,38 @@ setTheme("dark");
 ```typescript
 const theme = {
   colors: {
-    background: "#ffffff", // 背景色
-    primary: "#1976d2", // 主色
-    secondary: "#dc004e", // 次色
-    text: "#000000", // 文本色
-    grid: "#e0e0e0", // 网格色
-    axis: "#000000", // 坐标轴色
+    background: '#ffffff',    // 背景色
+    primary: '#1976d2',      // 主色
+    secondary: '#dc004e',    // 次色
+    text: '#000000',         // 文本色
+    grid: '#e0e0e0',         // 网格色
+    axis: '#000000',         // 坐标轴色
     function: {
-      stroke: "#1976d2", // 函数线条色
-      derivative: "#2196f3", // 导数线条色
-      integral: "#4caf50", // 积分线条色
+      stroke: '#1976d2',     // 函数线条色
+      derivative: '#2196f3',  // 导数线条色
+      integral: '#4caf50'    // 积分线条色
     },
     marker: {
-      fill: "#ffffff", // 标记填充色
-      stroke: "#000000", // 标记边框色
-    },
+      fill: '#ffffff',       // 标记填充色
+      stroke: '#000000'      // 标记边框色
+    }
   },
   opacity: {
-    grid: 0.5, // 网格透明度
-    function: 1, // 函数线条透明度
+    grid: 0.5,              // 网格透明度
+    function: 1             // 函数线条透明度
   },
   sizes: {
-    axis: 2, // 坐标轴宽度
-    grid: 1, // 网格线宽度
-    function: 2, // 函数线条宽度
-  },
+    axis: 2,                // 坐标轴宽度
+    grid: 1,                // 网格线宽度
+    function: 2             // 函数线条宽度
+  }
 };
 ```
 
 ### 应用主题
 
 ```typescript
-import { setTheme } from "math-components";
+import { setTheme } from 'math-components';
 
 // 应用自定义主题
 setTheme(theme);
@@ -69,34 +69,37 @@ setTheme(theme);
 ```typescript
 coord
   .gridStyle({
-    color: "#eee",
+    color: '#eee',
     width: 1,
-    opacity: 0.3,
+    opacity: 0.3
   })
   .axisStyle({
-    color: "#333",
-    width: 2,
+    color: '#333',
+    width: 2
   });
 ```
 
 ### 函数
 
 ```typescript
-func((x) => x * x, [-10, 10])
-  .stroke("#ff0000")
+func(x => x * x, [-10, 10])
+  .stroke('#ff0000')
   .style({
     width: 3,
-    opacity: 0.8,
+    opacity: 0.8
   });
 ```
 
 ### 图形
 
 ```typescript
-dot(0, 0).fill("#ff0000").stroke("#000000").style({
-  opacity: 0.8,
-  cursor: "pointer",
-});
+dot(0, 0)
+  .fill('#ff0000')
+  .stroke('#000000')
+  .style({
+    opacity: 0.8,
+    cursor: 'pointer'
+  });
 ```
 
 ## 响应式主题
@@ -105,10 +108,9 @@ dot(0, 0).fill("#ff0000").stroke("#000000").style({
 
 ```typescript
 // 监听系统主题变化
-window
-  .matchMedia("(prefers-color-scheme: dark)")
-  .addEventListener("change", (e) => {
-    setTheme(e.matches ? "dark" : "light");
+window.matchMedia('(prefers-color-scheme: dark)')
+  .addEventListener('change', e => {
+    setTheme(e.matches ? 'dark' : 'light');
   });
 ```
 
@@ -116,11 +118,11 @@ window
 
 ```typescript
 // 为主题切换添加过渡动画
-document.documentElement.style.transition = "background-color 0.3s";
+document.documentElement.style.transition = 'background-color 0.3s';
 
 function toggleTheme() {
-  const isDark = getTheme().colors.background === "#121212";
-  setTheme(isDark ? "light" : "dark");
+  const isDark = getTheme().colors.background === '#121212';
+  setTheme(isDark ? 'light' : 'dark');
 }
 ```
 
@@ -129,36 +131,36 @@ function toggleTheme() {
 下面是一个综合示例:
 
 ```typescript
-import { field, coordinate, func, setTheme } from "math-components";
+import { field, coordinate, func, setTheme } from 'math-components';
 
 // 自定义主题
 const customTheme = {
   colors: {
-    background: "#f5f5f5",
-    primary: "#2196f3",
-    secondary: "#f50057",
-    text: "#212121",
-    grid: "#e0e0e0",
-    axis: "#000000",
+    background: '#f5f5f5',
+    primary: '#2196f3',
+    secondary: '#f50057',
+    text: '#212121',
+    grid: '#e0e0e0',
+    axis: '#000000',
     function: {
-      stroke: "#2196f3",
-      derivative: "#1976d2",
-      integral: "#4caf50",
+      stroke: '#2196f3',
+      derivative: '#1976d2',
+      integral: '#4caf50'
     },
     marker: {
-      fill: "#ffffff",
-      stroke: "#000000",
-    },
+      fill: '#ffffff',
+      stroke: '#000000'
+    }
   },
   opacity: {
     grid: 0.4,
-    function: 0.9,
+    function: 0.9
   },
   sizes: {
     axis: 2,
     grid: 1,
-    function: 2.5,
-  },
+    function: 2.5
+  }
 };
 
 // 应用主题
@@ -166,24 +168,28 @@ setTheme(customTheme);
 
 // 创建画布和坐标系
 const canvas = field(800, 600);
-const coord = coordinate(800, 600).origin(400, 300).grid(50).unit(50);
+const coord = coordinate(800, 600)
+  .origin(400, 300)
+  .grid(50)
+  .unit(50);
 
 // 创建函数
-const f = func((x) => Math.sin(x), [-2 * Math.PI, 2 * Math.PI]).style({
-  width: 3,
-  opacity: 0.8,
-});
+const f = func(x => Math.sin(x), [-2 * Math.PI, 2 * Math.PI])
+  .style({
+    width: 3,
+    opacity: 0.8
+  });
 
 // 添加到画布
 canvas.add(coord);
 coord.add(f);
 
 // 添加主题切换按钮
-const button = document.createElement("button");
-button.textContent = "切换主题";
+const button = document.createElement('button');
+button.textContent = '切换主题';
 button.onclick = () => {
-  const isDark = getTheme().colors.background === "#121212";
-  setTheme(isDark ? "light" : "dark");
+  const isDark = getTheme().colors.background === '#121212';
+  setTheme(isDark ? 'light' : 'dark');
 };
 document.body.appendChild(button);
 ```
@@ -192,4 +198,4 @@ document.body.appendChild(button);
 
 - 探索[教学模式](./teaching.md)的功能
 - 了解[API参考](../api/README.md)中的更多选项
-- 查看[示例](../examples/README.md)获取灵感
+- 查看[示例](../examples/README.md)获取灵感 

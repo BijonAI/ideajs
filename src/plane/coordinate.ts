@@ -29,14 +29,6 @@ export function coordinate(width: number, height: number) {
 
   const xAxis = document.createElementNS("http://www.w3.org/2000/svg", "line");
   const yAxis = document.createElementNS("http://www.w3.org/2000/svg", "line");
-  const xArrow = document.createElementNS(
-    "http://www.w3.org/2000/svg",
-    "polygon",
-  );
-  const yArrow = document.createElementNS(
-    "http://www.w3.org/2000/svg",
-    "polygon",
-  );
 
   xAxis.setAttribute("x1", (-width / 2).toString());
   xAxis.setAttribute("y1", "0");
@@ -52,26 +44,13 @@ export function coordinate(width: number, height: number) {
   yAxis.setAttribute("stroke", "black");
   yAxis.setAttribute("stroke-width", "2");
 
-  xArrow.setAttribute("points", "-5,-4 0,0 5,-4 0,8");
-  xArrow.setAttribute("transform", `translate(${width / 2}, 0) rotate(-90)`);
-  xArrow.setAttribute("fill", "black");
-  xArrow.setAttribute("stroke", "none");
-
-  yArrow.setAttribute("points", "-5,4 0,0 5,4 0,-8");
-  yArrow.setAttribute("transform", `translate(0, ${-height / 2})`);
-  yArrow.setAttribute("fill", "black");
-  yArrow.setAttribute("stroke", "none");
-
   axes.appendChild(xAxis);
   axes.appendChild(yAxis);
-  axes.appendChild(xArrow);
-  axes.appendChild(yArrow);
 
   const rtn = {
     node: () => group,
     origin,
     grid: setGrid,
-    ticks: setTicks,
     labels: setLabels,
     stroke,
     add,
@@ -109,9 +88,6 @@ export function coordinate(width: number, height: number) {
     unit = value;
     if (grid.children.length > 0) {
       setGrid(unit);
-    }
-    if (axes.children.length > 4) {
-      setTicks(unit);
     }
     Array.from(content.children).forEach((child) => {
       const element = child as SVGElement;
@@ -259,8 +235,6 @@ export function coordinate(width: number, height: number) {
   function stroke(color: string) {
     xAxis.setAttribute("stroke", color);
     yAxis.setAttribute("stroke", color);
-    xArrow.setAttribute("fill", color);
-    yArrow.setAttribute("fill", color);
     return rtn;
   }
 

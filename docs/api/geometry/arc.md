@@ -11,7 +11,6 @@ const a = arc(x: number, y: number);
 ```
 
 ### 参数
-
 - `x: number` - 圆心x坐标
 - `y: number` - 圆心y坐标
 
@@ -26,7 +25,6 @@ a.from(angle: number)
 ```
 
 #### 参数
-
 - `angle: number` - 起始角度(弧度)
 
 ### to()
@@ -38,7 +36,6 @@ a.to(angle: number)
 ```
 
 #### 参数
-
 - `angle: number` - 结束角度(弧度)
 
 ### stroke()
@@ -66,7 +63,6 @@ a.animateDrawing(duration: number)
 ```
 
 #### 参数
-
 - `duration: number` - 动画持续时间(毫秒)
 
 ## 继承的方法
@@ -74,7 +70,7 @@ a.animateDrawing(duration: number)
 圆弧对象继承了所有通用的图形方法:
 
 - transform()
-- animation()
+- animation() 
 - event()
 - tooltip()
 - effect()
@@ -85,4 +81,4 @@ a.animateDrawing(duration: number)
 - lock()/unlock()
 - restrict()
 - snap()
-- connect()
+- connect() 

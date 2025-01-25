@@ -65,7 +65,6 @@ export function line(x1: number, y1: number, x2: number, y2: number): Line {
   endPoint.setAttribute("cy", (-y2).toString());
   endPoint.style.cursor = "move";
 
-
   // 将元素添加到线段组中
   lineGroup.append(lineElement, startPoint, endPoint);
 
@@ -346,7 +345,10 @@ export function line(x1: number, y1: number, x2: number, y2: number): Line {
       color?: string;
     } = {},
   ) {
-    const { size = 10, color = lineElement.getAttribute("stroke") || "#000000" } = options;
+    const {
+      size = 10,
+      color = lineElement.getAttribute("stroke") || "#000000",
+    } = options;
     const defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
 
     if (options.start) {
@@ -497,12 +499,20 @@ export function line(x1: number, y1: number, x2: number, y2: number): Line {
 
   function animation(options: Animation) {
     const animations: string[] = [];
-    const styleProperties = new Set(['fill', 'stroke', 'stroke-width', 'opacity', 'stroke-opacity', 'fill-opacity']);
-    
+    const styleProperties = new Set([
+      "fill",
+      "stroke",
+      "stroke-width",
+      "opacity",
+      "stroke-opacity",
+      "fill-opacity",
+    ]);
+
     // 分离样式属性和位置属性
-    const positionAnimations: {[key: string]: {from: number, to: number}} = {};
-    const styleAnimations: {[key: string]: {from: string, to: string}} = {};
-    
+    const positionAnimations: { [key: string]: { from: number; to: number } } =
+      {};
+    const styleAnimations: { [key: string]: { from: string; to: string } } = {};
+
     if (options.properties) {
       Object.entries(options.properties).forEach(([prop, { from, to }]) => {
         if (styleProperties.has(prop)) {
@@ -512,7 +522,10 @@ export function line(x1: number, y1: number, x2: number, y2: number): Line {
           );
         } else {
           // 处理位置动画
-          positionAnimations[prop] = { from: parseFloat(from), to: parseFloat(to) };
+          positionAnimations[prop] = {
+            from: parseFloat(from),
+            to: parseFloat(to),
+          };
         }
       });
     }
@@ -543,24 +556,22 @@ export function line(x1: number, y1: number, x2: number, y2: number): Line {
         const elapsed = currentTime - startTime;
         const progress = Math.min(elapsed / duration, 1);
 
-        const easeProgress = options.easing
-          ? easeInOut(progress)
-          : progress;
+        const easeProgress = options.easing ? easeInOut(progress) : progress;
 
         // 更新位置
         Object.entries(positionAnimations).forEach(([prop, { from, to }]) => {
           const value = from + (to - from) * easeProgress;
-          switch(prop) {
-            case 'x1':
+          switch (prop) {
+            case "x1":
               x1 = value;
               break;
-            case 'y1':
+            case "y1":
               y1 = value;
               break;
-            case 'x2':
+            case "x2":
               x2 = value;
               break;
-            case 'y2':
+            case "y2":
               y2 = value;
               break;
           }

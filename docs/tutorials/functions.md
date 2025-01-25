@@ -7,17 +7,17 @@
 使用 `func` 函数来绘制数学函数:
 
 ```typescript
-import { func, coordinate } from "math-components";
+import { func, coordinate } from 'math-components';
 
 // 创建坐标系
 const coord = coordinate(800, 600);
 
 // 绘制函数 y = x^2
-const f = func((x) => x * x, [-10, 10]) // 定义函数和x轴范围
-  .stroke("blue") // 设置颜色
+const f = func(x => x * x, [-10, 10])  // 定义函数和x轴范围
+  .stroke('blue')                       // 设置颜色
   .style({
-    width: 2, // 线宽
-    opacity: 0.8, // 透明度
+    width: 2,                          // 线宽
+    opacity: 0.8                       // 透明度
   });
 
 // 添加到坐标系
@@ -43,16 +43,16 @@ f.samples(500);
 
 ```typescript
 // 标记不连续点
-f.discontinuity([0, 2, -2]); // 在x=0,2,-2处有不连续点
+f.discontinuity([0, 2, -2]);  // 在x=0,2,-2处有不连续点
 ```
 
 ### 渐变效果
 
 ```typescript
 f.gradient([
-  { offset: 0, color: "blue", opacity: 1 },
-  { offset: 0.5, color: "purple", opacity: 0.8 },
-  { offset: 1, color: "red", opacity: 1 },
+  { offset: 0, color: 'blue', opacity: 1 },
+  { offset: 0.5, color: 'purple', opacity: 0.8 },
+  { offset: 1, color: 'red', opacity: 1 }
 ]);
 ```
 
@@ -62,21 +62,24 @@ f.gradient([
 
 ```typescript
 // 绘制导函数
-f.derivative().stroke("green").style({ dashArray: "5,5" }); // 用虚线表示
+f.derivative()
+  .stroke('green')
+  .style({ dashArray: '5,5' });  // 用虚线表示
 ```
 
 ### 积分
 
 ```typescript
 // 绘制积分函数(从-5开始积分)
-f.integral(-5).stroke("red");
+f.integral(-5)
+  .stroke('red');
 ```
 
 ### 交点
 
 ```typescript
 // 绘制另一个函数
-const g = func((x) => -x * x + 4, [-10, 10]);
+const g = func(x => -x * x + 4, [-10, 10]);
 
 // 标记两个函数的交点
 f.intersection(g);
@@ -102,14 +105,14 @@ f.asymptotes();
 
 ```typescript
 // 高亮显示[-2,2]区间
-f.highlight(-2, 2, "rgba(255,0,0,0.2)");
+f.highlight(-2, 2, 'rgba(255,0,0,0.2)');
 ```
 
 ### 添加标签
 
 ```typescript
 // 在特定点添加标签
-f.label("最大值", 0);
+f.label('最大值', 0);
 ```
 
 ### 工具提示
@@ -132,7 +135,10 @@ f.animate(1000);
 
 ```typescript
 // 更新函数定义和范围
-f.update((x) => Math.sin(x), [-Math.PI, Math.PI]);
+f.update(
+  x => Math.sin(x), 
+  [-Math.PI, Math.PI]
+);
 ```
 
 ## 组合使用
@@ -140,29 +146,31 @@ f.update((x) => Math.sin(x), [-Math.PI, Math.PI]);
 下面是一个综合示例:
 
 ```typescript
-import { func, coordinate, field } from "math-components";
+import { func, coordinate, field } from 'math-components';
 
 // 创建画布和坐标系
 const canvas = field(800, 600);
 const coord = coordinate(800, 600)
-  .origin(400, 300) // 设置原点位置
-  .grid(50) // 设置网格大小
-  .unit(50); // 设置单位长度
+  .origin(400, 300)        // 设置原点位置
+  .grid(50)               // 设置网格大小
+  .unit(50);             // 设置单位长度
 
 // 创建函数
-const f = func((x) => Math.sin(x), [-2 * Math.PI, 2 * Math.PI])
-  .stroke("blue")
+const f = func(x => Math.sin(x), [-2 * Math.PI, 2 * Math.PI])
+  .stroke('blue')
   .style({ width: 2 })
   .samples(500);
 
 // 添加导数
-f.derivative().stroke("green").style({ dashArray: "5,5" });
+f.derivative()
+  .stroke('green')
+  .style({ dashArray: '5,5' });
 
 // 高亮[-π,π]区间
-f.highlight(-Math.PI, Math.PI, "rgba(0,0,255,0.1)");
+f.highlight(-Math.PI, Math.PI, 'rgba(0,0,255,0.1)');
 
 // 添加标签
-f.label("y=sin(x)", 0);
+f.label('y=sin(x)', 0);
 
 // 添加到画布
 canvas.add(coord);
@@ -176,4 +184,4 @@ f.animate(1500);
 
 - 了解[坐标系统](./coordinate-system.md)的更多用法
 - 探索[动画效果](./animations.md)的实现
-- 学习[交互功能](./interactions.md)的使用
+- 学习[交互功能](./interactions.md)的使用 

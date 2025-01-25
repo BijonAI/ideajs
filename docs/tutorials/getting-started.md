@@ -15,7 +15,7 @@ npm install math-components
 1. 创建一个画布
 
 ```typescript
-import { field } from "math-components";
+import { field } from 'math-components';
 
 // 创建一个 800x600 的画布
 const canvas = field(800, 600);
@@ -30,25 +30,27 @@ document.body.appendChild(canvas.node());
 2. 绘制基本图形
 
 ```typescript
-import { dot, line, arc } from "math-components";
+import { dot, line, arc } from 'math-components';
 
 // 创建一个点
 const point = dot(100, 100)
-  .resize(5) // 设置点的大小
-  .fill("red"); // 设置填充颜色
+  .resize(5)  // 设置点的大小
+  .fill('red'); // 设置填充颜色
 
 // 创建一条线
 const l = line(0, 0, 100, 100)
-  .stroke("blue") // 设置线条颜色
+  .stroke('blue') // 设置线条颜色
   .style({ strokeWidth: 2 }); // 设置线条宽度
 
 // 创建一个圆弧
 const a = arc(50, 50)
-  .from(0) // 起始角度
-  .to(Math.PI / 2); // 结束角度
+  .from(0)  // 起始角度
+  .to(Math.PI/2); // 结束角度
 
 // 将图形添加到画布
-canvas.add(point).add(l).add(a);
+canvas.add(point)
+      .add(l)
+      .add(a);
 ```
 
 3. 添加交互效果
@@ -58,12 +60,12 @@ canvas.add(point).add(l).add(a);
 point.draggable();
 
 // 添加点击事件
-point.event("click", () => {
-  console.log("点击了点");
+point.event('click', () => {
+  console.log('点击了点');
 });
 
 // 添加悬停提示
-point.tooltip("这是一个点");
+point.tooltip('这是一个点');
 ```
 
 4. 动画效果
@@ -76,8 +78,8 @@ l.animateDrawing(1000); // 1000ms内完成绘制
 point.animation({
   duration: 1000,
   properties: {
-    opacity: { from: "1", to: "0" },
-  },
+    opacity: { from: '1', to: '0' }
+  }
 });
 ```
 
@@ -86,10 +88,10 @@ point.animation({
 库提供了亮色和暗色两种主题:
 
 ```typescript
-import { setTheme } from "math-components";
+import { setTheme } from 'math-components';
 
 // 设置为暗色主题
-setTheme("dark");
+setTheme('dark');
 ```
 
 ## 下一步

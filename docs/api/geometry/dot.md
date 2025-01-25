@@ -11,7 +11,6 @@ const point = dot(x: number, y: number);
 ```
 
 ### 参数
-
 - `x: number` - 点的x坐标
 - `y: number` - 点的y坐标
 
@@ -26,7 +25,6 @@ point.resize(radius: number)
 ```
 
 #### 参数
-
 - `radius: number` - 点的半径
 
 ### stroke()
@@ -38,7 +36,6 @@ point.stroke(color?: string)
 ```
 
 #### 参数
-
 - `color?: string` - CSS颜色值,不传则使用主题色
 
 ### fill()
@@ -50,7 +47,6 @@ point.fill(color?: string)
 ```
 
 #### 参数
-
 - `color?: string` - CSS颜色值,不传则使用主题色
 
 ### border()
@@ -62,7 +58,6 @@ point.border(width: number)
 ```
 
 #### 参数
-
 - `width: number` - 边框宽度
 
 ### style()
@@ -74,7 +69,6 @@ point.style(options: DotStyle)
 ```
 
 #### 参数
-
 - `options: DotStyle` - 样式配置
   ```typescript
   interface DotStyle {
@@ -87,8 +81,8 @@ point.style(options: DotStyle)
     fillOpacity?: number;
     cursor?: string;
     filter?: string;
-    visibility?: "visible" | "hidden";
-    pointerEvents?: "none" | "all";
+    visibility?: 'visible' | 'hidden';
+    pointerEvents?: 'none' | 'all';
   }
   ```
 
@@ -101,7 +95,6 @@ point.focus(color: string)
 ```
 
 #### 参数
-
 - `color: string` - 焦点状态的颜色
 
 ### select()
@@ -113,7 +106,6 @@ point.select(color: string)
 ```
 
 #### 参数
-
 - `color: string` - 选中状态的颜色
 
 ### draggable()
@@ -125,7 +117,6 @@ point.draggable(condition?: (x: number, y: number) => boolean)
 ```
 
 #### 参数
-
 - `condition?: (x: number, y: number) => boolean` - 拖动限制条件
 
 ### onDrag()
@@ -137,7 +128,6 @@ point.onDrag(callback: (x: number, y: number) => void)
 ```
 
 #### 参数
-
 - `callback: (x: number, y: number) => void` - 拖动回调函数
 
 ## 继承的方法
@@ -221,8 +211,8 @@ point.trace(color?: string)
 锁定/解锁交互。
 
 ```typescript
-point.lock();
-point.unlock();
+point.lock()
+point.unlock()
 ```
 
 ### restrict()
@@ -251,4 +241,4 @@ point.connect(target: Dot, options?: {
   distance?: number,
   strength?: number
 })
-```
+``` 

@@ -5,7 +5,11 @@
 
 import { draggable } from "../utils/draggable";
 import { getTheme } from "../theme";
-import { TeachingOptions, AnimationStep,Animation } from "../interfaces/common";
+import {
+  TeachingOptions,
+  AnimationStep,
+  Animation,
+} from "../interfaces/common";
 import { Dot } from "../interfaces/geometry";
 
 /**
@@ -211,7 +215,7 @@ export function dot(x: number, y: number) {
    */
   function focus(color: string) {
     focusEvents.forEach((callback) => callback());
-    const oldColor = circle.getAttribute("stroke") || "#000000";  // Provide default color if attribute is null
+    const oldColor = circle.getAttribute("stroke") || "#000000"; // Provide default color if attribute is null
     circle.addEventListener("mouseover", () => {
       console.log("focus", color);
       circle.setAttribute("stroke", color);
@@ -236,7 +240,7 @@ export function dot(x: number, y: number) {
    */
   function select(color: string) {
     selectEvents.forEach((callback) => callback());
-    const oldColor = circle.getAttribute("stroke") || "#000000";  // Provide default color if attribute is null
+    const oldColor = circle.getAttribute("stroke") || "#000000"; // Provide default color if attribute is null
     let isMouseOver = false;
     circle.addEventListener("mousedown", () => {
       isMouseOver = true;
@@ -340,7 +344,7 @@ export function dot(x: number, y: number) {
     if (options.properties) {
       Object.entries(options.properties).forEach(([prop, { from, to }]) => {
         // Map x1 to cx and y1 to cy
-        const mappedProp = prop === 'x1' ? 'cx' : prop === 'y1' ? 'cy' : prop;
+        const mappedProp = prop === "x1" ? "cx" : prop === "y1" ? "cy" : prop;
         circle.style.setProperty(mappedProp, from);
         animations.push(
           `${mappedProp} ${options.duration || 300}ms ${options.easing || "ease"}`,

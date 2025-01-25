@@ -43,12 +43,12 @@ export function polygon(points: { x: number; y: number }[]): Polygon {
 
   // Store vertex style
   let vertexStyle = {
-    size: 8,  // 增大点的大小
+    size: 8, // 增大点的大小
     color: theme.colors.primary,
     opacity: 1,
     fill: theme.colors.primary,
-    stroke: theme.colors.background,  // 使用背景色作为描边
-    strokeWidth: 2  // 增加描边宽度
+    stroke: theme.colors.background, // 使用背景色作为描边
+    strokeWidth: 2, // 增加描边宽度
   };
 
   // 创建顶点控制点和保存初始位置
@@ -209,10 +209,10 @@ export function polygon(points: { x: number; y: number }[]): Polygon {
   function setPoints(points_: { x: number; y: number }[]) {
     // Update the stored points array
     points.length = 0;
-    points_.forEach(p => points.push({x: p.x, y: p.y}));
-    
+    points_.forEach((p) => points.push({ x: p.x, y: p.y }));
+
     polygon.setAttribute("d", pointsToPath(points));
- 
+
     points.forEach((point, index) => {
       if (vertices[index]) {
         vertices[index].setAttribute("cx", point.x.toString());
@@ -232,14 +232,14 @@ export function polygon(points: { x: number; y: number }[]): Polygon {
   function setPoint(index: number, point: { x: number; y: number }) {
     // Update the stored points array
     points[index] = { x: point.x, y: point.y };
-    
+
     // Update the polygon path
     polygon.setAttribute("d", pointsToPath(points));
-    
+
     // Update the vertex circle
     vertices[index].setAttribute("cx", point.x.toString());
     vertices[index].setAttribute("cy", (-point.y).toString());
-    
+
     return rtn;
   }
 
@@ -252,18 +252,18 @@ export function polygon(points: { x: number; y: number }[]): Polygon {
   function insertBefore(index: number, point: { x: number; y: number }) {
     // Insert the point into points array
     points.splice(index, 0, { x: point.x, y: point.y });
-    
+
     // Update the polygon path
     polygon.setAttribute("d", pointsToPath(points));
-    
+
     // Create and insert new vertex circle
     const vertex = createVertex(point.x, point.y, index);
     vertices.splice(index, 0, vertex);
     group.appendChild(vertex);
-    
+
     // Update all vertex positions
     updateVertexPositions();
-    
+
     return rtn;
   }
 
@@ -281,9 +281,9 @@ export function polygon(points: { x: number; y: number }[]): Polygon {
     const vertex = createVertex(point.x, point.y, index + 1);
     vertices.splice(index + 1, 0, vertex);
     group.appendChild(vertex);
-  
+
     updateVertexPositions();
-    
+
     return rtn;
   }
 
@@ -332,13 +332,13 @@ export function polygon(points: { x: number; y: number }[]): Polygon {
     vertex.setAttribute("cy", (-y).toString());
     vertex.style.cursor = "move";
     vertex.style.pointerEvents = "all";
-    
+
     // Apply current vertex style
     applyVertexStyle(vertex);
-    
+
     // 添加数据属性用于动画更新
     vertex.setAttribute("data-vertex", index.toString());
-    
+
     return vertex;
   }
 
@@ -376,7 +376,9 @@ export function polygon(points: { x: number; y: number }[]): Polygon {
   function fill(color?: string) {
     const theme = getTheme();
     polygon.setAttribute("fill", color || theme.colors.secondary);
-    vertices.forEach((point) => point.setAttribute("fill", color ? color : theme.colors.secondary));
+    vertices.forEach((point) =>
+      point.setAttribute("fill", color ? color : theme.colors.secondary),
+    );
     return rtn;
   }
 
@@ -416,23 +418,29 @@ export function polygon(points: { x: number; y: number }[]): Polygon {
       polygon.setAttribute("stroke-linecap", options.lineCap);
     if (options.lineJoin !== undefined)
       polygon.setAttribute("stroke-linejoin", options.lineJoin);
-    
+
     // 通用样式
     if (options.cursor !== undefined) {
       polygon.style.cursor = options.cursor;
-      vertices.forEach(point => point.style.cursor = options.cursor!);
+      vertices.forEach((point) => (point.style.cursor = options.cursor!));
     }
     if (options.filter !== undefined) {
       polygon.setAttribute("filter", options.filter);
-      vertices.forEach(point => point.setAttribute("filter", options.filter!));
+      vertices.forEach((point) =>
+        point.setAttribute("filter", options.filter!),
+      );
     }
     if (options.visibility !== undefined) {
       polygon.style.visibility = options.visibility;
-      vertices.forEach(point => point.style.visibility = options.visibility!);
+      vertices.forEach(
+        (point) => (point.style.visibility = options.visibility!),
+      );
     }
     if (options.pointerEvents !== undefined) {
       polygon.style.pointerEvents = options.pointerEvents;
-      vertices.forEach(point => point.style.pointerEvents = options.pointerEvents!);
+      vertices.forEach(
+        (point) => (point.style.pointerEvents = options.pointerEvents!),
+      );
     }
 
     // Update vertex style
@@ -456,7 +464,7 @@ export function polygon(points: { x: number; y: number }[]): Polygon {
     }
 
     // Apply style to all vertices
-    vertices.forEach(vertex => {
+    vertices.forEach((vertex) => {
       applyVertexStyle(vertex);
     });
 
@@ -629,8 +637,12 @@ export function polygon(points: { x: number; y: number }[]): Polygon {
 
       // 缩放变换
       if (options.scale) {
-        const scaleX = Array.isArray(options.scale) ? options.scale[0] : options.scale;
-        const scaleY = Array.isArray(options.scale) ? options.scale[1] : options.scale;
+        const scaleX = Array.isArray(options.scale)
+          ? options.scale[0]
+          : options.scale;
+        const scaleY = Array.isArray(options.scale)
+          ? options.scale[1]
+          : options.scale;
         const originX = points[0].x;
         const originY = points[0].y;
 
@@ -673,7 +685,7 @@ export function polygon(points: { x: number; y: number }[]): Polygon {
     if (options.origin) {
       points[0] = { x: options.origin[0], y: options.origin[1] };
     }
-    
+
     points.forEach((point, index) => {
       if (vertices[index]) {
         vertices[index].setAttribute("cx", point.x.toString());
@@ -683,7 +695,7 @@ export function polygon(points: { x: number; y: number }[]): Polygon {
 
     // 更新多边形路径
     updatePolygonPath();
-    
+
     return rtn;
   }
 
@@ -694,11 +706,19 @@ export function polygon(points: { x: number; y: number }[]): Polygon {
    */
   function animation(options: Animation) {
     const animations: string[] = [];
-    const styleProperties = new Set(['fill', 'stroke', 'stroke-width', 'opacity', 'stroke-opacity', 'fill-opacity']);
+    const styleProperties = new Set([
+      "fill",
+      "stroke",
+      "stroke-width",
+      "opacity",
+      "stroke-opacity",
+      "fill-opacity",
+    ]);
 
-    const vertexAnimations: {[key: string]: {from: number, to: number}} = {};
-    const styleAnimations: {[key: string]: {from: string, to: string}} = {};
-    
+    const vertexAnimations: { [key: string]: { from: number; to: number } } =
+      {};
+    const styleAnimations: { [key: string]: { from: string; to: string } } = {};
+
     if (options.properties) {
       Object.entries(options.properties).forEach(([prop, { from, to }]) => {
         if (styleProperties.has(prop)) {
@@ -708,7 +728,10 @@ export function polygon(points: { x: number; y: number }[]): Polygon {
           );
         } else {
           // 处理顶点动画
-          vertexAnimations[prop] = { from: parseFloat(from), to: parseFloat(to) };
+          vertexAnimations[prop] = {
+            from: parseFloat(from),
+            to: parseFloat(to),
+          };
         }
       });
     }
@@ -717,7 +740,10 @@ export function polygon(points: { x: number; y: number }[]): Polygon {
     if (Object.keys(styleAnimations).length > 0) {
       Object.entries(styleAnimations).forEach(([prop, { from }]) => {
         polygon.style.setProperty(prop, from);
-        setTimeout(() => polygon.style.setProperty(prop, styleAnimations[prop].to), 0);
+        setTimeout(
+          () => polygon.style.setProperty(prop, styleAnimations[prop].to),
+          0,
+        );
       });
       polygon.style.transition = animations.join(", ");
     }
@@ -731,24 +757,25 @@ export function polygon(points: { x: number; y: number }[]): Polygon {
         const elapsed = currentTime - startTime;
         const progress = Math.min(elapsed / duration, 1);
 
-        const easeProgress = options.easing
-          ? easeInOut(progress)
-          : progress;
+        const easeProgress = options.easing ? easeInOut(progress) : progress;
 
         Object.entries(vertexAnimations).forEach(([prop, { from, to }]) => {
-          const coord = prop.charAt(0); 
+          const coord = prop.charAt(0);
           const index = parseInt(prop.slice(1)) - 1;
           if (!isNaN(index) && index < points.length) {
-            points[index][coord as 'x' | 'y'] = from + (to - from) * easeProgress;
+            points[index][coord as "x" | "y"] =
+              from + (to - from) * easeProgress;
           }
         });
 
         updatePolygonPath();
         points.forEach((point, index) => {
-          const vertexPoint = group.querySelector(`circle[data-vertex="${index}"]`);
+          const vertexPoint = group.querySelector(
+            `circle[data-vertex="${index}"]`,
+          );
           if (vertexPoint) {
-            vertexPoint.setAttribute('cx', point.x.toString());
-            vertexPoint.setAttribute('cy', (-point.y).toString()); 
+            vertexPoint.setAttribute("cx", point.x.toString());
+            vertexPoint.setAttribute("cy", (-point.y).toString());
           }
         });
 

@@ -11,7 +11,6 @@ const v = vector(x1: number, y1: number, x2: number, y2: number);
 ```
 
 ### 参数
-
 - `x1: number` - 起点x坐标
 - `y1: number` - 起点y坐标
 - `x2: number` - 终点x坐标
@@ -59,4 +58,4 @@ v.stroke(color?: string)
 - lock()/unlock()
 - restrict()
 - snap()
-- connect()
+- connect() 
