@@ -11,12 +11,12 @@ const coord = idea.coordinate().axis().ticks(100);
 const arc = idea
   .arc(100, 100, 100)
   .from(0)
-  .to(180)
-  .transform({ origin: [50, 50] })
-  .transform({ scale: 0.5 })
-  .transform({ skew: [10, 20] })
-  .transform({ rotate: 180 })
-  .transform({ translate: [-50, -50] })
+  .to(360)
+  // .transform({ origin: [50, 50] })
+  // .transform({ scale: 0.5 })
+  // .transform({ skew: [10, 20] })
+  // .transform({ rotate: 180 })
+  // .transform({ translate: [-50, -50] })
   .animation({
     duration: 5000,
     delay: 2000,
@@ -28,8 +28,8 @@ const arc = idea
       x1: { from: -300, to: 200 },
       y1: { from: -300, to: 200 },
       r: { from: 100, to: 150 },
-      startAngle: { from: 0, to: 180 },
-      endAngle: { from: 180, to: 360 },
+      // startAngle: { from: 0, to: 180 },
+      endAngle: { from: 0, to: 360 },
     },
     onStart: () => console.log("Animation started"),
     onEnd: () => console.log("Animation completed"),

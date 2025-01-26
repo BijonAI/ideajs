@@ -5,11 +5,7 @@
 
 import { draggable } from "../utils/draggable";
 import { getTheme } from "../theme";
-import {
-  TeachingOptions,
-  AnimationStep,
-  Animation,
-} from "../interfaces/common";
+import { TeachingOptions, AnimationStep, Animation } from "../interfaces/common";
 import { Dot } from "../interfaces/geometry";
 
 /**
@@ -30,10 +26,119 @@ export function dot(x: number, y: number) {
   circle.setAttribute("stroke-width", "4");
   circle.style.cursor = "move";
 
+  // 存储初始值到dataset
+  circle.dataset.x = x.toString();
+  circle.dataset.y = y.toString();
+  circle.dataset.r = "4";
+
   // 拖拽事件回调数组
   const dragEvents: ((x: number, y: number) => void)[] = [];
   function onDrag(callback: (x: number, y: number) => void) {
     dragEvents.push(callback);
+    return rtn;
+  }
+
+  // /**
+  //  * 从当前属性中获取点的参数
+  //  * @returns 当前点的参数
+  //  */
+  // function parseCurrentDotParams() {
+  //   // 尝试从transform中获取变换后的值
+  //   const transform = circle.getAttribute("transform");
+  //   if (transform) {
+  //     const matrix = circle.getCTM();
+  //     if (matrix) {
+  //       const x = Number(circle.dataset.x);
+  //       const y = Number(circle.dataset.y);
+  //       const point = circle.ownerSVGElement?.createSVGPoint();
+  //       if (point) {
+  //         point.x = x;
+  //         point.y = y;
+  //         const transformedPoint = point.matrixTransform(matrix);
+  //         circle.dataset.x = transformedPoint.x.toString();
+  //         circle.dataset.y = transformedPoint.y.toString();
+  //       }
+  //     }
+  //   }
+
+  //   return {
+  //     x: Number(circle.dataset.x),
+  //     y: Number(circle.dataset.y),
+  //     r: Number(circle.dataset.r)
+  //   };
+  // }
+
+  /**
+   * 应用变换
+   * @param options 变换选项，包括平移、缩放、旋转和倾斜
+   * @returns 点对象
+   */
+  function transform(options: {
+    translate?: [number, number];
+    scale?: number | [number, number];
+    rotate?: number;
+    skew?: [number, number];
+    origin?: [number, number];
+  }) {
+    let newX = Number(circle.dataset.x);
+    let newY = Number(circle.dataset.y);
+    let newR = Number(circle.dataset.r);
+    // origin直接修改点位置
+    if (options.origin) {
+      newX = options.origin[0];
+      newY = options.origin[1];
+      // 更新数据集和属性
+      circle.dataset.x = newX.toString();
+      circle.dataset.y = newY.toString();
+      circle.setAttribute("cx", newX.toString());
+      circle.setAttribute("cy", (-newY).toString());
+      return rtn;
+    }
+
+    // 平移直接修改坐标
+    if (options.translate) {
+      newX += options.translate[0];
+      newY += options.translate[1];
+      circle.dataset.x = newX.toString();
+      circle.dataset.y = newY.toString();
+      circle.setAttribute("cx", newX.toString());
+      circle.setAttribute("cy", newY.toString());
+      return rtn;
+    }
+
+    // 缩放直接修改半径
+    if (options.scale) {
+      const scaleX = Array.isArray(options.scale) ? options.scale[0] : options.scale;
+      newR *= scaleX;
+      circle.dataset.r = newR.toString();
+      circle.setAttribute("r", newR.toString());
+      return rtn;
+    }
+
+    // 旋转，对于点来说只需要更新位置
+    if (options.rotate) {
+      // const angle = options.rotate * Math.PI / 180;
+      // const cos = Math.cos(angle);
+      // const sin = Math.sin(angle);
+      // const centerX = Number(circle.dataset.x);
+      // const centerY = Number(circle.dataset.y);
+      
+      // newX = centerX * cos - centerY * sin;
+      // newY = centerX * sin + centerY * cos;
+      
+      // circle.dataset.x = newX.toString();
+      // circle.dataset.y = newY.toString();
+      // circle.setAttribute("cx", newX.toString());
+      // circle.setAttribute("cy", newY.toString());
+      return rtn;
+    }
+
+    // skew保持使用SVG transform
+    if (options.skew) {
+      let transform = `skew(${options.skew[0]},${options.skew[1]})`;
+      circle.setAttribute("transform", transform);
+    }
+
     return rtn;
   }
 
@@ -215,7 +320,7 @@ export function dot(x: number, y: number) {
    */
   function focus(color: string) {
     focusEvents.forEach((callback) => callback());
-    const oldColor = circle.getAttribute("stroke") || "#000000"; // Provide default color if attribute is null
+    const oldColor = circle.getAttribute("stroke") || "#000000";  // Provide default color if attribute is null
     circle.addEventListener("mouseover", () => {
       console.log("focus", color);
       circle.setAttribute("stroke", color);
@@ -240,7 +345,7 @@ export function dot(x: number, y: number) {
    */
   function select(color: string) {
     selectEvents.forEach((callback) => callback());
-    const oldColor = circle.getAttribute("stroke") || "#000000"; // Provide default color if attribute is null
+    const oldColor = circle.getAttribute("stroke") || "#000000";  // Provide default color if attribute is null
     let isMouseOver = false;
     circle.addEventListener("mousedown", () => {
       isMouseOver = true;
@@ -299,42 +404,6 @@ export function dot(x: number, y: number) {
   }
 
   /**
-   * 应用变换
-   * @param options 变换选项，包括平移、缩放、旋转和倾斜
-   * @returns 点对象
-   */
-  function transform(options: {
-    translate?: [number, number];
-    scale?: number | [number, number];
-    rotate?: number;
-    skew?: [number, number];
-    origin?: [number, number];
-  }) {
-    let transform = "";
-    if (options.translate) {
-      transform += `translate(${options.translate[0]},${options.translate[1]}) `;
-    }
-    if (options.scale) {
-      if (Array.isArray(options.scale)) {
-        transform += `scale(${options.scale[0]},${options.scale[1]}) `;
-      } else {
-        transform += `scale(${options.scale}) `;
-      }
-    }
-    if (options.rotate) {
-      transform += `rotate(${options.rotate}) `;
-    }
-    if (options.skew) {
-      transform += `skew(${options.skew[0]},${options.skew[1]}) `;
-    }
-    if (options.origin) {
-      circle.style.transformOrigin = `${options.origin[0]}px ${options.origin[1]}px`;
-    }
-    circle.setAttribute("transform", transform.trim());
-    return rtn;
-  }
-
-  /**
    * 应用动画效果
    * @param options 动画选项，包括属性、持续时间和回调函数
    * @returns 点对象
@@ -344,12 +413,15 @@ export function dot(x: number, y: number) {
     if (options.properties) {
       Object.entries(options.properties).forEach(([prop, { from, to }]) => {
         // Map x1 to cx and y1 to cy
-        const mappedProp = prop === "x1" ? "cx" : prop === "y1" ? "cy" : prop;
-        circle.style.setProperty(mappedProp, from);
+        const mappedProp = prop === 'x1' ? 'cx' : prop === 'y1' ? 'cy' : prop;
+        circle.style.setProperty(
+          mappedProp,
+          prop === 'y1' ? (-parseFloat(from)).toString() : from,
+        );
         animations.push(
           `${mappedProp} ${options.duration || 300}ms ${options.easing || "ease"}`,
         );
-        setTimeout(() => circle.style.setProperty(mappedProp, to), 0);
+        setTimeout(() => circle.style.setProperty(mappedProp, prop === 'y1' ? (-parseFloat(to)).toString() : to), 0);
       });
     }
     circle.style.transition = animations.join(", ");
