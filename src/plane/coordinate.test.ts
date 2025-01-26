@@ -1,7 +1,7 @@
 import { getTheme, setTheme } from "../theme";
 // import { draggable } from "../utils/draggable";
 
-export function coordinate() {
+export function coordinate(width: number, height: number) {
   const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
   const bg = document.createElementNS("http://www.w3.org/2000/svg", "rect");
   const axis = document.createElementNS("http://www.w3.org/2000/svg", "svg");
@@ -20,8 +20,8 @@ export function coordinate() {
   bg.style.pointerEvents = "all";
   bg.style.cursor = "grab";
 
-  axis.setAttribute("width", "100%");
-  axis.setAttribute("height", "100%");
+  axis.setAttribute("width", `${width}`);
+  axis.setAttribute("height", `${height}`);
 
   group.appendChild(bg);
   group.appendChild(axis);
@@ -51,14 +51,16 @@ export function coordinate() {
     addMarker,
     addText,
     theme,
+    // draggable: enableDragging,
   };
 
   let viewBox = {
-    x: -window.innerWidth / 2,
-    y: -window.innerHeight / 2,
-    w: window.innerWidth,
-    h: window.innerHeight,
+    x: -axis.width.baseVal.value / 2,
+    y: -axis.height.baseVal.value / 2,
+    w: axis.width.baseVal.value,
+    h: axis.height.baseVal.value,
   };
+
   axis.setAttribute(
     "viewBox",
     `${viewBox.x} ${viewBox.y} ${viewBox.w} ${viewBox.h}`,
@@ -122,8 +124,8 @@ export function coordinate() {
       );
       text.setAttribute("x", `${x}`);
       text.setAttribute("y", "25");
-      text.setAttribute("stroke", "#666");
-      text.style.font = "16px sans-serif";
+      text.setAttribute("fill", "#666");
+      text.style.font = "14px sans-serif";
       text.style.fontFamily = "Comic Sans MS";
       text.textContent = `${Math.round(x / space)}`;
 
@@ -154,8 +156,8 @@ export function coordinate() {
       );
       text.setAttribute("x", "25");
       text.setAttribute("y", `${y + 3}`);
-      text.setAttribute("stroke", "#666");
-      text.style.font = "16px sans-serif";
+      text.setAttribute("fill", "#666");
+      text.style.font = "14px sans-serif";
       text.style.fontFamily = "Comic Sans MS";
       text.textContent = `${Math.round(-y / space)}`;
 
@@ -406,6 +408,59 @@ export function coordinate() {
 
   group.addEventListener("mouseup", () => (isDragging = false));
   group.addEventListener("mouseleave", () => (isDragging = false));
+
+  // let isDragging = false;
+  // let dragEnabled = false;
+
+  // function enableDragging() {
+  //   if (dragEnabled) return rtn;
+
+  //   dragEnabled = true;
+
+  //   const destroy = draggable(
+  //     background as SVGElement,
+  //     (x, y) => true,
+  //     (x, y) => {
+  //       const originX = x + width / 2;
+  //       const originY = y + height / 2;
+  //       origin(originX, originY);
+  //     },
+  //   );
+
+  //   const updateCursor = (cursor: string) => {
+  //     if (background.style) {
+  //       background.style.cursor = cursor;
+  //     }
+  //   };
+
+  //   background.addEventListener("mousedown", () => {
+  //     isDragging = true;
+  //     updateCursor("grabbing");
+  //   });
+
+  //   window.addEventListener("mouseup", () => {
+  //     if (isDragging) {
+  //       isDragging = false;
+  //       updateCursor("grab");
+  //     }
+  //   });
+
+  //   background.addEventListener("mouseover", () => {
+  //     if (!isDragging) {
+  //       updateCursor("grab");
+  //     }
+  //   });
+
+  //   background.addEventListener("mouseout", () => {
+  //     if (!isDragging) {
+  //       updateCursor("default");
+  //     }
+  //   });
+
+  //   updateCursor("grab");
+
+  //   return rtn;
+  // }
 
   return rtn;
 }

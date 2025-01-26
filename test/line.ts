@@ -5,9 +5,15 @@ const canvas = idea.field(1000, 800);
 document.body.appendChild(canvas.node());
 
 // 创建坐标系
-const coord = idea.coordinate().axis().ticks(50);
-// .grid(30)
-// .labels(50); // 设置标签间隔
+const coord = idea.coordinate(1000, 800).axis().ticks(50);
+
+// const coord = idea
+//   .coordinate(1000, 800)
+//   .origin(500, 400)
+//   .unit(50)
+//   .grid(50)
+//   .labels(50)
+//   .draggable();
 
 // 创建线段
 const line = idea

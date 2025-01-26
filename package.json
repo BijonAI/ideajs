@@ -5,8 +5,8 @@
   "scripts": {
     "build": "vite build",
     "dev": "vite",
-    "preview": "vite preview",
-    "test": "vite test"
+    "preview": "pnpm vite preview",
+    "test": "pnpm vite test"
   },
   "keywords": [],
   "author": "",
