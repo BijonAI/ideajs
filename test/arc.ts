@@ -5,7 +5,7 @@ const canvas = idea.field(1000, 800);
 document.body.appendChild(canvas.node());
 
 // 创建坐标系
-const coord = idea.coordinate(1000, 800).axis().ticks(100);
+const coord = idea.coordinate().grid(50).axis().ticks(100);
 
 // 创建圆弧
 const arc = idea

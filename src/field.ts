@@ -20,10 +20,13 @@ export type Renderable = object & { node: () => SVGElement };
  */
 export function field(width: number, height: number) {
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+
   svg.setAttribute("width", width.toString());
   svg.setAttribute("height", height.toString());
-  const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+  svg.setAttribute("id", "canvas");
   svg.appendChild(g);
+
   const originPoint = [0, 0];
 
   const rtn = {

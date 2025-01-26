@@ -1,11 +1,10 @@
 import { getTheme, setTheme } from "../theme";
 // import { draggable } from "../utils/draggable";
 
-export function coordinate(width: number, height: number) {
+export function coordinate() {
   const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
   const bg = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-  const axis = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-  // const grid = document.createElementNS("http://www.w3.org/2000/svg", "g");
+  const grid = document.createElementNS("http://www.w3.org/2000/svg", "svg");
   // const labels = document.createElementNS("http://www.w3.org/2000/svg", "g");
   const content = document.createElementNS("http://www.w3.org/2000/svg", "g");
 
@@ -20,11 +19,11 @@ export function coordinate(width: number, height: number) {
   bg.style.pointerEvents = "all";
   bg.style.cursor = "grab";
 
-  axis.setAttribute("width", `${width}`);
-  axis.setAttribute("height", `${height}`);
+  grid.setAttribute("width", "100%");
+  grid.setAttribute("height", "100%");
 
   group.appendChild(bg);
-  group.appendChild(axis);
+  group.appendChild(grid);
   group.appendChild(content);
   // group.appendChild(grid);
   // group.appendChild(axes);
@@ -33,10 +32,9 @@ export function coordinate(width: number, height: number) {
 
   const rtn = {
     node: () => group,
-    origin,
     axis: setAxis,
-    ticks: setTicks,
     grid: setGrid,
+    ticks: setTicks,
     labels: setLabels,
     stroke,
     add,
@@ -55,23 +53,27 @@ export function coordinate(width: number, height: number) {
   };
 
   let viewBox = {
-    x: -axis.width.baseVal.value / 2,
-    y: -axis.height.baseVal.value / 2,
-    w: axis.width.baseVal.value,
-    h: axis.height.baseVal.value,
+    x: -document.getElementById("canvas")!.getBoundingClientRect().width / 2,
+    y: -document.getElementById("canvas")!.getBoundingClientRect().height / 2,
+    w: document.getElementById("canvas")!.getBoundingClientRect().width,
+    h: document.getElementById("canvas")!.getBoundingClientRect().height,
   };
 
-  axis.setAttribute(
+  grid.setAttribute(
     "viewBox",
     `${viewBox.x} ${viewBox.y} ${viewBox.w} ${viewBox.h}`,
   );
 
   function setAxis() {
-    // X轴
     const xAxis = document.createElementNS(
       "http://www.w3.org/2000/svg",
       "line",
     );
+    const yAxis = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "line",
+    );
+
     xAxis.setAttribute("x1", `${viewBox.x}`);
     xAxis.setAttribute("x2", `${viewBox.x + viewBox.w}`);
     xAxis.setAttribute("y1", "0");
@@ -79,11 +81,6 @@ export function coordinate(width: number, height: number) {
     xAxis.setAttribute("stroke", "black");
     xAxis.setAttribute("stroke-width", "2");
 
-    // Y轴
-    const yAxis = document.createElementNS(
-      "http://www.w3.org/2000/svg",
-      "line",
-    );
     yAxis.setAttribute("y1", `${viewBox.y}`);
     yAxis.setAttribute("y2", `${viewBox.y + viewBox.h}`);
     yAxis.setAttribute("x1", "0");
@@ -91,7 +88,54 @@ export function coordinate(width: number, height: number) {
     yAxis.setAttribute("stroke", "black");
     yAxis.setAttribute("stroke-width", "2");
 
-    axis.append(xAxis, yAxis);
+    grid.append(xAxis, yAxis);
+
+    return rtn;
+  }
+
+  let gridSpacing: number;
+  function setGrid(space: number = 50) {
+    gridSpacing = space;
+
+    // 垂直网格线
+    for (
+      let x = Math.floor(viewBox.x / space) * space;
+      x < viewBox.x + viewBox.w;
+      x += space
+    ) {
+      const line = document.createElementNS(
+        "http://www.w3.org/2000/svg",
+        "line",
+      );
+      line.setAttribute("class", "grid-line");
+      line.setAttribute("x1", `${x}`);
+      line.setAttribute("x2", `${x}`);
+      line.setAttribute("y1", `${viewBox.y}`);
+      line.setAttribute("y2", `${viewBox.y + viewBox.h}`);
+      line.setAttribute("stroke", "#ddd");
+      line.setAttribute("stroke-width", "1");
+      grid.appendChild(line);
+    }
+
+    // 水平网格线
+    for (
+      let y = Math.floor(viewBox.y / space) * space;
+      y < viewBox.y + viewBox.h;
+      y += space
+    ) {
+      const line = document.createElementNS(
+        "http://www.w3.org/2000/svg",
+        "line",
+      );
+      line.setAttribute("class", "grid-line");
+      line.setAttribute("y1", `${y}`);
+      line.setAttribute("y2", `${y}`);
+      line.setAttribute("x1", `${viewBox.x}`);
+      line.setAttribute("x2", `${viewBox.x + viewBox.w}`);
+      line.setAttribute("stroke", "#ddd");
+      line.setAttribute("stroke-width", "1");
+      grid.appendChild(line);
+    }
 
     return rtn;
   }
@@ -129,7 +173,7 @@ export function coordinate(width: number, height: number) {
       text.style.fontFamily = "Comic Sans MS";
       text.textContent = `${Math.round(x / space)}`;
 
-      axis.append(tick, text);
+      grid.append(tick, text);
     }
 
     // Y轴刻度
@@ -154,14 +198,14 @@ export function coordinate(width: number, height: number) {
         "http://www.w3.org/2000/svg",
         "text",
       );
-      text.setAttribute("x", "25");
+      text.setAttribute("x", "20");
       text.setAttribute("y", `${y + 3}`);
       text.setAttribute("fill", "#666");
       text.style.font = "14px sans-serif";
       text.style.fontFamily = "Comic Sans MS";
       text.textContent = `${Math.round(-y / space)}`;
 
-      axis.append(tick, text);
+      grid.append(tick, text);
     }
 
     return rtn;
@@ -178,12 +222,8 @@ export function coordinate(width: number, height: number) {
     scale?: (x: number, y?: number) => any;
     offset?: (x: number, y: number) => any;
   }) {
-    axis.appendChild(element.node());
+    grid.appendChild(element.node());
     elements.push(element);
-    return rtn;
-  }
-
-  function setGrid(interval: number) {
     return rtn;
   }
 
@@ -391,18 +431,19 @@ export function coordinate(width: number, height: number) {
     viewBox.y -= dy;
     startPos = { x: e.clientX, y: e.clientY };
 
-    axis.setAttribute(
+    grid.setAttribute(
       "viewBox",
       `${viewBox.x} ${viewBox.y} ${viewBox.w} ${viewBox.h}`,
     );
 
     // 清空并重新绘制
-    axis.innerHTML = "";
+    grid.innerHTML = "";
 
     setAxis();
+    setGrid(gridSpacing);
     setTicks(tickSpacing);
     elements.forEach((element) => {
-      axis.appendChild(element.node());
+      grid.appendChild(element.node());
     });
   });
 
