@@ -5,7 +5,11 @@
 
 import { draggable } from "../utils/draggable";
 import { getTheme } from "../theme";
-import { TeachingOptions, AnimationStep, Animation } from "../interfaces/common";
+import {
+  TeachingOptions,
+  AnimationStep,
+  Animation,
+} from "../interfaces/common";
 import { Dot } from "../interfaces/geometry";
 
 /**
@@ -108,7 +112,9 @@ export function dot(x: number, y: number) {
 
     // 缩放直接修改半径
     if (options.scale) {
-      const scaleX = Array.isArray(options.scale) ? options.scale[0] : options.scale;
+      const scaleX = Array.isArray(options.scale)
+        ? options.scale[0]
+        : options.scale;
       newR *= scaleX;
       circle.dataset.r = newR.toString();
       circle.setAttribute("r", newR.toString());
@@ -122,10 +128,10 @@ export function dot(x: number, y: number) {
       // const sin = Math.sin(angle);
       // const centerX = Number(circle.dataset.x);
       // const centerY = Number(circle.dataset.y);
-      
+
       // newX = centerX * cos - centerY * sin;
       // newY = centerX * sin + centerY * cos;
-      
+
       // circle.dataset.x = newX.toString();
       // circle.dataset.y = newY.toString();
       // circle.setAttribute("cx", newX.toString());
@@ -320,7 +326,7 @@ export function dot(x: number, y: number) {
    */
   function focus(color: string) {
     focusEvents.forEach((callback) => callback());
-    const oldColor = circle.getAttribute("stroke") || "#000000";  // Provide default color if attribute is null
+    const oldColor = circle.getAttribute("stroke") || "#000000"; // Provide default color if attribute is null
     circle.addEventListener("mouseover", () => {
       console.log("focus", color);
       circle.setAttribute("stroke", color);
@@ -345,7 +351,7 @@ export function dot(x: number, y: number) {
    */
   function select(color: string) {
     selectEvents.forEach((callback) => callback());
-    const oldColor = circle.getAttribute("stroke") || "#000000";  // Provide default color if attribute is null
+    const oldColor = circle.getAttribute("stroke") || "#000000"; // Provide default color if attribute is null
     let isMouseOver = false;
     circle.addEventListener("mousedown", () => {
       isMouseOver = true;
@@ -413,15 +419,22 @@ export function dot(x: number, y: number) {
     if (options.properties) {
       Object.entries(options.properties).forEach(([prop, { from, to }]) => {
         // Map x1 to cx and y1 to cy
-        const mappedProp = prop === 'x1' ? 'cx' : prop === 'y1' ? 'cy' : prop;
+        const mappedProp = prop === "x1" ? "cx" : prop === "y1" ? "cy" : prop;
         circle.style.setProperty(
           mappedProp,
-          prop === 'y1' ? (-parseFloat(from)).toString() : from,
+          prop === "y1" ? (-parseFloat(from)).toString() : from,
         );
         animations.push(
           `${mappedProp} ${options.duration || 300}ms ${options.easing || "ease"}`,
         );
-        setTimeout(() => circle.style.setProperty(mappedProp, prop === 'y1' ? (-parseFloat(to)).toString() : to), 0);
+        setTimeout(
+          () =>
+            circle.style.setProperty(
+              mappedProp,
+              prop === "y1" ? (-parseFloat(to)).toString() : to,
+            ),
+          0,
+        );
       });
     }
     circle.style.transition = animations.join(", ");
