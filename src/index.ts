@@ -20,7 +20,7 @@ export * from "./geometry/parametric";
 export * from "./geometry/vector";
 export * from "./plane/axis";
 // export * from "./plane/coordinate";
-export * from "./plane/coordinate.test";
+export * from "./plane/coordinate.temp.test";
 export * from "./plane/function";
 export * from "./direction";
 export * from "./utils/draggable";

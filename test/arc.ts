@@ -1,11 +1,11 @@
 import * as idea from "../src";
 
 // 创建画布
-const canvas = idea.field(1000, 800);
+const canvas = idea.field(2000, 800);
 document.body.appendChild(canvas.node());
 
 // 创建坐标系
-const coord = idea.coordinate().grid(50).axis().ticks(100);
+const coord = idea.coordinate().grid(50).axes("#ff0000").ticks(50);
 
 // 创建圆弧
 const arc = idea
