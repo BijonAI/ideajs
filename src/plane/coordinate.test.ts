@@ -3,42 +3,55 @@ import { getTheme, setTheme } from "../theme";
 
 export function coordinate() {
   const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
+
+  // frame
+  const frame = document.createElementNS("http://www.w3.org/2000/svg", "g");
   const bg = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+  const layer = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  const axes = document.createElementNS("http://www.w3.org/2000/svg", "svg");
   const grid = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-  // const labels = document.createElementNS("http://www.w3.org/2000/svg", "g");
-  const content = document.createElementNS("http://www.w3.org/2000/svg", "g");
+
+  // plot
+  const plot = document.createElementNS("http://www.w3.org/2000/svg", "g");
+  const content = document.createElementNS("http://www.w3.org/2000/svg", "svg");
 
   group.setAttribute("width", "100vw");
   group.setAttribute("height", "100vh");
   group.setAttribute("fill", "transparent");
   group.setAttribute("overflow", "hidden");
 
+  frame.setAttribute("width", "100%");
+  frame.setAttribute("height", "100%");
+  frame.style.cursor = "grab";
+
+  plot.setAttribute("width", "100%");
+  plot.setAttribute("height", "100%");
+
   bg.setAttribute("width", "100%");
   bg.setAttribute("height", "100%");
   bg.setAttribute("fill", "transparent");
-  bg.style.pointerEvents = "all";
-  bg.style.cursor = "grab";
 
-  grid.setAttribute("width", "100%");
-  grid.setAttribute("height", "100%");
+  layer.appendChild(grid);
+  layer.appendChild(axes);
 
-  group.appendChild(bg);
-  group.appendChild(grid);
-  group.appendChild(content);
-  // group.appendChild(grid);
-  // group.appendChild(axes);
-  // group.appendChild(labels);
-  // group.appendChild(content);
+  frame.appendChild(bg);
+  frame.appendChild(layer);
+
+  plot.appendChild(content);
+
+  group.appendChild(frame);
+  group.appendChild(plot);
 
   const rtn = {
     node: () => group,
-    axis: setAxis,
+    axes: setAxes,
     grid: setGrid,
     ticks: setTicks,
     labels: setLabels,
     stroke,
     add,
     axisStyle,
+    gridColor,
     gridStyle,
     // hideAxis,
     hideGrid,
@@ -64,33 +77,34 @@ export function coordinate() {
     `${viewBox.x} ${viewBox.y} ${viewBox.w} ${viewBox.h}`,
   );
 
-  function setAxis() {
-    const xAxis = document.createElementNS(
-      "http://www.w3.org/2000/svg",
-      "line",
-    );
-    const yAxis = document.createElementNS(
-      "http://www.w3.org/2000/svg",
-      "line",
-    );
+  axes.setAttribute(
+    "viewBox",
+    `${viewBox.x} ${viewBox.y} ${viewBox.w} ${viewBox.h}`,
+  );
 
-    xAxis.setAttribute("x1", `${viewBox.x}`);
-    xAxis.setAttribute("x2", `${viewBox.x + viewBox.w}`);
-    xAxis.setAttribute("y1", "0");
-    xAxis.setAttribute("y2", "0");
-    xAxis.setAttribute("stroke", "black");
-    xAxis.setAttribute("stroke-width", "2");
+  content.setAttribute(
+    "viewBox",
+    `${viewBox.x} ${viewBox.y} ${viewBox.w} ${viewBox.h}`,
+  );
 
-    yAxis.setAttribute("y1", `${viewBox.y}`);
-    yAxis.setAttribute("y2", `${viewBox.y + viewBox.h}`);
-    yAxis.setAttribute("x1", "0");
-    yAxis.setAttribute("x2", "0");
-    yAxis.setAttribute("stroke", "black");
-    yAxis.setAttribute("stroke-width", "2");
+  function lightenHex(hex: string, factor: number): string {
+    if (/^#[0-9A-Fa-f]{3}$/.test(hex)) {
+      hex = `#${hex[1]}${hex[1]}${hex[2]}${hex[2]}${hex[3]}${hex[3]}`;
+    }
 
-    grid.append(xAxis, yAxis);
+    // 解析 RGB 分量
+    let r = parseInt(hex.slice(1, 3), 16);
+    let g = parseInt(hex.slice(3, 5), 16);
+    let b = parseInt(hex.slice(5, 7), 16);
 
-    return rtn;
+    // 调整亮度
+    r = Math.min(255, Math.round(r * (1 + factor)));
+    g = Math.min(255, Math.round(g * (1 + factor)));
+    b = Math.min(255, Math.round(b * (1 + factor)));
+
+    return `#${(r | 256).toString(16).slice(1)}${(g | 256)
+      .toString(16)
+      .slice(1)}${(b | 256).toString(16).slice(1)}`;
   }
 
   let gridSpacing: number;
@@ -140,6 +154,37 @@ export function coordinate() {
     return rtn;
   }
 
+  let AxesColor: string;
+  function setAxes(color: string = "#505050") {
+    AxesColor = color;
+    const xAxis = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "line",
+    );
+    const yAxis = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "line",
+    );
+
+    xAxis.setAttribute("x1", `${viewBox.x}`);
+    xAxis.setAttribute("x2", `${viewBox.x + viewBox.w}`);
+    xAxis.setAttribute("y1", "0");
+    xAxis.setAttribute("y2", "0");
+    xAxis.setAttribute("stroke", color);
+    xAxis.setAttribute("stroke-width", "2");
+
+    yAxis.setAttribute("y1", `${viewBox.y}`);
+    yAxis.setAttribute("y2", `${viewBox.y + viewBox.h}`);
+    yAxis.setAttribute("x1", "0");
+    yAxis.setAttribute("x2", "0");
+    yAxis.setAttribute("stroke", color);
+    yAxis.setAttribute("stroke-width", "2");
+
+    axes.append(xAxis, yAxis);
+
+    return rtn;
+  }
+
   let tickSpacing: number;
   function setTicks(space: number = 50) {
     tickSpacing = space;
@@ -159,8 +204,8 @@ export function coordinate() {
       tick.setAttribute("x2", `${x}`);
       tick.setAttribute("y1", "-5");
       tick.setAttribute("y2", "5");
-      tick.setAttribute("stroke", "#666"); // 刻度色
-      tick.setAttribute("stroke-width", "2"); // 刻度宽
+      tick.setAttribute("stroke", `${lightenHex(AxesColor, 0.2)}`);
+      tick.setAttribute("stroke-width", "2");
 
       const text = document.createElementNS(
         "http://www.w3.org/2000/svg",
@@ -168,12 +213,12 @@ export function coordinate() {
       );
       text.setAttribute("x", `${x}`);
       text.setAttribute("y", "25");
-      text.setAttribute("fill", "#666");
+      text.setAttribute("fill", `${lightenHex(AxesColor, 0.2)}`);
       text.style.font = "14px sans-serif";
       text.style.fontFamily = "Comic Sans MS";
       text.textContent = `${Math.round(x / space)}`;
 
-      grid.append(tick, text);
+      axes.append(tick, text);
     }
 
     // Y轴刻度
@@ -191,8 +236,8 @@ export function coordinate() {
       tick.setAttribute("y2", `${y}`);
       tick.setAttribute("x1", "-5");
       tick.setAttribute("x2", "5");
-      tick.setAttribute("stroke", "#666"); // 刻度色
-      tick.setAttribute("stroke-width", "2"); // 刻度宽
+      tick.setAttribute("stroke", `${lightenHex(AxesColor, 0.2)}`);
+      tick.setAttribute("stroke-width", "2");
 
       const text = document.createElementNS(
         "http://www.w3.org/2000/svg",
@@ -200,12 +245,12 @@ export function coordinate() {
       );
       text.setAttribute("x", "20");
       text.setAttribute("y", `${y + 3}`);
-      text.setAttribute("fill", "#666");
+      text.setAttribute("fill", `${lightenHex(AxesColor, 0.2)}`);
       text.style.font = "14px sans-serif";
       text.style.fontFamily = "Comic Sans MS";
       text.textContent = `${Math.round(-y / space)}`;
 
-      grid.append(tick, text);
+      axes.append(tick, text);
     }
 
     return rtn;
@@ -222,7 +267,7 @@ export function coordinate() {
     scale?: (x: number, y?: number) => any;
     offset?: (x: number, y: number) => any;
   }) {
-    grid.appendChild(element.node());
+    content.appendChild(element.node());
     elements.push(element);
     return rtn;
   }
@@ -280,6 +325,18 @@ export function coordinate() {
     return rtn;
   }
 
+  let gColor: string;
+  function gridColor(color: string = "#ddd") {
+    // TODO 待修复，或者不让定义颜色，这个不重要
+    gColor = color;
+    grid.childNodes.forEach((node) => {
+      const line = node as SVGLineElement;
+      line.setAttribute("stroke", color);
+    });
+
+    return rtn;
+  }
+
   function gridStyle(options: {
     color?: string;
     width?: number;
@@ -293,6 +350,7 @@ export function coordinate() {
     //   line.setAttribute("stroke-opacity", options.opacity?.toString() || "1");
     //   line.setAttribute("stroke-dasharray", options.dashArray || "");
     // });
+
     return rtn;
   }
 
@@ -416,12 +474,12 @@ export function coordinate() {
   let isDragging = false;
   let startPos = { x: 0, y: 0 };
 
-  bg.addEventListener("mousedown", (e) => {
+  frame.addEventListener("mousedown", (e) => {
     isDragging = true;
     startPos = { x: e.clientX, y: e.clientY };
   });
 
-  bg.addEventListener("mousemove", (e) => {
+  frame.addEventListener("mousemove", (e) => {
     if (!isDragging) return;
 
     const dx = e.clientX - startPos.x;
@@ -436,72 +494,32 @@ export function coordinate() {
       `${viewBox.x} ${viewBox.y} ${viewBox.w} ${viewBox.h}`,
     );
 
+    axes.setAttribute(
+      "viewBox",
+      `${viewBox.x} ${viewBox.y} ${viewBox.w} ${viewBox.h}`,
+    );
+
+    content.setAttribute(
+      "viewBox",
+      `${viewBox.x} ${viewBox.y} ${viewBox.w} ${viewBox.h}`,
+    );
+
     // 清空并重新绘制
     grid.innerHTML = "";
+    axes.innerHTML = "";
+    content.innerHTML = "";
 
-    setAxis();
+    setAxes(AxesColor);
     setGrid(gridSpacing);
+    gridColor(gColor);
     setTicks(tickSpacing);
     elements.forEach((element) => {
-      grid.appendChild(element.node()); // TODO 需改为 content
+      content.appendChild(element.node());
     });
   });
 
   group.addEventListener("mouseup", () => (isDragging = false));
   group.addEventListener("mouseleave", () => (isDragging = false));
-
-  // let isDragging = false;
-  // let dragEnabled = false;
-
-  // function enableDragging() {
-  //   if (dragEnabled) return rtn;
-
-  //   dragEnabled = true;
-
-  //   const destroy = draggable(
-  //     background as SVGElement,
-  //     (x, y) => true,
-  //     (x, y) => {
-  //       const originX = x + width / 2;
-  //       const originY = y + height / 2;
-  //       origin(originX, originY);
-  //     },
-  //   );
-
-  //   const updateCursor = (cursor: string) => {
-  //     if (background.style) {
-  //       background.style.cursor = cursor;
-  //     }
-  //   };
-
-  //   background.addEventListener("mousedown", () => {
-  //     isDragging = true;
-  //     updateCursor("grabbing");
-  //   });
-
-  //   window.addEventListener("mouseup", () => {
-  //     if (isDragging) {
-  //       isDragging = false;
-  //       updateCursor("grab");
-  //     }
-  //   });
-
-  //   background.addEventListener("mouseover", () => {
-  //     if (!isDragging) {
-  //       updateCursor("grab");
-  //     }
-  //   });
-
-  //   background.addEventListener("mouseout", () => {
-  //     if (!isDragging) {
-  //       updateCursor("default");
-  //     }
-  //   });
-
-  //   updateCursor("grab");
-
-  //   return rtn;
-  // }
 
   return rtn;
 }

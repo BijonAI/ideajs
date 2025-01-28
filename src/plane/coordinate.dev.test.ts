@@ -11,8 +11,8 @@ export function coordinate() {
   const axes = document.createElementNS("http://www.w3.org/2000/svg", "svg");
   const grid = document.createElementNS("http://www.w3.org/2000/svg", "svg");
 
-  // plot
-  const plot = document.createElementNS("http://www.w3.org/2000/svg", "g");
+  // geom
+  const geom = document.createElementNS("http://www.w3.org/2000/svg", "g");
   const content = document.createElementNS("http://www.w3.org/2000/svg", "svg");
 
   group.setAttribute("width", "100vw");
@@ -24,8 +24,8 @@ export function coordinate() {
   frame.setAttribute("height", "100%");
   frame.style.cursor = "grab";
 
-  plot.setAttribute("width", "100%");
-  plot.setAttribute("height", "100%");
+  geom.setAttribute("width", "100%");
+  geom.setAttribute("height", "100%");
 
   bg.setAttribute("width", "100%");
   bg.setAttribute("height", "100%");
@@ -37,10 +37,10 @@ export function coordinate() {
   frame.appendChild(bg);
   frame.appendChild(layer);
 
-  plot.appendChild(content);
+  geom.appendChild(content);
 
   group.appendChild(frame);
-  group.appendChild(plot);
+  group.appendChild(geom);
 
   const rtn = {
     node: () => group,
@@ -65,7 +65,7 @@ export function coordinate() {
     // draggable: enableDragging,
   };
 
-  let viewBox = {
+  const viewBox = {
     x: -document.getElementById("canvas")!.getBoundingClientRect().width / 2,
     y: -document.getElementById("canvas")!.getBoundingClientRect().height / 2,
     w: document.getElementById("canvas")!.getBoundingClientRect().width,
@@ -188,6 +188,7 @@ export function coordinate() {
   let tickSpacing: number;
   function setTicks(space: number = 50) {
     tickSpacing = space;
+    const tickColor = lightenHex(AxesColor, 0.2);
 
     // X轴刻度
     for (
@@ -204,7 +205,7 @@ export function coordinate() {
       tick.setAttribute("x2", `${x}`);
       tick.setAttribute("y1", "-5");
       tick.setAttribute("y2", "5");
-      tick.setAttribute("stroke", `${lightenHex(AxesColor, 0.2)}`);
+      tick.setAttribute("stroke", `${tickColor}`);
       tick.setAttribute("stroke-width", "2");
 
       const text = document.createElementNS(
@@ -213,7 +214,7 @@ export function coordinate() {
       );
       text.setAttribute("x", `${x}`);
       text.setAttribute("y", "25");
-      text.setAttribute("fill", `${lightenHex(AxesColor, 0.2)}`);
+      text.setAttribute("fill", `${tickColor}`);
       text.style.font = "14px sans-serif";
       text.style.fontFamily = "Comic Sans MS";
       text.textContent = `${Math.round(x / space)}`;
@@ -236,7 +237,7 @@ export function coordinate() {
       tick.setAttribute("y2", `${y}`);
       tick.setAttribute("x1", "-5");
       tick.setAttribute("x2", "5");
-      tick.setAttribute("stroke", `${lightenHex(AxesColor, 0.2)}`);
+      tick.setAttribute("stroke", `${tickColor}`);
       tick.setAttribute("stroke-width", "2");
 
       const text = document.createElementNS(
@@ -245,7 +246,7 @@ export function coordinate() {
       );
       text.setAttribute("x", "20");
       text.setAttribute("y", `${y + 3}`);
-      text.setAttribute("fill", `${lightenHex(AxesColor, 0.2)}`);
+      text.setAttribute("fill", `${tickColor}`);
       text.style.font = "14px sans-serif";
       text.style.fontFamily = "Comic Sans MS";
       text.textContent = `${Math.round(-y / space)}`;
@@ -507,6 +508,7 @@ export function coordinate() {
     // 清空并重新绘制
     grid.innerHTML = "";
     axes.innerHTML = "";
+    content.innerHTML = "";
 
     setAxes(AxesColor);
     setGrid(gridSpacing);
