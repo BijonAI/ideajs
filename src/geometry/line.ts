@@ -1,10 +1,5 @@
 import { getTheme } from "../theme";
-import {
-  Line,
-  LineStyle,
-  MarkerOptions,
-  GradientStop,
-} from "../interfaces/geometry";
+import { Line, LineStyle } from "../interfaces/geometry";
 import {
   Transform,
   Animation,
@@ -401,11 +396,22 @@ export function line(x1: number, y1: number, x2: number, y2: number): Line {
     return rtn;
   }
 
+  function parsePositionParams() {
+    return {
+      x1: Number(lineElement.getAttribute("x1")),
+      y1: -Number(lineElement.getAttribute("y1")),
+      x2: Number(lineElement.getAttribute("x2")),
+      y2: -Number(lineElement.getAttribute("y2")),
+    };
+  }
+
   function transform(options: Transform) {
-    const currentX1 = Number(lineElement.getAttribute("x1"));
-    const currentY1 = -Number(lineElement.getAttribute("y1"));
-    const currentX2 = Number(lineElement.getAttribute("x2"));
-    const currentY2 = -Number(lineElement.getAttribute("y2"));
+    const currentPos = parsePositionParams();
+
+    const currentX1 = currentPos.x1;
+    const currentY1 = currentPos.y1;
+    const currentX2 = currentPos.x2;
+    const currentY2 = currentPos.y2;
 
     let newX1 = currentX1;
     let newY1 = currentY1;
@@ -480,20 +486,14 @@ export function line(x1: number, y1: number, x2: number, y2: number): Line {
       newY1 = originY;
     }
 
-    // 更新向量位置
-    x1 = newX1;
-    y1 = newY1;
-    x2 = newX2;
-    y2 = newY2;
-
-    startPoint.setAttribute("cx", x1.toString());
-    startPoint.setAttribute("cy", (-y1).toString());
-    endPoint.setAttribute("cx", x2.toString());
-    endPoint.setAttribute("cy", (-y2).toString());
-    lineElement.setAttribute("x1", x1.toString());
-    lineElement.setAttribute("y1", (-y1).toString());
-    lineElement.setAttribute("x2", x2.toString());
-    lineElement.setAttribute("y2", (-y2).toString());
+    startPoint.setAttribute("cx", newX1.toString());
+    startPoint.setAttribute("cy", (-newY1).toString());
+    endPoint.setAttribute("cx", newX2.toString());
+    endPoint.setAttribute("cy", (-newY2).toString());
+    lineElement.setAttribute("x1", newX1.toString());
+    lineElement.setAttribute("y1", (-newY1).toString());
+    lineElement.setAttribute("x2", newX2.toString());
+    lineElement.setAttribute("y2", (-newY2).toString());
     return rtn;
   }
 
@@ -508,24 +508,78 @@ export function line(x1: number, y1: number, x2: number, y2: number): Line {
       "fill-opacity",
     ]);
 
+    const delay = options.delay || 0;
+    const duration = options.duration || 300;
+
     // 分离样式属性和位置属性
     const positionAnimations: { [key: string]: { from: number; to: number } } =
       {};
     const styleAnimations: { [key: string]: { from: string; to: string } } = {};
 
     if (options.properties) {
+      // 获取当前位置值作为默认的from值
+      const fromPos = parsePositionParams();
+      const fromX1 = fromPos.x1;
+      const fromY1 = fromPos.y1;
+      const fromX2 = fromPos.x2;
+      const fromY2 = fromPos.y2;
+
+      // 先设置初始位置
+      Object.entries(options.properties).forEach(([prop, { from }]) => {
+        if (!styleProperties.has(prop) && from !== undefined) {
+          const value = parseFloat(from);
+          switch (prop) {
+            case "x1":
+              x1 = value;
+              break;
+            case "y1":
+              y1 = value;
+              break;
+            case "x2":
+              x2 = value;
+              break;
+            case "y2":
+              y2 = value;
+              break;
+          }
+        }
+      });
+      updateLinePath();
+
       Object.entries(options.properties).forEach(([prop, { from, to }]) => {
         if (styleProperties.has(prop)) {
-          styleAnimations[prop] = { from, to };
+          // 对于样式属性，如果没有from值，使用当前样式值
+          const currentValue =
+            lineElement.style.getPropertyValue(prop) ||
+            lineElement.getAttribute(prop) ||
+            "";
+          styleAnimations[prop] = {
+            from: from !== undefined ? from : currentValue,
+            to,
+          };
           animations.push(
-            `${prop} ${options.duration || 300}ms ${options.easing || "ease"}`,
+            `${prop} ${duration}ms ${options.easing || "ease"} ${delay}ms`,
           );
         } else {
-          // 处理位置动画
-          positionAnimations[prop] = {
-            from: parseFloat(from),
-            to: parseFloat(to),
-          };
+          // 处理位置动画，如果没有from值，使用当前位置值
+          let fromValue =
+            from !== undefined
+              ? parseFloat(from)
+              : (() => {
+                  switch (prop) {
+                    case "x1":
+                      return fromX1;
+                    case "y1":
+                      return fromY1;
+                    case "x2":
+                      return fromX2;
+                    case "y2":
+                      return fromY2;
+                    default:
+                      return 0;
+                  }
+                })();
+          positionAnimations[prop] = { from: fromValue, to: parseFloat(to) };
         }
       });
     }
@@ -536,23 +590,31 @@ export function line(x1: number, y1: number, x2: number, y2: number): Line {
         lineElement.style.setProperty(prop, from);
         startPoint.style.setProperty(prop, from);
         endPoint.style.setProperty(prop, from);
-        setTimeout(() => {
-          lineElement.style.setProperty(prop, styleAnimations[prop].to);
-          startPoint.style.setProperty(prop, styleAnimations[prop].to);
-          endPoint.style.setProperty(prop, styleAnimations[prop].to);
-        }, 0);
       });
+
       lineElement.style.transition = animations.join(", ");
       startPoint.style.transition = animations.join(", ");
       endPoint.style.transition = animations.join(", ");
+
+      setTimeout(() => {
+        Object.entries(styleAnimations).forEach(([prop, { to }]) => {
+          lineElement.style.setProperty(prop, to);
+          startPoint.style.setProperty(prop, to);
+          endPoint.style.setProperty(prop, to);
+        });
+      }, delay);
     }
 
     // 处理位置动画
     if (Object.keys(positionAnimations).length > 0) {
-      const duration = options.duration || 300;
-      const startTime = performance.now();
+      const startTime = performance.now() + delay;
 
       function animate(currentTime: number) {
+        if (currentTime < startTime) {
+          requestAnimationFrame(animate);
+          return;
+        }
+
         const elapsed = currentTime - startTime;
         const progress = Math.min(elapsed / duration, 1);
 
@@ -582,25 +644,15 @@ export function line(x1: number, y1: number, x2: number, y2: number): Line {
 
         if (progress < 1) {
           requestAnimationFrame(animate);
-        } else {
-          options.onEnd?.();
         }
       }
 
-      options.onStart?.();
-      if (options.delay) {
-        setTimeout(() => requestAnimationFrame(animate), options.delay);
-      } else {
-        requestAnimationFrame(animate);
-      }
-    } else {
-      // 如果只有样式动画，在结束时调用回调
-      if (options.onEnd) {
-        setTimeout(
-          options.onEnd,
-          (options.duration || 300) + (options.delay || 0),
-        );
-      }
+      requestAnimationFrame(animate);
+    }
+
+    options.onStart?.();
+    if (options.onEnd) {
+      setTimeout(options.onEnd, duration + delay);
     }
 
     return rtn;
