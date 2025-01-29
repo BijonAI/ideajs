@@ -715,23 +715,64 @@ export function polygon(points: { x: number; y: number }[]): Polygon {
       "fill-opacity",
     ]);
 
+    const delay = options.delay || 0;
+    const duration = options.duration || 300;
+
     const vertexAnimations: { [key: string]: { from: number; to: number } } =
       {};
     const styleAnimations: { [key: string]: { from: string; to: string } } = {};
 
     if (options.properties) {
+      // 获取当前顶点位置作为默认的from值
+      const currentPoints = points.map((p) => ({ x: p.x, y: p.y }));
+
+      // 先设置初始位置
+      Object.entries(options.properties).forEach(([prop, { from }]) => {
+        if (!styleProperties.has(prop) && from !== undefined) {
+          const coord = prop.charAt(0);
+          const index = parseInt(prop.slice(1)) - 1;
+          if (!isNaN(index) && index < points.length) {
+            points[index][coord as "x" | "y"] = parseFloat(from);
+          }
+        }
+      });
+      // 更新初始位置
+      updatePolygonPath();
+      points.forEach((point, index) => {
+        const vertexPoint = group.querySelector(
+          `circle[data-vertex="${index}"]`,
+        ) as SVGElement;
+        if (vertexPoint) {
+          vertexPoint.setAttribute("cx", point.x.toString());
+          vertexPoint.setAttribute("cy", (-point.y).toString());
+        }
+      });
+
       Object.entries(options.properties).forEach(([prop, { from, to }]) => {
         if (styleProperties.has(prop)) {
-          styleAnimations[prop] = { from, to };
+          // 对于样式属性，如果没有from值，使用当前样式值
+          const currentValue =
+            polygon.style.getPropertyValue(prop) ||
+            polygon.getAttribute(prop) ||
+            "";
+          styleAnimations[prop] = {
+            from: from !== undefined ? from : currentValue,
+            to,
+          };
           animations.push(
-            `${prop} ${options.duration || 300}ms ${options.easing || "ease"}`,
+            `${prop} ${duration}ms ${options.easing || "ease"} ${delay}ms`,
           );
         } else {
-          // 处理顶点动画
-          vertexAnimations[prop] = {
-            from: parseFloat(from),
-            to: parseFloat(to),
-          };
+          // 处理顶点动画，如果没有from值，使用当前位置值
+          const coord = prop.charAt(0);
+          const index = parseInt(prop.slice(1)) - 1;
+          if (!isNaN(index) && index < points.length) {
+            const fromValue =
+              from !== undefined
+                ? parseFloat(from)
+                : currentPoints[index][coord as "x" | "y"];
+            vertexAnimations[prop] = { from: fromValue, to: parseFloat(to) };
+          }
         }
       });
     }
@@ -740,20 +781,51 @@ export function polygon(points: { x: number; y: number }[]): Polygon {
     if (Object.keys(styleAnimations).length > 0) {
       Object.entries(styleAnimations).forEach(([prop, { from }]) => {
         polygon.style.setProperty(prop, from);
-        setTimeout(
-          () => polygon.style.setProperty(prop, styleAnimations[prop].to),
-          0,
-        );
+        points.forEach((_, index) => {
+          const vertexPoint = group.querySelector(
+            `circle[data-vertex="${index}"]`,
+          ) as SVGElement;
+          if (vertexPoint) {
+            vertexPoint.style.setProperty(prop, from);
+          }
+        });
       });
+
       polygon.style.transition = animations.join(", ");
+      points.forEach((_, index) => {
+        const vertexPoint = group.querySelector(
+          `circle[data-vertex="${index}"]`,
+        ) as SVGElement;
+        if (vertexPoint) {
+          vertexPoint.style.transition = animations.join(", ");
+        }
+      });
+
+      setTimeout(() => {
+        Object.entries(styleAnimations).forEach(([prop, { to }]) => {
+          polygon.style.setProperty(prop, to);
+          points.forEach((_, index) => {
+            const vertexPoint = group.querySelector(
+              `circle[data-vertex="${index}"]`,
+            ) as SVGElement;
+            if (vertexPoint) {
+              vertexPoint.style.setProperty(prop, to);
+            }
+          });
+        });
+      }, delay);
     }
 
     // 处理顶点动画
     if (Object.keys(vertexAnimations).length > 0) {
-      const duration = options.duration || 300;
-      const startTime = performance.now();
+      const startTime = performance.now() + delay;
 
       function animate(currentTime: number) {
+        if (currentTime < startTime) {
+          requestAnimationFrame(animate);
+          return;
+        }
+
         const elapsed = currentTime - startTime;
         const progress = Math.min(elapsed / duration, 1);
 
@@ -772,7 +844,7 @@ export function polygon(points: { x: number; y: number }[]): Polygon {
         points.forEach((point, index) => {
           const vertexPoint = group.querySelector(
             `circle[data-vertex="${index}"]`,
-          );
+          ) as SVGElement;
           if (vertexPoint) {
             vertexPoint.setAttribute("cx", point.x.toString());
             vertexPoint.setAttribute("cy", (-point.y).toString());
@@ -781,25 +853,15 @@ export function polygon(points: { x: number; y: number }[]): Polygon {
 
         if (progress < 1) {
           requestAnimationFrame(animate);
-        } else {
-          options.onEnd?.();
         }
       }
 
-      options.onStart?.();
-      if (options.delay) {
-        setTimeout(() => requestAnimationFrame(animate), options.delay);
-      } else {
-        requestAnimationFrame(animate);
-      }
-    } else {
-      // 如果只有样式动画，在结束时调用回调
-      if (options.onEnd) {
-        setTimeout(
-          options.onEnd,
-          (options.duration || 300) + (options.delay || 0),
-        );
-      }
+      requestAnimationFrame(animate);
+    }
+
+    options.onStart?.();
+    if (options.onEnd) {
+      setTimeout(options.onEnd, duration + delay);
     }
 
     return rtn;

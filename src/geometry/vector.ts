@@ -52,17 +52,17 @@ export function vector(x1: number, y1: number, x2: number, y2: number): Vector {
   arrow.style.cursor = "move";
   arrow.style.pointerEvents = "all";
 
-  // 创建起点圆点（透明）
+  // 创建起点圆点
   const startPoint = document.createElementNS(
     "http://www.w3.org/2000/svg",
     "circle",
   );
-  startPoint.setAttribute("r", "8"); // 稍微大一点以便于点击
-  startPoint.setAttribute("opacity", "0"); // 设置为完全透明
+  startPoint.setAttribute("r", "8");
+  startPoint.setAttribute("opacity", "2"); // 设置为完全透明
   startPoint.setAttribute("cx", x1.toString());
   startPoint.setAttribute("cy", (-y1).toString());
   startPoint.style.cursor = "move";
-  startPoint.style.pointerEvents = "all"; // 确保即使透明也能接收鼠标事件
+  startPoint.style.pointerEvents = "all";
 
   // 更新箭头位置和方向
   function updateArrow() {
@@ -403,16 +403,25 @@ export function vector(x1: number, y1: number, x2: number, y2: number): Vector {
     }
     return rtn;
   }
+
+  function parsePositionParams() {
+    const x1 = Number(line.getAttribute("x1"));
+    const y1 = -Number(line.getAttribute("y1"));
+    const x2 = Number(line.getAttribute("x2"));
+    const y2 = -Number(line.getAttribute("y2"));
+    return { x1, y1, x2, y2 };
+  }
   /**
    * 应用变换
    * @param options 变换选项，包括平移、缩放、旋转和倾斜
    * @returns 向量对象
    */
   function transform(options: Transform) {
-    const currentX1 = Number(line.getAttribute("x1"));
-    const currentY1 = -Number(line.getAttribute("y1"));
-    const currentX2 = Number(line.getAttribute("x2"));
-    const currentY2 = -Number(line.getAttribute("y2"));
+    const currentPos = parsePositionParams();
+    let currentX1 = currentPos.x1;
+    let currentY1 = currentPos.y1;
+    let currentX2 = currentPos.x2;
+    let currentY2 = currentPos.y2;
 
     let newX1 = currentX1;
     let newY1 = currentY1;
@@ -545,24 +554,78 @@ export function vector(x1: number, y1: number, x2: number, y2: number): Vector {
       "fill-opacity",
     ]);
 
+    const delay = options.delay || 0;
+    const duration = options.duration || 300;
+
     // 分离样式属性和位置属性
     const positionAnimations: { [key: string]: { from: number; to: number } } =
       {};
     const styleAnimations: { [key: string]: { from: string; to: string } } = {};
 
     if (options.properties) {
+      // 获取当前位置值作为默认的from值
+      const fromPos = parsePositionParams();
+      const fromX1 = fromPos.x1;
+      const fromY1 = fromPos.y1;
+      const fromX2 = fromPos.x2;
+      const fromY2 = fromPos.y2;
+
+      // 先设置初始位置
+      Object.entries(options.properties).forEach(([prop, { from }]) => {
+        if (!styleProperties.has(prop) && from !== undefined) {
+          const value = parseFloat(from);
+          switch (prop) {
+            case "x1":
+              x1 = value;
+              startPoint.setAttribute("cx", value.toString());
+              break;
+            case "y1":
+              y1 = value;
+              startPoint.setAttribute("cy", (-value).toString());
+              break;
+            case "x2":
+              x2 = value;
+              break;
+            case "y2":
+              y2 = value;
+              break;
+          }
+        }
+      });
+      updateVectorPath();
+
       Object.entries(options.properties).forEach(([prop, { from, to }]) => {
         if (styleProperties.has(prop)) {
-          styleAnimations[prop] = { from, to };
+          // 对于样式属性，如果没有from值，使用当前样式值
+          const currentValue =
+            line.style.getPropertyValue(prop) || line.getAttribute(prop) || "";
+          styleAnimations[prop] = {
+            from: from !== undefined ? from : currentValue,
+            to,
+          };
           animations.push(
-            `${prop} ${options.duration || 300}ms ${options.easing || "ease"}`,
+            `${prop} ${duration}ms ${options.easing || "ease"} ${delay}ms`,
           );
         } else {
-          // 处理位置动画
-          positionAnimations[prop] = {
-            from: parseFloat(from),
-            to: parseFloat(to),
-          };
+          // 处理位置动画，如果没有from值，使用当前位置值
+          let fromValue =
+            from !== undefined
+              ? parseFloat(from)
+              : (() => {
+                  switch (prop) {
+                    case "x1":
+                      return fromX1;
+                    case "y1":
+                      return fromY1;
+                    case "x2":
+                      return fromX2;
+                    case "y2":
+                      return fromY2;
+                    default:
+                      return 0;
+                  }
+                })();
+          positionAnimations[prop] = { from: fromValue, to: parseFloat(to) };
         }
       });
     }
@@ -571,22 +634,33 @@ export function vector(x1: number, y1: number, x2: number, y2: number): Vector {
     if (Object.keys(styleAnimations).length > 0) {
       Object.entries(styleAnimations).forEach(([prop, { from }]) => {
         line.style.setProperty(prop, from);
+        startPoint.style.setProperty(prop, from);
         arrow.style.setProperty(prop, from);
-        setTimeout(() => {
-          line.style.setProperty(prop, styleAnimations[prop].to);
-          arrow.style.setProperty(prop, styleAnimations[prop].to);
-        }, 0);
       });
+
       line.style.transition = animations.join(", ");
+      startPoint.style.transition = animations.join(", ");
       arrow.style.transition = animations.join(", ");
+
+      setTimeout(() => {
+        Object.entries(styleAnimations).forEach(([prop, { to }]) => {
+          line.style.setProperty(prop, to);
+          startPoint.style.setProperty(prop, to);
+          arrow.style.setProperty(prop, to);
+        });
+      }, delay);
     }
 
     // 处理位置动画
     if (Object.keys(positionAnimations).length > 0) {
-      const duration = options.duration || 300;
-      const startTime = performance.now();
+      const startTime = performance.now() + delay;
 
       function animate(currentTime: number) {
+        if (currentTime < startTime) {
+          requestAnimationFrame(animate);
+          return;
+        }
+
         const elapsed = currentTime - startTime;
         const progress = Math.min(elapsed / duration, 1);
 
@@ -598,9 +672,11 @@ export function vector(x1: number, y1: number, x2: number, y2: number): Vector {
           switch (prop) {
             case "x1":
               x1 = value;
+              startPoint.setAttribute("cx", value.toString());
               break;
             case "y1":
               y1 = value;
+              startPoint.setAttribute("cy", (-value).toString());
               break;
             case "x2":
               x2 = value;
@@ -616,25 +692,15 @@ export function vector(x1: number, y1: number, x2: number, y2: number): Vector {
 
         if (progress < 1) {
           requestAnimationFrame(animate);
-        } else {
-          options.onEnd?.();
         }
       }
 
-      options.onStart?.();
-      if (options.delay) {
-        setTimeout(() => requestAnimationFrame(animate), options.delay);
-      } else {
-        requestAnimationFrame(animate);
-      }
-    } else {
-      // 如果只有样式动画，在结束时调用回调
-      if (options.onEnd) {
-        setTimeout(
-          options.onEnd,
-          (options.duration || 300) + (options.delay || 0),
-        );
-      }
+      requestAnimationFrame(animate);
+    }
+
+    options.onStart?.();
+    if (options.onEnd) {
+      setTimeout(options.onEnd, duration + delay);
     }
 
     return rtn;

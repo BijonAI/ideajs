@@ -42,35 +42,17 @@ export function dot(x: number, y: number) {
     return rtn;
   }
 
-  // /**
-  //  * 从当前属性中获取点的参数
-  //  * @returns 当前点的参数
-  //  */
-  // function parseCurrentDotParams() {
-  //   // 尝试从transform中获取变换后的值
-  //   const transform = circle.getAttribute("transform");
-  //   if (transform) {
-  //     const matrix = circle.getCTM();
-  //     if (matrix) {
-  //       const x = Number(circle.dataset.x);
-  //       const y = Number(circle.dataset.y);
-  //       const point = circle.ownerSVGElement?.createSVGPoint();
-  //       if (point) {
-  //         point.x = x;
-  //         point.y = y;
-  //         const transformedPoint = point.matrixTransform(matrix);
-  //         circle.dataset.x = transformedPoint.x.toString();
-  //         circle.dataset.y = transformedPoint.y.toString();
-  //       }
-  //     }
-  //   }
-
-  //   return {
-  //     x: Number(circle.dataset.x),
-  //     y: Number(circle.dataset.y),
-  //     r: Number(circle.dataset.r)
-  //   };
-  // }
+  /**
+   * 从当前属性中获取点的参数
+   * @returns 当前点的参数
+   */
+  function parsePositionParams() {
+    return {
+      x: Number(circle.getAttribute("cx")),
+      y: -Number(circle.getAttribute("cy")),
+      r: Number(circle.getAttribute("r")),
+    };
+  }
 
   /**
    * 应用变换
@@ -84,9 +66,14 @@ export function dot(x: number, y: number) {
     skew?: [number, number];
     origin?: [number, number];
   }) {
-    let newX = Number(circle.dataset.x);
-    let newY = Number(circle.dataset.y);
-    let newR = Number(circle.dataset.r);
+    let currentPos = parsePositionParams();
+    let currentR = currentPos.r;
+    let currentX = currentPos.x;
+    let currentY = currentPos.y;
+
+    let newX = currentX;
+    let newY = currentY;
+    let newR = currentR;
     // origin直接修改点位置
     if (options.origin) {
       newX = options.origin[0];
@@ -104,9 +91,9 @@ export function dot(x: number, y: number) {
       newX += options.translate[0];
       newY += options.translate[1];
       circle.dataset.x = newX.toString();
-      circle.dataset.y = newY.toString();
+      circle.dataset.y = (-newY).toString();
       circle.setAttribute("cx", newX.toString());
-      circle.setAttribute("cy", newY.toString());
+      circle.setAttribute("cy", (-newY).toString());
       return rtn;
     }
 
@@ -123,26 +110,13 @@ export function dot(x: number, y: number) {
 
     // 旋转，对于点来说只需要更新位置
     if (options.rotate) {
-      // const angle = options.rotate * Math.PI / 180;
-      // const cos = Math.cos(angle);
-      // const sin = Math.sin(angle);
-      // const centerX = Number(circle.dataset.x);
-      // const centerY = Number(circle.dataset.y);
-
-      // newX = centerX * cos - centerY * sin;
-      // newY = centerX * sin + centerY * cos;
-
-      // circle.dataset.x = newX.toString();
-      // circle.dataset.y = newY.toString();
-      // circle.setAttribute("cx", newX.toString());
-      // circle.setAttribute("cy", newY.toString());
       return rtn;
     }
 
     // skew保持使用SVG transform
     if (options.skew) {
-      let transform = `skew(${options.skew[0]},${options.skew[1]})`;
-      circle.setAttribute("transform", transform);
+      // let transform = `skew(${options.skew[0]},${options.skew[1]})`;
+      // circle.setAttribute("transform", transform);
     }
 
     return rtn;
@@ -416,34 +390,95 @@ export function dot(x: number, y: number) {
    */
   function animation(options: Animation) {
     const animations: string[] = [];
+    // 获取当前实际值
+    const current = parsePositionParams();
+    let fromX = current.x;
+    let fromY = current.y;
+    let fromRadius = current.r;
+
+    let toX = current.x;
+    let toY = current.y;
+    let toRadius = current.r;
+
+    const delay = options.delay || 0;
+    const duration = options.duration || 300;
+
     if (options.properties) {
+      // 先设置初始位置
+      if (options.properties["x1"]?.from !== undefined) {
+        fromX = Number(options.properties["x1"].from);
+      }
+      if (options.properties["y1"]?.from !== undefined) {
+        fromY = -Number(options.properties["y1"].from);
+      }
+      if (options.properties["r"]?.from !== undefined) {
+        fromRadius = Number(options.properties["r"].from);
+      }
+
+      // 立即更新到初始位置
+      circle.setAttribute("cx", fromX.toString());
+      circle.setAttribute("cy", fromY.toString());
+      circle.setAttribute("r", fromRadius.toString());
+
       Object.entries(options.properties).forEach(([prop, { from, to }]) => {
-        // Map x1 to cx and y1 to cy
-        const mappedProp = prop === "x1" ? "cx" : prop === "y1" ? "cy" : prop;
-        circle.style.setProperty(
-          mappedProp,
-          prop === "y1" ? (-parseFloat(from)).toString() : from,
-        );
-        animations.push(
-          `${mappedProp} ${options.duration || 300}ms ${options.easing || "ease"}`,
-        );
-        setTimeout(
-          () =>
-            circle.style.setProperty(
-              mappedProp,
-              prop === "y1" ? (-parseFloat(to)).toString() : to,
-            ),
-          0,
-        );
+        if (prop === "x1") {
+          toX = Number(to);
+        } else if (prop === "y1") {
+          toY = -Number(to);
+        } else if (prop === "r") {
+          toRadius = Number(to);
+        } else {
+          const currentValue =
+            from !== undefined
+              ? from
+              : circle.style.getPropertyValue(prop) ||
+                circle.getAttribute(prop) ||
+                "";
+          circle.style.setProperty(prop, currentValue);
+          animations.push(
+            `${prop} ${duration}ms ${options.easing || "ease"} ${delay}ms`,
+          );
+          setTimeout(() => circle.style.setProperty(prop, to), delay);
+        }
       });
+
+      if (
+        options.properties["x1"] ||
+        options.properties["y1"] ||
+        options.properties["r"]
+      ) {
+        const startTime = performance.now() + delay;
+
+        function animate(currentTime: number) {
+          if (currentTime < startTime) {
+            requestAnimationFrame(animate);
+            return;
+          }
+
+          const elapsed = currentTime - startTime;
+          const progress = Math.min(elapsed / duration, 1);
+
+          const currentX = fromX + (toX - fromX) * progress;
+          const currentY = fromY + (toY - fromY) * progress;
+          const currentRadius = fromRadius + (toRadius - fromRadius) * progress;
+
+          circle.setAttribute("cx", currentX.toString());
+          circle.setAttribute("cy", currentY.toString());
+          circle.setAttribute("r", currentRadius.toString());
+
+          if (progress < 1) {
+            requestAnimationFrame(animate);
+          }
+        }
+
+        requestAnimationFrame(animate);
+      }
     }
+
     circle.style.transition = animations.join(", ");
     options.onStart?.();
     if (options.onEnd) {
-      setTimeout(
-        options.onEnd,
-        (options.duration || 300) + (options.delay || 0),
-      );
+      setTimeout(options.onEnd, duration + delay);
     }
     return rtn;
   }
