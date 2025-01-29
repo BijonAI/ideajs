@@ -54,6 +54,7 @@ export function coordinate(width: number, height: number) {
     labels: setLabels,
     stroke,
     add,
+    ticks: setTicks,
     unit: setUnit,
     axisStyle,
     gridStyle,
