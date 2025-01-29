@@ -364,8 +364,8 @@ export function parametric(
       };
 
       const step = (tMax - tMin) / samples;
-      let lastY = null;
-      let lastX = null;
+      let lastY: number | null = null;
+      let lastX: number | null = null;
       const threshold = 1000;
 
       for (let t = tMin; t <= tMax; t += step) {

@@ -144,7 +144,7 @@ export function axis(x1: number, y1: number, x2: number, y2: number) {
       tick.setAttribute("y1", (y + (Math.cos(angle) * length) / 2).toString());
       tick.setAttribute("x2", (x + (Math.sin(angle) * length) / 2).toString());
       tick.setAttribute("y2", (y - (Math.cos(angle) * length) / 2).toString());
-      tick.setAttribute("stroke", mainLine.getAttribute("stroke"));
+      tick.setAttribute("stroke", mainLine.getAttribute("stroke")!);
       tick.setAttribute("stroke-width", "1");
 
       ticks.appendChild(tick);
