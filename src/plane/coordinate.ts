@@ -73,6 +73,8 @@ export function coordinate() {
     labels: setLabels,
     stroke,
     add,
+    ticks: setTicks,
+    unit: setUnit,
     axisStyle,
     gridColor,
     gridStyle,
