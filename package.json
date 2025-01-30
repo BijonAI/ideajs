@@ -1,10 +1,10 @@
 {
-  "name": "ideajs",
-  "version": "1.0.0",
+  "name": "idea-math",
+  "version": "0.2.0",
   "description": "SVG-based mathematical graph library.",
   "scripts": {
-    "build": "vite build",
-    "dev": "vite",
+    "build": "tsup",
+    "dev": "tsup --watch",
     "preview": "pnpm vite preview",
     "test": "pnpm vite test"
   },

@@ -1,5 +1,4 @@
 import { getTheme, setTheme } from "../theme";
-// import { draggable } from "../utils/draggable";
 
 export function coordinate() {
   const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
@@ -111,6 +110,7 @@ export function coordinate() {
   let tickSpacing: number = 50;
 
   function setGrid(space?: number) {
+    if (space !== undefined) gridSpacing = space;
     gridEnabled = true;
 
     // 垂直网格线
@@ -159,6 +159,7 @@ export function coordinate() {
   }
 
   function setAxes(color?: string) {
+    if (color !== undefined) axesColor = color;
     axesEnabled = true;
 
     const xAxis = document.createElementNS(
@@ -190,6 +191,7 @@ export function coordinate() {
   }
 
   function setTicks(space?: number) {
+    if (space !== undefined) tickSpacing = space;
     TicksEnabled = true;
 
     const tickColor = lightenHex(axesColor, 0.2);
