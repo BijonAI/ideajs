@@ -1,7 +1,7 @@
 import { getTheme, setTheme } from "../theme";
 
-export function coordinate() {
-  const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
+export function axis(axis: "x" | "y") {
+  const figure = document.createElementNS("http://www.w3.org/2000/svg", "g");
 
   // frame
   const frame = document.createElementNS("http://www.w3.org/2000/svg", "g");
@@ -14,10 +14,10 @@ export function coordinate() {
   const geom = document.createElementNS("http://www.w3.org/2000/svg", "g");
   const cont = document.createElementNS("http://www.w3.org/2000/svg", "svg");
 
-  group.setAttribute("width", "100vw");
-  group.setAttribute("height", "100vh");
-  group.setAttribute("fill", "transparent");
-  group.setAttribute("overflow", "hidden");
+  figure.setAttribute("width", "100vw");
+  figure.setAttribute("height", "100vh");
+  figure.setAttribute("fill", "transparent");
+  figure.setAttribute("overflow", "hidden");
 
   frame.setAttribute("width", "100%");
   frame.setAttribute("height", "100%");
@@ -34,14 +34,13 @@ export function coordinate() {
   frame.append(bg, layer);
   geom.append(cont);
 
-  group.append(frame);
-  group.append(geom);
+  figure.append(frame);
+  figure.append(geom);
 
   const rtn = {
-    node: () => group,
+    node: () => figure,
 
     // frame
-    axes: setAxes,
     grid: setGrid,
     ticks: setTicks,
     axesStyle,
@@ -102,12 +101,41 @@ export function coordinate() {
   /* ---------------------------------- frame --------------------------------- */
 
   let gridEnabled = false;
-  let axesEnabled = false;
   let TicksEnabled = false;
 
   let gridSpacing: number = 50;
-  let axesColor: string = "#505050";
+  let axisColor: string = "#505050";
   let tickSpacing: number = 50;
+
+  function setAxis() {
+    const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+
+    const { x1, x2, y1, y2 } =
+      axis === "x"
+        ? {
+            x1: `${viewBox.x}`,
+            x2: `${viewBox.x + viewBox.w}`,
+            y1: `0`,
+            y2: `0`,
+          }
+        : {
+            x1: `0`,
+            x2: `0`,
+            y1: `${viewBox.y}`,
+            y2: `${viewBox.y + viewBox.h}`,
+          };
+
+    line.setAttribute("x1", x1);
+    line.setAttribute("x2", x2);
+    line.setAttribute("y1", y1);
+    line.setAttribute("y2", y2);
+    line.setAttribute("stroke", axisColor);
+    line.setAttribute("stroke-width", "2");
+
+    axes.append(line);
+
+    return rtn;
+  }
 
   function setGrid(space?: number) {
     if (space !== undefined) gridSpacing = space;
@@ -115,10 +143,9 @@ export function coordinate() {
 
     // 垂直网格线
     for (
-      let x =
-        Math.floor(viewBox.x / (space || gridSpacing)) * (space || gridSpacing);
+      let x = Math.floor(viewBox.x / gridSpacing) * gridSpacing;
       x < viewBox.x + viewBox.w;
-      x += space || gridSpacing
+      x += gridSpacing
     ) {
       const line = document.createElementNS(
         "http://www.w3.org/2000/svg",
@@ -136,10 +163,9 @@ export function coordinate() {
 
     // 水平网格线
     for (
-      let y =
-        Math.floor(viewBox.y / (space || gridSpacing)) * (space || gridSpacing);
+      let y = Math.floor(viewBox.y / gridSpacing) * gridSpacing;
       y < viewBox.y + viewBox.h;
-      y += space || gridSpacing
+      y += gridSpacing
     ) {
       const line = document.createElementNS(
         "http://www.w3.org/2000/svg",
@@ -158,110 +184,74 @@ export function coordinate() {
     return rtn;
   }
 
-  function setAxes(color?: string) {
-    if (color !== undefined) axesColor = color;
-    axesEnabled = true;
-
-    const xAxis = document.createElementNS(
-      "http://www.w3.org/2000/svg",
-      "line",
-    );
-    const yAxis = document.createElementNS(
-      "http://www.w3.org/2000/svg",
-      "line",
-    );
-
-    xAxis.setAttribute("x1", `${viewBox.x}`);
-    xAxis.setAttribute("x2", `${viewBox.x + viewBox.w}`);
-    xAxis.setAttribute("y1", "0");
-    xAxis.setAttribute("y2", "0");
-    xAxis.setAttribute("stroke", color || axesColor);
-    xAxis.setAttribute("stroke-width", "2");
-
-    yAxis.setAttribute("y1", `${viewBox.y}`);
-    yAxis.setAttribute("y2", `${viewBox.y + viewBox.h}`);
-    yAxis.setAttribute("x1", "0");
-    yAxis.setAttribute("x2", "0");
-    yAxis.setAttribute("stroke", color || axesColor);
-    yAxis.setAttribute("stroke-width", "2");
-
-    axes.append(xAxis, yAxis);
-
-    return rtn;
-  }
-
   function setTicks(space?: number) {
     if (space !== undefined) tickSpacing = space;
     TicksEnabled = true;
 
-    const tickColor = lightenHex(axesColor, 0.2);
+    const tickColor = lightenHex(axisColor, 0.2);
 
-    // X轴刻度
-    for (
-      let x =
-        Math.floor(viewBox.x / (space || tickSpacing) + 1) *
-        (space || tickSpacing);
-      x < viewBox.x + viewBox.w;
-      x += space || tickSpacing
-    ) {
-      if (x === 0) continue;
-      const tick = document.createElementNS(
-        "http://www.w3.org/2000/svg",
-        "line",
-      );
-      tick.setAttribute("x1", `${x}`);
-      tick.setAttribute("x2", `${x}`);
-      tick.setAttribute("y1", "-5");
-      tick.setAttribute("y2", "5");
-      tick.setAttribute("stroke", `${tickColor}`);
-      tick.setAttribute("stroke-width", "2");
+    if (axis === "x") {
+      for (
+        let x = Math.floor(viewBox.x / tickSpacing + 1) * tickSpacing;
+        x < viewBox.x + viewBox.w;
+        x += tickSpacing
+      ) {
+        if (x === 0) continue;
+        const tick = document.createElementNS(
+          "http://www.w3.org/2000/svg",
+          "line",
+        );
+        tick.setAttribute("x1", `${x}`);
+        tick.setAttribute("x2", `${x}`);
+        tick.setAttribute("y1", "-5");
+        tick.setAttribute("y2", "5");
+        tick.setAttribute("stroke", `${tickColor}`);
+        tick.setAttribute("stroke-width", "2");
 
-      const text = document.createElementNS(
-        "http://www.w3.org/2000/svg",
-        "text",
-      );
-      text.setAttribute("x", `${x}`);
-      text.setAttribute("y", "25");
-      text.setAttribute("fill", `${tickColor}`);
-      text.style.font = "14px sans-serif";
-      text.style.fontFamily = "Comic Sans MS";
-      text.textContent = `${Math.round(x / (space || tickSpacing))}`;
+        const text = document.createElementNS(
+          "http://www.w3.org/2000/svg",
+          "text",
+        );
+        text.setAttribute("x", `${x}`);
+        text.setAttribute("y", "25");
+        text.setAttribute("fill", `${tickColor}`);
+        text.style.font = "14px sans-serif";
+        text.style.fontFamily = "Comic Sans MS";
+        text.textContent = `${Math.round(x / tickSpacing)}`;
 
-      axes.append(tick, text);
-    }
+        axes.append(tick, text);
+      }
+    } else {
+      for (
+        let y = Math.floor(viewBox.y / tickSpacing + 1) * tickSpacing;
+        y < viewBox.y + viewBox.h;
+        y += tickSpacing
+      ) {
+        if (y === 0) continue;
+        const tick = document.createElementNS(
+          "http://www.w3.org/2000/svg",
+          "line",
+        );
+        tick.setAttribute("y1", `${y}`);
+        tick.setAttribute("y2", `${y}`);
+        tick.setAttribute("x1", "-5");
+        tick.setAttribute("x2", "5");
+        tick.setAttribute("stroke", `${tickColor}`);
+        tick.setAttribute("stroke-width", "2");
 
-    // Y轴刻度
-    for (
-      let y =
-        Math.floor(viewBox.y / (space || tickSpacing) + 1) *
-        (space || tickSpacing);
-      y < viewBox.y + viewBox.h;
-      y += space || tickSpacing
-    ) {
-      if (y === 0) continue;
-      const tick = document.createElementNS(
-        "http://www.w3.org/2000/svg",
-        "line",
-      );
-      tick.setAttribute("y1", `${y}`);
-      tick.setAttribute("y2", `${y}`);
-      tick.setAttribute("x1", "-5");
-      tick.setAttribute("x2", "5");
-      tick.setAttribute("stroke", `${tickColor}`);
-      tick.setAttribute("stroke-width", "2");
+        const text = document.createElementNS(
+          "http://www.w3.org/2000/svg",
+          "text",
+        );
+        text.setAttribute("x", "20");
+        text.setAttribute("y", `${y + 3}`);
+        text.setAttribute("fill", `${tickColor}`);
+        text.style.font = "14px sans-serif";
+        text.style.fontFamily = "Comic Sans MS";
+        text.textContent = `${Math.round(-y / tickSpacing)}`;
 
-      const text = document.createElementNS(
-        "http://www.w3.org/2000/svg",
-        "text",
-      );
-      text.setAttribute("x", "20");
-      text.setAttribute("y", `${y + 3}`);
-      text.setAttribute("fill", `${tickColor}`);
-      text.style.font = "14px sans-serif";
-      text.style.fontFamily = "Comic Sans MS";
-      text.textContent = `${Math.round(-y / (space || tickSpacing))}`;
-
-      axes.append(tick, text);
+        axes.append(tick, text);
+      }
     }
 
     return rtn;
@@ -306,7 +296,7 @@ export function coordinate() {
 
   function exportSVG() {
     const serializer = new XMLSerializer();
-    const source = serializer.serializeToString(group);
+    const source = serializer.serializeToString(figure);
     return "data:image/svg+xml;base64," + btoa(source);
   }
 
@@ -314,7 +304,7 @@ export function coordinate() {
     setTheme(name);
     const theme = getTheme();
 
-    group.style.background = theme.colors.background;
+    figure.style.background = theme.colors.background;
 
     gridStyle({
       color: theme.colors.grid,
@@ -334,6 +324,8 @@ export function coordinate() {
 
     return rtn;
   }
+
+  setAxis();
 
   /* ---------------------------------- geom ---------------------------------- */
 
@@ -452,17 +444,17 @@ export function coordinate() {
     axes.innerHTML = "";
     cont.innerHTML = "";
 
-    if (axesEnabled) setAxes(axesColor);
-    if (gridEnabled) setGrid(gridSpacing);
-    if (TicksEnabled) setTicks(tickSpacing);
+    setAxis();
+    if (gridEnabled) setGrid();
+    if (TicksEnabled) setTicks();
 
     elements.forEach((element) => {
       cont.appendChild(element.node());
     });
   });
 
-  group.addEventListener("mouseup", () => (isDragging = false));
-  group.addEventListener("mouseleave", () => (isDragging = false));
+  figure.addEventListener("mouseup", () => (isDragging = false));
+  figure.addEventListener("mouseleave", () => (isDragging = false));
 
   return rtn;
 }

@@ -1,8 +1,7 @@
 import { getTheme, setTheme } from "../theme";
-// import { draggable } from "../utils/draggable";
 
-export function coordinate() {
-  const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
+export function axes(color?: string) {
+  const figure = document.createElementNS("http://www.w3.org/2000/svg", "g");
 
   // frame
   const frame = document.createElementNS("http://www.w3.org/2000/svg", "g");
@@ -15,10 +14,10 @@ export function coordinate() {
   const geom = document.createElementNS("http://www.w3.org/2000/svg", "g");
   const cont = document.createElementNS("http://www.w3.org/2000/svg", "svg");
 
-  group.setAttribute("width", "100vw");
-  group.setAttribute("height", "100vh");
-  group.setAttribute("fill", "transparent");
-  group.setAttribute("overflow", "hidden");
+  figure.setAttribute("width", "100vw");
+  figure.setAttribute("height", "100vh");
+  figure.setAttribute("fill", "transparent");
+  figure.setAttribute("overflow", "hidden");
 
   frame.setAttribute("width", "100%");
   frame.setAttribute("height", "100%");
@@ -35,14 +34,13 @@ export function coordinate() {
   frame.append(bg, layer);
   geom.append(cont);
 
-  group.append(frame);
-  group.append(geom);
+  figure.append(frame);
+  figure.append(geom);
 
   const rtn = {
-    node: () => group,
+    node: () => figure,
 
     // frame
-    axes: setAxes,
     grid: setGrid,
     ticks: setTicks,
     axesStyle,
@@ -103,63 +101,14 @@ export function coordinate() {
   /* ---------------------------------- frame --------------------------------- */
 
   let gridEnabled = false;
-  let axesEnabled = false;
   let TicksEnabled = false;
 
   let gridSpacing: number = 50;
   let axesColor: string = "#505050";
   let tickSpacing: number = 50;
 
-  function setGrid(space?: number) {
-    gridEnabled = true;
-
-    // 垂直网格线
-    for (
-      let x =
-        Math.floor(viewBox.x / (space || gridSpacing)) * (space || gridSpacing);
-      x < viewBox.x + viewBox.w;
-      x += space || gridSpacing
-    ) {
-      const line = document.createElementNS(
-        "http://www.w3.org/2000/svg",
-        "line",
-      );
-      line.setAttribute("class", "grid-line");
-      line.setAttribute("x1", `${x}`);
-      line.setAttribute("x2", `${x}`);
-      line.setAttribute("y1", `${viewBox.y}`);
-      line.setAttribute("y2", `${viewBox.y + viewBox.h}`);
-      line.setAttribute("stroke", "#ddd");
-      line.setAttribute("stroke-width", "1");
-      grid.appendChild(line);
-    }
-
-    // 水平网格线
-    for (
-      let y =
-        Math.floor(viewBox.y / (space || gridSpacing)) * (space || gridSpacing);
-      y < viewBox.y + viewBox.h;
-      y += space || gridSpacing
-    ) {
-      const line = document.createElementNS(
-        "http://www.w3.org/2000/svg",
-        "line",
-      );
-      line.setAttribute("class", "grid-line");
-      line.setAttribute("y1", `${y}`);
-      line.setAttribute("y2", `${y}`);
-      line.setAttribute("x1", `${viewBox.x}`);
-      line.setAttribute("x2", `${viewBox.x + viewBox.w}`);
-      line.setAttribute("stroke", "#ddd");
-      line.setAttribute("stroke-width", "1");
-      grid.appendChild(line);
-    }
-
-    return rtn;
-  }
-
-  function setAxes(color?: string) {
-    axesEnabled = true;
+  function setAxes() {
+    if (color !== undefined) axesColor = color;
 
     const xAxis = document.createElementNS(
       "http://www.w3.org/2000/svg",
@@ -189,18 +138,64 @@ export function coordinate() {
     return rtn;
   }
 
+  function setGrid(space?: number) {
+    if (space !== undefined) gridSpacing = space;
+    gridEnabled = true;
+
+    // 垂直网格线
+    for (
+      let x = Math.floor(viewBox.x / gridSpacing) * gridSpacing;
+      x < viewBox.x + viewBox.w;
+      x += gridSpacing
+    ) {
+      const line = document.createElementNS(
+        "http://www.w3.org/2000/svg",
+        "line",
+      );
+      line.setAttribute("class", "grid-line");
+      line.setAttribute("x1", `${x}`);
+      line.setAttribute("x2", `${x}`);
+      line.setAttribute("y1", `${viewBox.y}`);
+      line.setAttribute("y2", `${viewBox.y + viewBox.h}`);
+      line.setAttribute("stroke", "#ddd");
+      line.setAttribute("stroke-width", "1");
+      grid.appendChild(line);
+    }
+
+    // 水平网格线
+    for (
+      let y = Math.floor(viewBox.y / gridSpacing) * gridSpacing;
+      y < viewBox.y + viewBox.h;
+      y += gridSpacing
+    ) {
+      const line = document.createElementNS(
+        "http://www.w3.org/2000/svg",
+        "line",
+      );
+      line.setAttribute("class", "grid-line");
+      line.setAttribute("y1", `${y}`);
+      line.setAttribute("y2", `${y}`);
+      line.setAttribute("x1", `${viewBox.x}`);
+      line.setAttribute("x2", `${viewBox.x + viewBox.w}`);
+      line.setAttribute("stroke", "#ddd");
+      line.setAttribute("stroke-width", "1");
+      grid.appendChild(line);
+    }
+
+    return rtn;
+  }
+
   function setTicks(space?: number) {
+    if (space !== undefined) tickSpacing = space;
     TicksEnabled = true;
 
     const tickColor = lightenHex(axesColor, 0.2);
 
     // X轴刻度
     for (
-      let x =
-        Math.floor(viewBox.x / (space || tickSpacing) + 1) *
-        (space || tickSpacing);
+      let x = Math.floor(viewBox.x / tickSpacing + 1) * tickSpacing;
       x < viewBox.x + viewBox.w;
-      x += space || tickSpacing
+      x += tickSpacing
     ) {
       if (x === 0) continue;
       const tick = document.createElementNS(
@@ -223,18 +218,16 @@ export function coordinate() {
       text.setAttribute("fill", `${tickColor}`);
       text.style.font = "14px sans-serif";
       text.style.fontFamily = "Comic Sans MS";
-      text.textContent = `${Math.round(x / (space || tickSpacing))}`;
+      text.textContent = `${Math.round(x / tickSpacing)}`;
 
       axes.append(tick, text);
     }
 
     // Y轴刻度
     for (
-      let y =
-        Math.floor(viewBox.y / (space || tickSpacing) + 1) *
-        (space || tickSpacing);
+      let y = Math.floor(viewBox.y / tickSpacing + 1) * tickSpacing;
       y < viewBox.y + viewBox.h;
-      y += space || tickSpacing
+      y += tickSpacing
     ) {
       if (y === 0) continue;
       const tick = document.createElementNS(
@@ -257,7 +250,7 @@ export function coordinate() {
       text.setAttribute("fill", `${tickColor}`);
       text.style.font = "14px sans-serif";
       text.style.fontFamily = "Comic Sans MS";
-      text.textContent = `${Math.round(-y / (space || tickSpacing))}`;
+      text.textContent = `${Math.round(-y / tickSpacing)}`;
 
       axes.append(tick, text);
     }
@@ -304,7 +297,7 @@ export function coordinate() {
 
   function exportSVG() {
     const serializer = new XMLSerializer();
-    const source = serializer.serializeToString(group);
+    const source = serializer.serializeToString(figure);
     return "data:image/svg+xml;base64," + btoa(source);
   }
 
@@ -312,7 +305,7 @@ export function coordinate() {
     setTheme(name);
     const theme = getTheme();
 
-    group.style.background = theme.colors.background;
+    figure.style.background = theme.colors.background;
 
     gridStyle({
       color: theme.colors.grid,
@@ -332,6 +325,8 @@ export function coordinate() {
 
     return rtn;
   }
+
+  setAxes();
 
   /* ---------------------------------- geom ---------------------------------- */
 
@@ -450,17 +445,17 @@ export function coordinate() {
     axes.innerHTML = "";
     cont.innerHTML = "";
 
-    if (axesEnabled) setAxes(axesColor);
-    if (gridEnabled) setGrid(gridSpacing);
-    if (TicksEnabled) setTicks(tickSpacing);
+    setAxes();
+    if (gridEnabled) setGrid();
+    if (TicksEnabled) setTicks();
 
     elements.forEach((element) => {
       cont.appendChild(element.node());
     });
   });
 
-  group.addEventListener("mouseup", () => (isDragging = false));
-  group.addEventListener("mouseleave", () => (isDragging = false));
+  figure.addEventListener("mouseup", () => (isDragging = false));
+  figure.addEventListener("mouseleave", () => (isDragging = false));
 
   return rtn;
 }
