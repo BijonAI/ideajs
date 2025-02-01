@@ -8,9 +8,8 @@
     "preview": "pnpm vite preview",
     "test": "pnpm vite test"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "author": "BugDuck Team",
+  "license": "MIT",
   "devDependencies": {
     "@types/node": "^20.11.0",
     "tsup": "^8.3.5",
