@@ -60,6 +60,7 @@ export function line(x1: number, y1: number, x2: number, y2: number): Line {
   endPoint.setAttribute("cy", (-y2).toString());
   endPoint.style.cursor = "move";
 
+  
   // 将元素添加到线段组中
   lineGroup.append(lineElement, startPoint, endPoint);
 
@@ -69,10 +70,45 @@ export function line(x1: number, y1: number, x2: number, y2: number): Line {
   let isDraggingEnd = false;
   // updateEndPoint();
 
+  let unit = 1;
   // 返回线段对象
   const rtn = {
     node: () => lineGroup, // 返回当前线段的 SVG 元素
     from, // 设置起始点
+    info: () => {
+      // 添加长按事件处理
+      let longPressTimer: number | null = null;
+      let infoData = {
+        type: "line",
+        x1: x1 / unit,
+        y1: y1 / unit,
+        x2: x2 / unit,
+        y2: y2 / unit,
+      };
+
+      const handlePointerDown = () => {
+        longPressTimer = window.setTimeout(() => {
+          console.log("Line Info:", infoData);
+        }, 500);
+      };
+
+      const handlePointerUp = () => {
+        if (longPressTimer) {
+          clearTimeout(longPressTimer);
+          longPressTimer = null;
+        }
+      };
+
+      const handlePointerLeave = () => {
+        handlePointerUp();
+      };
+
+      lineGroup.addEventListener("pointerdown", handlePointerDown);
+      lineGroup.addEventListener("pointerup", handlePointerUp);
+      lineGroup.addEventListener("pointerleave", handlePointerLeave);
+      console.log("Line Info:", infoData);
+      return rtn;
+    },
     to, // 设置结束点
     stroke, // 设置线段颜色
     fill, // 设置填充颜色
@@ -109,6 +145,22 @@ export function line(x1: number, y1: number, x2: number, y2: number): Line {
     restrict, // 限制范围
     snap, // 吸附
     connect, // 连接线段
+    setUnit: (_unit: number) => {
+      unit = _unit;
+      x1 = x1*unit
+      y1 = y1*unit
+      x2 = x2*unit
+      y2 = y2*unit
+      lineElement.setAttribute("x1", (x1).toString());
+      lineElement.setAttribute("y1", (-y1).toString());
+      lineElement.setAttribute("x2", (x2).toString());
+      lineElement.setAttribute("y2", (-y2).toString());
+      startPoint.setAttribute("cx", (x1).toString());
+      startPoint.setAttribute("cy", (-y1).toString());
+      endPoint.setAttribute("cx", (x2).toString());
+      endPoint.setAttribute("cy", (-y2).toString());
+      return rtn;
+    },
     show: () => {
       lineGroup.style.display = ""; // 显示线段
       return rtn;
@@ -152,21 +204,21 @@ export function line(x1: number, y1: number, x2: number, y2: number): Line {
   };
 
   function from(_x1: number, _y1: number) {
-    x1 = _x1;
-    y1 = _y1;
-    lineElement.setAttribute("x1", x1.toString());
+    x1 = _x1*unit;
+    y1 = _y1*unit;
+    lineElement.setAttribute("x1", (x1).toString());
     lineElement.setAttribute("y1", (-y1).toString());
-    startPoint.setAttribute("cx", x1.toString());
+    startPoint.setAttribute("cx", (x1).toString());
     startPoint.setAttribute("cy", (-y1).toString());
     return rtn;
   }
 
   function to(_x2: number, _y2: number) {
-    x2 = _x2;
-    y2 = _y2;
-    lineElement.setAttribute("x2", x2.toString());
+    x2 = _x2*unit;
+    y2 = _y2*unit;
+    lineElement.setAttribute("x2", (x2).toString());
     lineElement.setAttribute("y2", (-y2).toString());
-    endPoint.setAttribute("cx", x2.toString());
+    endPoint.setAttribute("cx", (x2).toString());
     endPoint.setAttribute("cy", (-y2).toString());
     return rtn;
   }
@@ -530,16 +582,16 @@ export function line(x1: number, y1: number, x2: number, y2: number): Line {
           const value = parseFloat(from);
           switch (prop) {
             case "x1":
-              x1 = value;
+              x1 = value*unit;
               break;
             case "y1":
-              y1 = value;
+              y1 = value*unit;
               break;
             case "x2":
-              x2 = value;
+              x2 = value*unit;
               break;
             case "y2":
-              y2 = value;
+              y2 = value*unit;
               break;
           }
         }
@@ -625,16 +677,16 @@ export function line(x1: number, y1: number, x2: number, y2: number): Line {
           const value = from + (to - from) * easeProgress;
           switch (prop) {
             case "x1":
-              x1 = value;
+              x1 = value*unit;
               break;
             case "y1":
-              y1 = value;
+              y1 = value*unit;
               break;
             case "x2":
-              x2 = value;
+              x2 = value*unit;
               break;
             case "y2":
-              y2 = value;
+              y2 = value*unit;
               break;
           }
         });

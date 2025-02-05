@@ -25,7 +25,7 @@ export function dot(x: number, y: number) {
     "circle",
   );
   circle.setAttribute("cx", x.toString());
-  circle.setAttribute("cy", y.toString());
+  circle.setAttribute("cy", (-y).toString());
   circle.setAttribute("r", "4");
   circle.setAttribute("stroke-width", "4");
   circle.style.cursor = "move";
@@ -123,8 +123,41 @@ export function dot(x: number, y: number) {
   }
 
   // 返回对象，包含所有可用的操作方法
+  let unit = 1;
   const rtn = {
     node,
+    info: () => {
+      // 添加长按事件处理
+      let longPressTimer: number | null = null;
+      let infoData = {
+        type: "dot",
+        x: x / unit,
+        y: y / unit,
+      };
+
+      const handlePointerDown = () => {
+        longPressTimer = window.setTimeout(() => {
+          console.log("Dot Info:", infoData);
+        }, 500);
+      };
+
+      const handlePointerUp = () => {
+        if (longPressTimer) {
+          clearTimeout(longPressTimer);
+          longPressTimer = null;
+        }
+      };
+
+      const handlePointerLeave = () => {
+        handlePointerUp();
+      };
+
+      circle.addEventListener("pointerdown", handlePointerDown);
+      circle.addEventListener("pointerup", handlePointerUp);
+      circle.addEventListener("pointerleave", handlePointerLeave);
+      console.log("Dot Info:", infoData);
+      return rtn;
+    },
     resize,
     stroke,
     fill,
@@ -223,6 +256,14 @@ export function dot(x: number, y: number) {
       return rtn;
     },
     move,
+    setUnit: (_unit: number) => {
+      unit = _unit;
+      x = x*unit
+      y = y*unit
+      circle.setAttribute("cx", (x).toString());
+      circle.setAttribute("cy", (-y).toString());
+      return rtn;
+    },
   };
 
   /**
@@ -406,10 +447,10 @@ export function dot(x: number, y: number) {
     if (options.properties) {
       // 先设置初始位置
       if (options.properties["x1"]?.from !== undefined) {
-        fromX = Number(options.properties["x1"].from);
+        fromX = Number(options.properties["x1"].from)*unit;
       }
       if (options.properties["y1"]?.from !== undefined) {
-        fromY = -Number(options.properties["y1"].from);
+        fromY = -Number(options.properties["y1"].from)*unit;
       }
       if (options.properties["r"]?.from !== undefined) {
         fromRadius = Number(options.properties["r"].from);
@@ -417,14 +458,14 @@ export function dot(x: number, y: number) {
 
       // 立即更新到初始位置
       circle.setAttribute("cx", fromX.toString());
-      circle.setAttribute("cy", fromY.toString());
+      circle.setAttribute("cy", (-fromY).toString());
       circle.setAttribute("r", fromRadius.toString());
 
       Object.entries(options.properties).forEach(([prop, { from, to }]) => {
         if (prop === "x1") {
-          toX = Number(to);
+          toX = Number(to)*unit;
         } else if (prop === "y1") {
-          toY = -Number(to);
+          toY = -Number(to)*unit;
         } else if (prop === "r") {
           toRadius = Number(to);
         } else {

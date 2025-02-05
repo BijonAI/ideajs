@@ -31,6 +31,7 @@ export function polygon(points: { x: number; y: number }[]): Polygon {
     "path",
   );
   const d = pointsToPath(points);
+  let unit = 1;
   polygon.setAttribute("d", d);
 
   // 应用主题样式
@@ -80,6 +81,55 @@ export function polygon(points: { x: number; y: number }[]): Polygon {
   const rtn = {
     node: () => group,
     points,
+    setUnit: (_unit: number) => {
+      unit = _unit;
+      // 更新所有点的位置
+      points = points.map((point, index) => {
+        const newPoint = {
+          x: point.x * unit,
+          y: point.y * unit
+        };
+        // 更新对应的顶点控制点
+        const vertex = vertices[index];
+        vertex.setAttribute("cx", newPoint.x.toString());
+        vertex.setAttribute("cy", (-newPoint.y).toString());
+        return newPoint;
+      });
+      // 更新多边形路径
+      updatePolygonPath();
+      return rtn;
+    },
+    info: () => {
+      // 添加长按事件处理
+      let longPressTimer: number | null = null;
+      let infoData = {
+        type: "polygon",
+        points: points.map((point) => [point.x / unit, point.y / unit]),
+      };
+
+      const handlePointerDown = () => {
+        longPressTimer = window.setTimeout(() => {
+          console.log("Polygon Info:", infoData);
+        }, 500);
+      };
+
+      const handlePointerUp = () => {
+        if (longPressTimer) {
+          clearTimeout(longPressTimer);
+          longPressTimer = null;
+        }
+      };
+
+      const handlePointerLeave = () => {
+        handlePointerUp();
+      };
+
+      group.addEventListener("pointerdown", handlePointerDown);
+      group.addEventListener("pointerup", handlePointerUp);
+      group.addEventListener("pointerleave", handlePointerLeave);
+      console.log("Polygon Info:", infoData);
+      return rtn;
+    },
     setPoints,
     setPoint,
     insertBefore,
@@ -209,7 +259,7 @@ export function polygon(points: { x: number; y: number }[]): Polygon {
   function setPoints(points_: { x: number; y: number }[]) {
     // Update the stored points array
     points.length = 0;
-    points_.forEach((p) => points.push({ x: p.x, y: p.y }));
+    points_.forEach((p) => points.push({ x: p.x * unit, y: p.y * unit }));
 
     polygon.setAttribute("d", pointsToPath(points));
 
@@ -231,7 +281,7 @@ export function polygon(points: { x: number; y: number }[]): Polygon {
    */
   function setPoint(index: number, point: { x: number; y: number }) {
     // Update the stored points array
-    points[index] = { x: point.x, y: point.y };
+    points[index] = { x: point.x * unit, y: point.y * unit };
 
     // Update the polygon path
     polygon.setAttribute("d", pointsToPath(points));
@@ -251,7 +301,7 @@ export function polygon(points: { x: number; y: number }[]): Polygon {
    */
   function insertBefore(index: number, point: { x: number; y: number }) {
     // Insert the point into points array
-    points.splice(index, 0, { x: point.x, y: point.y });
+    points.splice(index, 0, { x: point.x * unit, y: point.y * unit });
 
     // Update the polygon path
     polygon.setAttribute("d", pointsToPath(points));
@@ -274,7 +324,7 @@ export function polygon(points: { x: number; y: number }[]): Polygon {
    * @returns 多边形对象
    */
   function insertAfter(index: number, point: { x: number; y: number }) {
-    points.splice(index + 1, 0, { x: point.x, y: point.y });
+    points.splice(index + 1, 0, { x: point.x * unit, y: point.y * unit });
 
     polygon.setAttribute("d", pointsToPath(points));
 
@@ -328,8 +378,8 @@ export function polygon(points: { x: number; y: number }[]): Polygon {
       "http://www.w3.org/2000/svg",
       "circle",
     );
-    vertex.setAttribute("cx", x.toString());
-    vertex.setAttribute("cy", (-y).toString());
+    vertex.setAttribute("cx", (x * unit).toString());
+    vertex.setAttribute("cy", (-y * unit).toString());
     vertex.style.cursor = "move";
     vertex.style.pointerEvents = "all";
 
@@ -732,7 +782,7 @@ export function polygon(points: { x: number; y: number }[]): Polygon {
           const coord = prop.charAt(0);
           const index = parseInt(prop.slice(1)) - 1;
           if (!isNaN(index) && index < points.length) {
-            points[index][coord as "x" | "y"] = parseFloat(from);
+            points[index][coord as "x" | "y"] = parseFloat(from) * unit;
           }
         }
       });
@@ -769,9 +819,9 @@ export function polygon(points: { x: number; y: number }[]): Polygon {
           if (!isNaN(index) && index < points.length) {
             const fromValue =
               from !== undefined
-                ? parseFloat(from)
+                ? parseFloat(from) * unit
                 : currentPoints[index][coord as "x" | "y"];
-            vertexAnimations[prop] = { from: fromValue, to: parseFloat(to) };
+            vertexAnimations[prop] = { from: fromValue, to: parseFloat(to) * unit };
           }
         }
       });
@@ -836,7 +886,7 @@ export function polygon(points: { x: number; y: number }[]): Polygon {
           const index = parseInt(prop.slice(1)) - 1;
           if (!isNaN(index) && index < points.length) {
             points[index][coord as "x" | "y"] =
-              from + (to - from) * easeProgress;
+              (from + (to - from) * easeProgress) * unit;
           }
         });
 
