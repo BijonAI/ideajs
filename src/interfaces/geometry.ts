@@ -273,3 +273,46 @@ export interface Parametric extends CommonMethods<Parametric> {
   normal(t: number, length?: number): Parametric; // 添加法线方法
   matrix(matrix: [[number, number, number], [number, number, number], [number, number, number]]): Parametric;
 }
+
+/**
+ * 文本对象接口，继承CommonMethods
+ */
+export interface Text extends CommonMethods<Text> {
+  node(): SVGForeignObjectElement;
+  // 获取SVG foreignObject节点
+  setUnit(unit: number): Text;
+  // 设置单位
+  setText(content: string, latex?: boolean): Text;
+  // 设置文本内容
+  setPosition(x: number, y: number): Text;
+  // 设置位置
+  style(options: TextStyle): Text;
+  // 设置样式
+  draggable(condition?: (x: number, y: number) => boolean): Text;
+  // 设置可拖动
+  onDrag(callback: (x: number, y: number) => void): Text;
+  // 拖动事件回调
+  info(): {
+    type: "text";
+    x: number;
+    y: number;
+    content: string;
+    isLatex: boolean;
+  };
+  // 获取文本信息
+}
+
+/**
+ * 文本样式接口，继承CommonStyle
+ */
+export interface TextStyle extends CommonStyle {
+  fontSize?: number; // 字体大小
+  fontFamily?: string; // 字体族
+  fontWeight?: string | number; // 字体粗细
+  textColor?: string; // 文本颜色
+  textOpacity?: number; // 文本透明度
+  backgroundColor?: string; // 背景颜色
+  backgroundOpacity?: number; // 背景透明度
+  padding?: number; // 内边距
+  borderRadius?: number; // 边框圆角
+}

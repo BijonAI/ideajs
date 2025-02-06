@@ -167,8 +167,8 @@ export function dot(x: number, y: number) {
     onFocus,
     onSelect,
     // 设置点可拖拽
-    draggable(condition?: (x: number, y: number) => boolean) {
-      draggable(circle, condition, () =>
+    draggable() {
+      draggable(circle, () => true, () =>
         dragEvents.forEach((callback) =>
           callback(
             Number(circle.getAttribute("cx")) +
