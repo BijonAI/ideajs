@@ -269,4 +269,7 @@ export interface Parametric extends CommonMethods<Parametric> {
   draggable(condition?: (x: number, y: number) => boolean): Parametric; // 设置可拖动
   info(): Parametric;
   showRiemannRectangles(n: number, method?: 'left' | 'right' | 'midpoint'): Parametric; // 显示理想矩形
+  derivative(t: number, length?: number): Parametric; // 返回Parametric类型
+  normal(t: number, length?: number): Parametric; // 添加法线方法
+  matrix(matrix: [[number, number, number], [number, number, number], [number, number, number]]): Parametric;
 }

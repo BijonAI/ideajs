@@ -1084,6 +1084,12 @@ export function polygon(points: { x: number; y: number }[]): Polygon {
 
           // 更新视图
           updatePolygonPath();
+
+          // 触发自定义拖动事件
+          const dragEvent = new CustomEvent('polygon-drag', {
+            detail: { dx, dy }
+          });
+          polygon.dispatchEvent(dragEvent);
         },
       );
 

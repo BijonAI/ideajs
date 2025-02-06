@@ -95,56 +95,61 @@ coord.add(f);
 
 ### line
 
-- from, 设置起始点
-- to, 设置结束点
-- stroke, 设置线段颜色
-- fill, 设置填充颜色
-- style, 设置样式
-- transform, 设置变换
-- animation, 动画效果
-- effect, 效果
-- highlight, 高亮
-- annotate, 注释
-- draggable, 可拖动
+- setUnit
+- info
+- from
+- to
+- stroke
+- fill
+- style
+- transform
+- animation
+- annotate
+- draggable
 
 ### vector
 
-- from, 设置起始点
-- to, 设置结束点
-- stroke, 设置线段颜色
-- fill, 设置填充颜色
-- style, 设置样式
-- transform, 设置变换
-- animation, 动画效果
-- effect, 效果
-- highlight, 高亮
-- annotate, 注释
-- draggable, 可拖动
+- setUnit
+- info
+- from
+- to
+- stroke
+- fill
+- style
+- transform
+- animation
+- effect
+- annotate
+- draggable
 
 ### polygon
 
-- points, 获取多边形的所有顶点
-- setPoints, 设置多边形的所有顶点
-- setPoint, 设置多边形的某个顶点
-- insertBefore, 在多边形的某个顶点之前插入顶点
-- insertAfter, 在多边形的某个顶点之后插入顶点
-- removePoint: remove, 移除多边形的某个顶点
-- stroke, 设置多边形的边框颜色
-- fill, 设置多边形的填充颜色
-- style, 设置多边形的样式
-- animation, 多边形动画效果
-- transform 设置变换
-- draggable, 可拖动
+- setUnit
+- info
+- points
+- setPoints
+- setPoint
+- insertBefore
+- insertAfter
+- removePoint
+- stroke
+- fill
+- style
+- animation
+- transform
+- draggable
 
 ### arc
 
-- from, 设置起始点
-- to, 设置结束点
-- stroke, 设置线段颜色
-- fill, 设置填充颜色
-- transform, 设置变换
-- animation, 动画效果
-- 不可拖动
+- setUnit
+- info
+- from
+- to
+- stroke
+- fill
+- transform
+- animation
+- draggable
 
 ## License 许可
 

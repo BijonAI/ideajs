@@ -89,6 +89,50 @@ export function vector(x1: number, y1: number, x2: number, y2: number): Vector {
   let isDraggingEnd = false;
   let isDraggingStart = false;
 
+  // 存储连接的向量
+  let connectedVectors: {
+    vector: Vector;
+    elastic?: boolean;
+    distance?: number;
+    strength?: number;
+  }[] = [];
+
+  // 更新所有连接的向量
+  function updateConnectedVectors() {
+    const currentPos = parsePositionParams();
+    connectedVectors.forEach(({ vector, elastic, distance, strength }) => {
+      if (elastic) {
+        // 弹性连接：向量会试图保持指定的距离
+        const targetPos = {
+          x1: Number(vector.node().querySelector('line')?.getAttribute('x1')),
+          y1: -Number(vector.node().querySelector('line')?.getAttribute('y1')),
+          x2: Number(vector.node().querySelector('line')?.getAttribute('x2')),
+          y2: -Number(vector.node().querySelector('line')?.getAttribute('y2'))
+        };
+
+        // 计算当前距离
+        const dx = targetPos.x1 - currentPos.x2;
+        const dy = targetPos.y1 - currentPos.y2;
+        const currentDistance = Math.sqrt(dx * dx + dy * dy);
+
+        if (distance && strength && currentDistance !== distance) {
+          // 应用弹性力
+          const factor = strength * (1 - distance / currentDistance);
+          const moveX = dx * factor;
+          const moveY = dy * factor;
+
+          // 更新连接向量的位置
+          vector.transform({
+            translate: [moveX, moveY]
+          });
+        }
+      } else {
+        // 刚性连接：向量的起点直接跟随终点
+        vector.from(currentPos.x2 / unit, currentPos.y2 / unit);
+      }
+    });
+  }
+
   // 保存注释信息
   let annotations: {
     element: SVGTextElement;
@@ -290,6 +334,18 @@ export function vector(x1: number, y1: number, x2: number, y2: number): Vector {
       target: Vector,
       options?: { elastic?: boolean; distance?: number; strength?: number },
     ) => {
+      // 添加到连接列表
+      connectedVectors.push({
+        vector: target,
+        elastic: options?.elastic,
+        distance: options?.distance,
+        strength: options?.strength
+      });
+
+      // 初始化连接
+      const currentPos = parsePositionParams();
+      target.from(currentPos.x2 / unit, currentPos.y2 / unit);
+
       return rtn;
     },
     // 显示向量
@@ -1031,6 +1087,11 @@ export function vector(x1: number, y1: number, x2: number, y2: number): Vector {
 
         line.setAttribute("x2", newX.toString());
         line.setAttribute("y2", newY.toString());
+
+        const dragEvent = new CustomEvent('vector-drag', {
+          detail: { dx, dy }
+        });
+        vector.dispatchEvent(dragEvent);
         updateArrow();
       },
     );

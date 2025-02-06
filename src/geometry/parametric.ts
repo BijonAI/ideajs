@@ -50,7 +50,7 @@ export function parametric(
   animation(options: Animation): Parametric;
   animateDrawing(duration?: number): Parametric;
   discontinuity(points: number[]): Parametric;
-  derivative(): Parametric;
+  derivative(t: number, length: number): Parametric;
   integral(from?: number): Parametric;
   intersection(other: Parametric): { x: number; y: number }[];
   extrema(): { x: number; y: number }[];
@@ -69,6 +69,8 @@ export function parametric(
   morph(target: any, duration: number): Parametric;
   riemannSum(n: number, method?: 'left' | 'right' | 'midpoint'): Parametric;
   showRiemannRectangles(n: number, method?: 'left' | 'right' | 'midpoint'): Parametric;
+  normal(t: number, length: number): Parametric;
+  matrix(matrix: [[number, number, number], [number, number, number], [number, number, number]]): Parametric;
 } {
   // 创建SVG路径元素
   const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
@@ -88,7 +90,7 @@ export function parametric(
   controlPoint.setAttribute("cy", midY.toString());
 
   // 设置微分间隔
-  let divisions = 100;
+  let divisions = 1;
   path.setAttribute("divisions", divisions.toString());
   
   // 创建SVG组元素
@@ -281,19 +283,76 @@ export function parametric(
     },
 
     // 数学运算
-    derivative: () => {
+    derivative: (t: number, length: number = 2) => {
       const h = (tMax - tMin) / 1000;
+      // 计算当前点坐标
+      const [x, y] = fn(t);
+      // 计算导数向量
+      const [x1, y1] = fn(t);
+      const [x2, y2] = fn(t + h);
+      const dx = (x2 - x1) / h;
+      const dy = (y2 - y1) / h;
+      
+      // 归一化导数向量
+      const magnitude = Math.sqrt(dx * dx + dy * dy);
+      const normalizedDx = dx / magnitude;
+      const normalizedDy = dy / magnitude;
+      
+      // 创建切线的参数方程
       return parametric(
-        (t: number) => {
-          const [x1, y1] = currentFn(t);
-          const [x2, y2] = currentFn(t + h);
-          return [(x2 - x1) / h, (y2 - y1) / h];
-        },
-        [tMin, tMax],
+        (s: number) => [
+          x + normalizedDx * length * (s - 0.5),
+          y + normalizedDy * length * (s - 0.5)
+        ],
+        [0, 1]
       )
-        .scale(scaleX, scaleY)
-        .offset(offsetX, offsetY)
-        .samples(samples);
+      .setUnit(unit)
+        // .stroke(theme.colors.primary);
+    },
+
+    normal: (t: number, length: number = 2) => {
+      const h = (tMax - tMin) / 1000;
+      // 计算当前点坐标
+      const [x, y] = fn(t);
+      // 计算导数向量
+      const [x1, y1] = fn(t);
+      const [x2, y2] = fn(t + h);
+      const dx = (x2 - x1) / h;
+      const dy = (y2 - y1) / h;
+      
+      // 归一化导数向量
+      const magnitude = Math.sqrt(dx * dx + dy * dy);
+      const normalizedDx = dx / magnitude;
+      const normalizedDy = dy / magnitude;
+      
+      // 计算法向量（将切向量逆时针旋转90度）
+      const normalDx = -normalizedDy;  // 垂直向量的x分量
+      const normalDy = normalizedDx;   // 垂直向量的y分量
+      
+      // 创建法线的参数方程
+      return parametric(
+        (s: number) => [
+          x + normalDx * length * (s - 0.5),
+          y + normalDy * length * (s - 0.5)
+        ],
+        [0, 1]
+      )
+      .setUnit(unit);
+    },
+
+    /**
+     * 对曲线应用矩阵变换，返回新的参数曲线
+     * @param matrix 3x3变换矩阵
+     * @returns 变换后的新参数曲线
+     */
+    matrix: (matrix: [[number, number, number], [number, number, number], [number, number, number]]) => {
+      return parametric((t: number) => {
+        const [x, y] = fn(t);
+        // 应用变换矩阵
+        const transformedX = matrix[0][0] * x + matrix[0][1] * y + matrix[0][2];
+        const transformedY = matrix[1][0] * x + matrix[1][1] * y + matrix[1][2];
+        return [transformedX, transformedY];
+      }, range).setUnit(unit);
     },
 
     // 动画效果
@@ -733,8 +792,7 @@ export function parametric(
             }
             const riemannGroup = group.querySelector('.riemann-rectangles');
             if (riemannGroup) {
-              const method = riemannGroup.getAttribute('data-method') as 'left' | 'right' | 'midpoint';
-              rtn.showRiemannRectangles(divisions, method);
+              rtn.showRiemannRectangles(divisions);
             }
           }
 
@@ -789,7 +847,15 @@ export function parametric(
         const dy = y - startDragY - midY;
         console.log(dx, dy);
         path.setAttribute("transform", `translate(${dx}, ${dy})`);
-        rtn.showRiemannRectangles(divisions);
+        const riemannGroup = group.querySelector('.riemann-rectangles');
+        if (riemannGroup) {
+          rtn.showRiemannRectangles(divisions);
+        }
+
+        const dragEvent = new CustomEvent('parametric-drag', {
+          detail: { dx, dy }
+        });
+        path.dispatchEvent(dragEvent);
       });
       
       window.addEventListener("mouseup", () => {
@@ -842,12 +908,13 @@ export function parametric(
     },
 
     showRiemannRectangles: (n: number, method: 'left' | 'right' | 'midpoint' = 'midpoint') => {
+      divisions = n;
       const { rectangles } = rtn.riemannSum(n, method);
       let riemannGroup = group.querySelector('.riemann-rectangles');
       if (!riemannGroup) {
         riemannGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
         riemannGroup.classList.add('riemann-rectangles');
-        group.appendChild(riemannGroup);
+        group.insertBefore(riemannGroup, path);  // 将矩形组插入到 path 之前
       }
       riemannGroup.setAttribute('data-method', method);
       
