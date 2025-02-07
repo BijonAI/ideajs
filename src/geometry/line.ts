@@ -48,6 +48,7 @@ export function line(x1: number, y1: number, x2: number, y2: number): Line {
   startPoint.setAttribute("cx", x1.toString());
   startPoint.setAttribute("cy", (-y1).toString());
   startPoint.style.cursor = "move";
+  startPoint.style.opacity = "0";
 
   // 创建终点圆点
   const endPoint = document.createElementNS(
@@ -58,11 +59,32 @@ export function line(x1: number, y1: number, x2: number, y2: number): Line {
   endPoint.setAttribute("fill", theme.colors.primary);
   endPoint.setAttribute("cx", x2.toString());
   endPoint.setAttribute("cy", (-y2).toString());
+  endPoint.setAttribute("opacity", "0");
   endPoint.style.cursor = "move";
 
-  
   // 将元素添加到线段组中
   lineGroup.append(lineElement, startPoint, endPoint);
+  lineGroup.dataset.draggable = "false";
+
+  // 点击线段时设置为可拖拽
+  lineGroup.addEventListener("click", (e) => {
+    e.stopPropagation(); // 阻止事件冒泡
+    if (lineGroup.dataset.draggable !== "true") {
+      lineGroup.dataset.draggable = "true";
+      startPoint.style.opacity = "1";
+      endPoint.style.opacity = "1";
+    }
+  });
+
+  // 点击其他地方时取消选中
+  document.addEventListener("click", (e) => {
+    const target = e.target as Element;
+    if (!lineGroup.contains(target)) {
+      lineGroup.dataset.draggable = "false";
+      startPoint.style.opacity = "0";
+      endPoint.style.opacity = "0";
+    }
+  });
 
   let dragEnabled = false;
   // 添加起点拖拽功能
@@ -1080,7 +1102,7 @@ export function line(x1: number, y1: number, x2: number, y2: number): Line {
 
     draggable(
       startPoint,
-      (_x, _y) => true,
+      () => lineGroup.dataset.draggable === "true",
       (x, y) => {
         if (!isDraggingStart) {
           startDragX = x;
@@ -1110,7 +1132,7 @@ export function line(x1: number, y1: number, x2: number, y2: number): Line {
 
     draggable(
       endPoint,
-      (_x, _y) => true,
+      () => lineGroup.dataset.draggable === "true",
       (x, y) => {
         if (!isDraggingEnd) {
           endDragX = x;

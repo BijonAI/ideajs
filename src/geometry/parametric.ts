@@ -88,6 +88,7 @@ export function parametric(
   const [midX, midY] = fn(midT);
   controlPoint.setAttribute("cx", midX.toString());
   controlPoint.setAttribute("cy", midY.toString());
+  controlPoint.style.opacity = "0";
 
   // 设置微分间隔
   let divisions = 1;
@@ -97,6 +98,26 @@ export function parametric(
   const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
   group.appendChild(path);
   group.appendChild(controlPoint);
+  group.dataset.draggable = "false";
+
+  // 点击图形时设置为可拖拽
+  group.addEventListener("click", (e) => {
+    e.stopPropagation(); // 阻止事件冒泡
+    if (group.dataset.draggable !== "true") {
+      controlPoint.style.cursor = "move";
+      group.dataset.draggable = "true";
+      controlPoint.style.opacity = "1";
+    }
+  });
+
+  // 点击其他地方时取消选中
+  document.addEventListener("click", (e) => {
+    const target = e.target as Element;
+    if (!group.contains(target)) {
+      group.dataset.draggable = "false";
+      controlPoint.style.opacity = "0";
+    }
+  });
 
   // 曲线变换参数
   let scaleX = 1; // X轴缩放比例
@@ -832,7 +853,7 @@ export function parametric(
         document.body.style.userSelect = "none";
       });
 
-      draggable(controlPoint, (_x, _y) => true, (x: number, y: number) => {
+      draggable(controlPoint, () => group.dataset.draggable === "true", (x: number, y: number) => {
         if (!isDragging) {
           startDragX = x;
           startDragY = y;

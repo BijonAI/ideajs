@@ -57,12 +57,32 @@ export function vector(x1: number, y1: number, x2: number, y2: number): Vector {
     "http://www.w3.org/2000/svg",
     "circle",
   );
-  startPoint.setAttribute("r", "8");
-  startPoint.setAttribute("opacity", "2"); // 设置为完全透明
+  startPoint.setAttribute("r", "4");
+  startPoint.setAttribute("opacity", "0"); // 设置为完全透明
   startPoint.setAttribute("cx", x1.toString());
   startPoint.setAttribute("cy", (-y1).toString());
   startPoint.style.cursor = "move";
   startPoint.style.pointerEvents = "all";
+
+  vector.append(line, startPoint, arrow);
+  vector.dataset.draggable = "false";
+
+  vector.addEventListener("click", (e) => {
+    e.stopPropagation(); // 阻止事件冒泡
+    if (vector.dataset.draggable !== "true") {
+      vector.dataset.draggable = "true";
+      startPoint.style.opacity = "1";
+    }
+  });
+
+  // 点击其他地方时取消选中
+  document.addEventListener("click", (e) => {
+    const target = e.target as Element;
+    if (!vector.contains(target)) {
+      vector.dataset.draggable = "false";
+      startPoint.style.opacity = "0";
+    }
+  });
 
   let unit = 1;
 
@@ -1038,7 +1058,7 @@ export function vector(x1: number, y1: number, x2: number, y2: number): Vector {
     // 起点拖拽
     draggable(
       startPoint,
-      (_x, _y) => true,
+      () => vector.dataset.draggable === "true",
       (x, y) => {
         if (!isDraggingStart) {
           startDragX = x;
@@ -1069,7 +1089,7 @@ export function vector(x1: number, y1: number, x2: number, y2: number): Vector {
 
     draggable(
       arrow,
-      (_x, _y) => true,
+      () => vector.dataset.draggable === "true",
       (x, y) => {
         if (!isDraggingEnd) {
           endDragX = x;

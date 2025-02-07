@@ -46,7 +46,8 @@ export function polygon(points: { x: number; y: number }[]): Polygon {
   let vertexStyle = {
     size: 8, // 增大点的大小
     color: theme.colors.primary,
-    opacity: 1,
+    opacity: 0,
+    fill_opacity: 1,
     fill: theme.colors.primary,
     stroke: theme.colors.background, // 使用背景色作为描边
     strokeWidth: 2, // 增加描边宽度
@@ -63,6 +64,32 @@ export function polygon(points: { x: number; y: number }[]): Polygon {
   vertices.forEach((vertex) => group.appendChild(vertex));
 
   let dragEnabled = false;
+
+  // 点击图形时设置为可拖拽
+  group.addEventListener("click", (e) => {
+    e.stopPropagation(); // 阻止事件冒泡
+    if (group.dataset.draggable !== "true") {
+      group.dataset.draggable = "true";
+      vertices.forEach((vertex) => {
+        vertex.style.cursor = "move";
+        vertex.dataset.draggable = "true";
+        vertex.style.opacity = "1";
+      });
+    }
+  });
+  
+    // 点击其他地方时取消选中
+  document.addEventListener("click", (e) => {
+    const target = e.target as Element;
+    if (!group.contains(target)) {
+      group.dataset.draggable = "false";
+      vertices.forEach((vertex) => {
+        vertex.style.cursor = "default";
+        vertex.dataset.draggable = "false";
+        vertex.style.opacity = "0";
+      });
+    }
+    });
 
   // 更新顶点位置的函数
   // function updateVertexPosition(index: number) {
@@ -385,8 +412,7 @@ export function polygon(points: { x: number; y: number }[]): Polygon {
 
     // Apply current vertex style
     applyVertexStyle(vertex);
-
-    // 添加数据属性用于动画更新
+    
     vertex.setAttribute("data-vertex", index.toString());
 
     return vertex;
@@ -399,9 +425,11 @@ export function polygon(points: { x: number; y: number }[]): Polygon {
   function applyVertexStyle(vertex: SVGCircleElement) {
     vertex.setAttribute("r", vertexStyle.size.toString());
     vertex.setAttribute("fill", vertexStyle.fill);
-    vertex.setAttribute("fill-opacity", vertexStyle.opacity.toString());
+    vertex.setAttribute("fill-opacity", vertexStyle.fill_opacity.toString());
     vertex.setAttribute("stroke", vertexStyle.stroke);
     vertex.setAttribute("stroke-width", vertexStyle.strokeWidth.toString());
+    vertex.setAttribute("opacity", vertexStyle.opacity.toString());
+
   }
 
   /**
@@ -1064,7 +1092,7 @@ export function polygon(points: { x: number; y: number }[]): Polygon {
 
       draggable(
         vertex,
-        (_x, _y) => true,
+        () => group.dataset.draggable === "true",
         (x, y) => {
           if (!isDragging) {
             startDragX = x;

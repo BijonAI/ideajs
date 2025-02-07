@@ -34,6 +34,24 @@ export function dot(x: number, y: number) {
   circle.dataset.x = x.toString();
   circle.dataset.y = y.toString();
   circle.dataset.r = "4";
+  circle.dataset.draggable = "false";
+
+  // 点击图形时设置为可拖拽
+  circle.addEventListener("click", (e) => {
+    e.stopPropagation(); // 阻止事件冒泡
+    if (circle.dataset.draggable !== "true") {
+      circle.dataset.draggable = "true";
+      circle.style.cursor = "move";
+    }
+  });
+
+  // 点击其他地方时取消选中
+  document.addEventListener("click", (e) => {
+    if (e.target !== circle) {
+      circle.dataset.draggable = "false";
+      circle.style.cursor = "default";
+    }
+  });
 
   // 拖拽事件回调数组
   const dragEvents: ((x: number, y: number) => void)[] = [];
@@ -135,26 +153,26 @@ export function dot(x: number, y: number) {
         y: y / unit,
       };
 
-      const handlePointerDown = () => {
-        longPressTimer = window.setTimeout(() => {
-          console.log("Dot Info:", infoData);
-        }, 500);
-      };
+      // const handlePointerDown = () => {
+      //   longPressTimer = window.setTimeout(() => {
+      //     console.log("Dot Info:", infoData);
+      //   }, 500);
+      // };
 
-      const handlePointerUp = () => {
-        if (longPressTimer) {
-          clearTimeout(longPressTimer);
-          longPressTimer = null;
-        }
-      };
+      // const handlePointerUp = () => {
+      //   if (longPressTimer) {
+      //     clearTimeout(longPressTimer);
+      //     longPressTimer = null;
+      //   }
+      // };
 
-      const handlePointerLeave = () => {
-        handlePointerUp();
-      };
+      // const handlePointerLeave = () => {
+      //   handlePointerUp();
+      // };
 
-      circle.addEventListener("pointerdown", handlePointerDown);
-      circle.addEventListener("pointerup", handlePointerUp);
-      circle.addEventListener("pointerleave", handlePointerLeave);
+      // circle.addEventListener("pointerdown", handlePointerDown);
+      // circle.addEventListener("pointerup", handlePointerUp);
+      // circle.addEventListener("pointerleave", handlePointerLeave);
       console.log("Dot Info:", infoData);
       return rtn;
     },
@@ -168,7 +186,7 @@ export function dot(x: number, y: number) {
     onSelect,
     // 设置点可拖拽
     draggable() {
-      draggable(circle, () => true, () =>
+      draggable(circle, () => circle.dataset.draggable === "true", () =>
         dragEvents.forEach((callback) =>
           callback(
             Number(circle.getAttribute("cx")) +
