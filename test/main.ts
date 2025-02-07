@@ -4,8 +4,8 @@ import * as idea from "../src";
 const canvas = idea.field(1000, 800);
 document.body.appendChild(canvas.node());
 
-const coord = idea.plane().grid().axes().ticks(50);
-// const coord = idea.axes("y").ticks(25);
+const coord = idea.plane(1000, 800).grid().axes().ticks(50);
+// const coord = idea.axis("y").ticks(25);
 
 // 创建一个简单的动画
 function createAnimation() {
