@@ -57,12 +57,34 @@ export function vector(x1: number, y1: number, x2: number, y2: number): Vector {
     "http://www.w3.org/2000/svg",
     "circle",
   );
-  startPoint.setAttribute("r", "8");
-  startPoint.setAttribute("opacity", "2"); // 设置为完全透明
+  startPoint.setAttribute("r", "4");
+  startPoint.setAttribute("opacity", "0"); // 设置为完全透明
   startPoint.setAttribute("cx", x1.toString());
   startPoint.setAttribute("cy", (-y1).toString());
   startPoint.style.cursor = "move";
   startPoint.style.pointerEvents = "all";
+
+  vector.append(line, startPoint, arrow);
+  vector.dataset.draggable = "false";
+
+  vector.addEventListener("click", (e) => {
+    e.stopPropagation(); // 阻止事件冒泡
+    if (vector.dataset.draggable !== "true") {
+      vector.dataset.draggable = "true";
+      startPoint.style.opacity = "1";
+    }
+  });
+
+  // 点击其他地方时取消选中
+  document.addEventListener("click", (e) => {
+    const target = e.target as Element;
+    if (!vector.contains(target)) {
+      vector.dataset.draggable = "false";
+      startPoint.style.opacity = "0";
+    }
+  });
+
+  let unit = 1;
 
   // 更新箭头位置和方向
   function updateArrow() {
@@ -87,6 +109,50 @@ export function vector(x1: number, y1: number, x2: number, y2: number): Vector {
   let isDraggingEnd = false;
   let isDraggingStart = false;
 
+  // 存储连接的向量
+  let connectedVectors: {
+    vector: Vector;
+    elastic?: boolean;
+    distance?: number;
+    strength?: number;
+  }[] = [];
+
+  // 更新所有连接的向量
+  function updateConnectedVectors() {
+    const currentPos = parsePositionParams();
+    connectedVectors.forEach(({ vector, elastic, distance, strength }) => {
+      if (elastic) {
+        // 弹性连接：向量会试图保持指定的距离
+        const targetPos = {
+          x1: Number(vector.node().querySelector('line')?.getAttribute('x1')),
+          y1: -Number(vector.node().querySelector('line')?.getAttribute('y1')),
+          x2: Number(vector.node().querySelector('line')?.getAttribute('x2')),
+          y2: -Number(vector.node().querySelector('line')?.getAttribute('y2'))
+        };
+
+        // 计算当前距离
+        const dx = targetPos.x1 - currentPos.x2;
+        const dy = targetPos.y1 - currentPos.y2;
+        const currentDistance = Math.sqrt(dx * dx + dy * dy);
+
+        if (distance && strength && currentDistance !== distance) {
+          // 应用弹性力
+          const factor = strength * (1 - distance / currentDistance);
+          const moveX = dx * factor;
+          const moveY = dy * factor;
+
+          // 更新连接向量的位置
+          vector.transform({
+            translate: [moveX, moveY]
+          });
+        }
+      } else {
+        // 刚性连接：向量的起点直接跟随终点
+        vector.from(currentPos.x2 / unit, currentPos.y2 / unit);
+      }
+    });
+  }
+
   // 保存注释信息
   let annotations: {
     element: SVGTextElement;
@@ -99,6 +165,23 @@ export function vector(x1: number, y1: number, x2: number, y2: number): Vector {
   // 返回对象，包含所有可用的操作方法
   const rtn = {
     node: () => vector,
+    setUnit: (_unit: number) => {
+      unit = _unit;
+      x1 = x1*unit
+      y1 = y1*unit
+      x2 = x2*unit
+      y2 = y2*unit
+      // 更新向量的位置
+      startPoint.setAttribute("cx", x1.toString());
+      startPoint.setAttribute("cy", (-y1).toString());
+      line.setAttribute("x1", (x1).toString());
+      line.setAttribute("y1", (-y1).toString());
+      line.setAttribute("x2", (x2).toString());
+      line.setAttribute("y2", (-y2).toString());
+      // 更新箭头
+      updateArrow();
+      return rtn;
+    },
     from,
     to,
     stroke,
@@ -271,6 +354,18 @@ export function vector(x1: number, y1: number, x2: number, y2: number): Vector {
       target: Vector,
       options?: { elastic?: boolean; distance?: number; strength?: number },
     ) => {
+      // 添加到连接列表
+      connectedVectors.push({
+        vector: target,
+        elastic: options?.elastic,
+        distance: options?.distance,
+        strength: options?.strength
+      });
+
+      // 初始化连接
+      const currentPos = parsePositionParams();
+      target.from(currentPos.x2 / unit, currentPos.y2 / unit);
+
       return rtn;
     },
     // 显示向量
@@ -305,6 +400,18 @@ export function vector(x1: number, y1: number, x2: number, y2: number): Vector {
       });
       return rtn;
     },
+    info: () => {
+      // 添加长按事件处理
+      let infoData = {
+        ...rtn,
+        type: "vector",
+        x1: x1 / unit,
+        y1: y1 / unit,
+        x2: x2 / unit,
+        y2: y2 / unit,
+      };
+      return infoData;
+    },
     draggable: enableDragging,
   };
 
@@ -315,8 +422,8 @@ export function vector(x1: number, y1: number, x2: number, y2: number): Vector {
    * @returns 向量对象
    */
   function from(_x1: number, _y1: number) {
-    x1 = _x1;
-    y1 = _y1;
+    x1 = _x1*unit;
+    y1 = _y1*unit;
     line.setAttribute("x1", x1.toString());
     line.setAttribute("y1", (-y1).toString());
     startPoint.setAttribute("cx", x1.toString());
@@ -332,8 +439,8 @@ export function vector(x1: number, y1: number, x2: number, y2: number): Vector {
    * @returns 向量对象
    */
   function to(_x2: number, _y2: number) {
-    x2 = _x2;
-    y2 = _y2;
+    x2 = _x2*unit;
+    y2 = _y2*unit;
     line.setAttribute("x2", x2.toString());
     line.setAttribute("y2", (-y2).toString());
     updateArrow();
@@ -576,18 +683,20 @@ export function vector(x1: number, y1: number, x2: number, y2: number): Vector {
           const value = parseFloat(from);
           switch (prop) {
             case "x1":
-              x1 = value;
-              startPoint.setAttribute("cx", value.toString());
+              x1 = value * unit;
+              startPoint.setAttribute("cx", x1.toString());
+              line.setAttribute("x1", x1.toString());
               break;
             case "y1":
-              y1 = value;
-              startPoint.setAttribute("cy", (-value).toString());
+              y1 = value * unit;
+              startPoint.setAttribute("cy", (-y1).toString());
+              line.setAttribute("y1", (-y1).toString());
               break;
             case "x2":
-              x2 = value;
+              x2 = value * unit;
               break;
             case "y2":
-              y2 = value;
+              y2 = value * unit;
               break;
           }
         }
@@ -614,13 +723,13 @@ export function vector(x1: number, y1: number, x2: number, y2: number): Vector {
               : (() => {
                   switch (prop) {
                     case "x1":
-                      return fromX1;
+                      return fromX1 * unit;
                     case "y1":
-                      return fromY1;
+                      return fromY1 * unit;
                     case "x2":
-                      return fromX2;
+                      return fromX2 * unit;
                     case "y2":
-                      return fromY2;
+                      return fromY2 * unit;
                     default:
                       return 0;
                   }
@@ -671,18 +780,20 @@ export function vector(x1: number, y1: number, x2: number, y2: number): Vector {
           const value = from + (to - from) * easeProgress;
           switch (prop) {
             case "x1":
-              x1 = value;
-              startPoint.setAttribute("cx", value.toString());
+              x1 = value * unit;
+              startPoint.setAttribute("cx", x1.toString());
+              line.setAttribute("x1", x1.toString());
               break;
             case "y1":
-              y1 = value;
-              startPoint.setAttribute("cy", (-value).toString());
+              y1 = value * unit;
+              startPoint.setAttribute("cy", (-y1).toString());
+              line.setAttribute("y1", (-y1).toString());
               break;
             case "x2":
-              x2 = value;
+              x2 = value * unit;
               break;
             case "y2":
-              y2 = value;
+              y2 = value * unit;
               break;
           }
         });
@@ -925,7 +1036,7 @@ export function vector(x1: number, y1: number, x2: number, y2: number): Vector {
     // 起点拖拽
     draggable(
       startPoint,
-      (_x, _y) => true,
+      () => vector.dataset.draggable === "true",
       (x, y) => {
         if (!isDraggingStart) {
           startDragX = x;
@@ -956,7 +1067,7 @@ export function vector(x1: number, y1: number, x2: number, y2: number): Vector {
 
     draggable(
       arrow,
-      (_x, _y) => true,
+      () => vector.dataset.draggable === "true",
       (x, y) => {
         if (!isDraggingEnd) {
           endDragX = x;
@@ -974,6 +1085,11 @@ export function vector(x1: number, y1: number, x2: number, y2: number): Vector {
 
         line.setAttribute("x2", newX.toString());
         line.setAttribute("y2", newY.toString());
+
+        const dragEvent = new CustomEvent('vector-drag', {
+          detail: { dx, dy }
+        });
+        vector.dispatchEvent(dragEvent);
         updateArrow();
       },
     );

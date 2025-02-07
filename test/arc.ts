@@ -4,14 +4,17 @@ import * as idea from "../src";
 const canvas = idea.field(1000, 800);
 document.body.appendChild(canvas.node());
 
-// const coord = idea.plane().grid(50).axes("#ff0000").ticks(50);
-const coord = idea.axes("#ff0000").ticks(50);
+const coord = idea.plane(1000, 800).grid(50).axes("#ff0000").ticks(50);
+// const coord = idea.axes().ticks(50);
 
 // 创建圆弧
+// 创建圆弧
 const arc = idea
-  .arc(100, 100, 100)
+  .arc(1, 1, 1)
+  .setUnit(50)
   .from(0)
   .to(360)
+  .info()
   // .transform({ origin: [50, 50] })
   // .transform({ scale: 0.5 })
   // .transform({ skew: [10, 20] })
@@ -25,15 +28,16 @@ const arc = idea
       "stroke-width": { from: 1, to: 4 },
       "stroke-opacity": { from: 0.5, to: 1 },
       "fill-opacity": { from: 0.2, to: 0.6 },
-      x1: { from: -300, to: 200 },
-      y1: { from: -300, to: 200 },
-      r: { from: 100, to: 150 },
+      x1: { from: -3, to: 2 },
+      y1: { from: -3, to: 2 },
+      r: { from: 1, to: 1.5 },
       // startAngle: { from: 0, to: 180 },
       endAngle: { from: 0, to: 360 },
     },
     onStart: () => console.log("Animation started"),
     onEnd: () => console.log("Animation completed"),
-  });
+  })
+  
 // 绘制向量
 coord.add(arc);
 canvas.add(coord);

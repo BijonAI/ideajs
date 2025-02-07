@@ -25,7 +25,7 @@ export function dot(x: number, y: number) {
     "circle",
   );
   circle.setAttribute("cx", x.toString());
-  circle.setAttribute("cy", y.toString());
+  circle.setAttribute("cy", (-y).toString());
   circle.setAttribute("r", "4");
   circle.setAttribute("stroke-width", "4");
   circle.style.cursor = "move";
@@ -34,6 +34,24 @@ export function dot(x: number, y: number) {
   circle.dataset.x = x.toString();
   circle.dataset.y = y.toString();
   circle.dataset.r = "4";
+  circle.dataset.draggable = "false";
+
+  // 点击图形时设置为可拖拽
+  circle.addEventListener("click", (e) => {
+    e.stopPropagation(); // 阻止事件冒泡
+    if (circle.dataset.draggable !== "true") {
+      circle.dataset.draggable = "true";
+      circle.style.cursor = "move";
+    }
+  });
+
+  // 点击其他地方时取消选中
+  document.addEventListener("click", (e) => {
+    if (e.target !== circle) {
+      circle.dataset.draggable = "false";
+      circle.style.cursor = "default";
+    }
+  });
 
   // 拖拽事件回调数组
   const dragEvents: ((x: number, y: number) => void)[] = [];
@@ -123,8 +141,19 @@ export function dot(x: number, y: number) {
   }
 
   // 返回对象，包含所有可用的操作方法
+  let unit = 1;
   const rtn = {
     node,
+    info: () => {
+      // 添加长按事件处理
+      let infoData = {
+        ...rtn,
+        type: "dot",
+        x: x / unit,
+        y: y / unit,
+      };
+      return infoData;
+    },
     resize,
     stroke,
     fill,
@@ -134,8 +163,8 @@ export function dot(x: number, y: number) {
     onFocus,
     onSelect,
     // 设置点可拖拽
-    draggable(condition?: (x: number, y: number) => boolean) {
-      draggable(circle, condition, () =>
+    draggable() {
+      draggable(circle, () => circle.dataset.draggable === "true", () =>
         dragEvents.forEach((callback) =>
           callback(
             Number(circle.getAttribute("cx")) +
@@ -223,6 +252,14 @@ export function dot(x: number, y: number) {
       return rtn;
     },
     move,
+    setUnit: (_unit: number) => {
+      unit = _unit;
+      x = x*unit
+      y = y*unit
+      circle.setAttribute("cx", (x).toString());
+      circle.setAttribute("cy", (-y).toString());
+      return rtn;
+    },
   };
 
   /**
@@ -406,10 +443,10 @@ export function dot(x: number, y: number) {
     if (options.properties) {
       // 先设置初始位置
       if (options.properties["x1"]?.from !== undefined) {
-        fromX = Number(options.properties["x1"].from);
+        fromX = Number(options.properties["x1"].from)*unit;
       }
       if (options.properties["y1"]?.from !== undefined) {
-        fromY = -Number(options.properties["y1"].from);
+        fromY = -Number(options.properties["y1"].from)*unit;
       }
       if (options.properties["r"]?.from !== undefined) {
         fromRadius = Number(options.properties["r"].from);
@@ -417,14 +454,14 @@ export function dot(x: number, y: number) {
 
       // 立即更新到初始位置
       circle.setAttribute("cx", fromX.toString());
-      circle.setAttribute("cy", fromY.toString());
+      circle.setAttribute("cy", (-fromY).toString());
       circle.setAttribute("r", fromRadius.toString());
 
       Object.entries(options.properties).forEach(([prop, { from, to }]) => {
         if (prop === "x1") {
-          toX = Number(to);
+          toX = Number(to)*unit;
         } else if (prop === "y1") {
-          toY = -Number(to);
+          toY = -Number(to)*unit;
         } else if (prop === "r") {
           toRadius = Number(to);
         } else {

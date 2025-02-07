@@ -1,6 +1,6 @@
 import { getTheme, setTheme } from "../theme";
 
-export function plane() {
+export function plane(width: number, height: number) {
   const figure = document.createElementNS("http://www.w3.org/2000/svg", "g");
 
   // frame
@@ -22,6 +22,9 @@ export function plane() {
   frame.setAttribute("width", "100%");
   frame.setAttribute("height", "100%");
   frame.style.cursor = "grab";
+
+  axes.setAttribute("width", `${width}`);
+  axes.setAttribute("height", `${height}`);
 
   geom.setAttribute("width", "100%");
   geom.setAttribute("height", "100%");
@@ -57,11 +60,11 @@ export function plane() {
     addText,
   };
 
-  const viewBox = {
-    x: -document.getElementById("canvas")!.getBoundingClientRect().width / 2,
-    y: -document.getElementById("canvas")!.getBoundingClientRect().height / 2,
-    w: document.getElementById("canvas")!.getBoundingClientRect().width,
-    h: document.getElementById("canvas")!.getBoundingClientRect().height,
+  let viewBox = {
+    x: -axes.width.baseVal.value / 2,
+    y: -axes.height.baseVal.value / 2,
+    w: axes.width.baseVal.value,
+    h: axes.height.baseVal.value,
   };
 
   grid.setAttribute(

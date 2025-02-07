@@ -61,6 +61,7 @@ export interface GradientStop {
  */
 export interface Dot extends CommonMethods<Dot> {
   node(): SVGElement; // 获取SVG节点
+  setUnit(unit:number): Dot;
   resize(radius: number): Dot; // 调整点大小
   stroke(color?: string): Dot; // 设置描边颜色
   fill(color?: string): Dot; // 设置填充颜色
@@ -81,6 +82,7 @@ export interface Dot extends CommonMethods<Dot> {
     },
   ): Dot;
   draggable(condition?: (x: number, y: number) => boolean): Dot; // 设置可拖动
+  info(): Dot;
 }
 
 /**
@@ -88,6 +90,8 @@ export interface Dot extends CommonMethods<Dot> {
  */
 export interface Line extends CommonMethods<Line> {
   node(): SVGElement; // 获取SVG节点
+  setUnit(unit:number): Line;
+  info(): Line;
   from(x1: number, y1: number): Line; // 设置起点
   to(x2: number, y2: number): Line; // 设置终点
   stroke(color?: string): Line; // 设置线条颜色
@@ -133,6 +137,7 @@ export interface Line extends CommonMethods<Line> {
  */
 export interface Polygon extends CommonMethods<Polygon> {
   node(): SVGElement; // 获取SVG节点
+  setUnit(unit:number): Polygon;
   points: { x: number; y: number }[]; // 顶点数组
   setPoints(points: { x: number; y: number }[]): Polygon; // 设置所有顶点
   setPoint(index: number, point: { x: number; y: number }): Polygon; // 设置单个顶点
@@ -143,6 +148,7 @@ export interface Polygon extends CommonMethods<Polygon> {
   fill(color?: string): Polygon; // 设置填充颜色
   style(options: PolygonStyle): Polygon; // 设置样式
   draggable(condition?: (x: number, y: number) => boolean): Polygon; // 设置可拖动
+  info(): Polygon;
 }
 
 /**
@@ -150,11 +156,13 @@ export interface Polygon extends CommonMethods<Polygon> {
  */
 export interface Arc extends CommonMethods<Arc> {
   animateDrawing(arg0: number): import("..").Renderable; // 绘制动画
+  setUnit(unit:number): Arc;
   node(): SVGElement; // 获取SVG节点
   from(angle: number): Arc; // 设置起始角度
   to(angle: number): Arc; // 设置结束角度
   stroke(color?: string): Arc; // 设置描边颜色
   fill(color?: string): Arc; // 设置填充颜色
+  info(): Arc;
 }
 
 /**
@@ -162,11 +170,13 @@ export interface Arc extends CommonMethods<Arc> {
  */
 export interface Vector extends CommonMethods<Vector> {
   node(): SVGElement; // 获取SVG节点
+  setUnit(unit:number): Vector;
   from(x1: number, y1: number): Vector; // 设置起点
   to(x2: number, y2: number): Vector; // 设置终点
   stroke(color?: string): Vector; // 设置颜色
-  style(options: VectorStyle): Vector;
+  style(options: VectorStyle): Vector; // 设置样式
   scale(x: number, y?: number): Vector; // 缩放向量
+  info(): Vector; // 获取向量信息
   draggable(condition?: (x: number, y: number) => boolean): Vector; // 设置可拖动
 }
 
@@ -211,7 +221,7 @@ export interface PolygonStyle extends CommonStyle {
 }
 
 /**
- * 多边形样式接口，继承CommonStyle
+ * 向量样式接口，继承CommonStyle
  */
 export interface VectorStyle extends CommonStyle {
   strokeWidth?: number; // 线条宽度
@@ -244,6 +254,7 @@ export interface ParametricStyle extends CommonStyle {
  */
 export interface Parametric extends CommonMethods<Parametric> {
   node(): SVGPathElement; // 获取SVG路径节点
+  setUnit(unit:number): Parametric;
   stroke(color?: string): Parametric; // 设置颜色
   style(options: ParametricStyle): Parametric; // 设置样式
   range(min: number, max: number): Parametric; // 设置参数范围
@@ -255,4 +266,53 @@ export interface Parametric extends CommonMethods<Parametric> {
     range?: [number, number],
   ): Parametric; // 更新参数方程
   animateDrawing(duration?: number): Parametric; // 绘制动画
+  draggable(condition?: (x: number, y: number) => boolean): Parametric; // 设置可拖动
+  info(): Parametric;
+  showRiemannRectangles(n: number, method?: 'left' | 'right' | 'midpoint'): Parametric; // 显示理想矩形
+  derivative(t: number, length?: number): Parametric; // 返回Parametric类型
+  normal(t: number, length?: number): Parametric; // 添加法线方法
+  matrix(matrix: [[number, number, number], [number, number, number], [number, number, number]]): Parametric;
+}
+
+/**
+ * 文本对象接口，继承CommonMethods
+ */
+export interface Text extends CommonMethods<Text> {
+  node(): SVGForeignObjectElement;
+  // 获取SVG foreignObject节点
+  setUnit(unit: number): Text;
+  // 设置单位
+  setText(content: string, latex?: boolean): Text;
+  // 设置文本内容
+  setPosition(x: number, y: number): Text;
+  // 设置位置
+  style(options: TextStyle): Text;
+  // 设置样式
+  draggable(condition?: (x: number, y: number) => boolean): Text;
+  // 设置可拖动
+  onDrag(callback: (x: number, y: number) => void): Text;
+  // 拖动事件回调
+  info(): {
+    type: "text";
+    x: number;
+    y: number;
+    content: string;
+    isLatex: boolean;
+  };
+  // 获取文本信息
+}
+
+/**
+ * 文本样式接口，继承CommonStyle
+ */
+export interface TextStyle extends CommonStyle {
+  fontSize?: number; // 字体大小
+  fontFamily?: string; // 字体族
+  fontWeight?: string | number; // 字体粗细
+  textColor?: string; // 文本颜色
+  textOpacity?: number; // 文本透明度
+  backgroundColor?: string; // 背景颜色
+  backgroundOpacity?: number; // 背景透明度
+  padding?: number; // 内边距
+  borderRadius?: number; // 边框圆角
 }

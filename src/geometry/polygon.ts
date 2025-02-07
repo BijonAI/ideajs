@@ -31,6 +31,7 @@ export function polygon(points: { x: number; y: number }[]): Polygon {
     "path",
   );
   const d = pointsToPath(points);
+  let unit = 1;
   polygon.setAttribute("d", d);
 
   // 应用主题样式
@@ -45,7 +46,8 @@ export function polygon(points: { x: number; y: number }[]): Polygon {
   let vertexStyle = {
     size: 8, // 增大点的大小
     color: theme.colors.primary,
-    opacity: 1,
+    opacity: 0,
+    fill_opacity: 1,
     fill: theme.colors.primary,
     stroke: theme.colors.background, // 使用背景色作为描边
     strokeWidth: 2, // 增加描边宽度
@@ -62,6 +64,32 @@ export function polygon(points: { x: number; y: number }[]): Polygon {
   vertices.forEach((vertex) => group.appendChild(vertex));
 
   let dragEnabled = false;
+
+  // 点击图形时设置为可拖拽
+  group.addEventListener("click", (e) => {
+    e.stopPropagation(); // 阻止事件冒泡
+    if (group.dataset.draggable !== "true") {
+      group.dataset.draggable = "true";
+      vertices.forEach((vertex) => {
+        vertex.style.cursor = "move";
+        vertex.dataset.draggable = "true";
+        vertex.style.opacity = "1";
+      });
+    }
+  });
+  
+    // 点击其他地方时取消选中
+  document.addEventListener("click", (e) => {
+    const target = e.target as Element;
+    if (!group.contains(target)) {
+      group.dataset.draggable = "false";
+      vertices.forEach((vertex) => {
+        vertex.style.cursor = "default";
+        vertex.dataset.draggable = "false";
+        vertex.style.opacity = "0";
+      });
+    }
+    });
 
   // 更新顶点位置的函数
   // function updateVertexPosition(index: number) {
@@ -80,6 +108,33 @@ export function polygon(points: { x: number; y: number }[]): Polygon {
   const rtn = {
     node: () => group,
     points,
+    setUnit: (_unit: number) => {
+      unit = _unit;
+      // 更新所有点的位置
+      points = points.map((point, index) => {
+        const newPoint = {
+          x: point.x * unit,
+          y: point.y * unit
+        };
+        // 更新对应的顶点控制点
+        const vertex = vertices[index];
+        vertex.setAttribute("cx", newPoint.x.toString());
+        vertex.setAttribute("cy", (-newPoint.y).toString());
+        return newPoint;
+      });
+      // 更新多边形路径
+      updatePolygonPath();
+      return rtn;
+    },
+    info: () => {
+      // 添加长按事件处理
+      let infoData = {
+        ...rtn,
+        type: "polygon",
+        points: points.map((point) => ({ x: point.x / unit, y: point.y / unit })),
+      };
+      return infoData;
+    },
     setPoints,
     setPoint,
     insertBefore,
@@ -209,7 +264,7 @@ export function polygon(points: { x: number; y: number }[]): Polygon {
   function setPoints(points_: { x: number; y: number }[]) {
     // Update the stored points array
     points.length = 0;
-    points_.forEach((p) => points.push({ x: p.x, y: p.y }));
+    points_.forEach((p) => points.push({ x: p.x * unit, y: p.y * unit }));
 
     polygon.setAttribute("d", pointsToPath(points));
 
@@ -231,7 +286,7 @@ export function polygon(points: { x: number; y: number }[]): Polygon {
    */
   function setPoint(index: number, point: { x: number; y: number }) {
     // Update the stored points array
-    points[index] = { x: point.x, y: point.y };
+    points[index] = { x: point.x * unit, y: point.y * unit };
 
     // Update the polygon path
     polygon.setAttribute("d", pointsToPath(points));
@@ -251,7 +306,7 @@ export function polygon(points: { x: number; y: number }[]): Polygon {
    */
   function insertBefore(index: number, point: { x: number; y: number }) {
     // Insert the point into points array
-    points.splice(index, 0, { x: point.x, y: point.y });
+    points.splice(index, 0, { x: point.x * unit, y: point.y * unit });
 
     // Update the polygon path
     polygon.setAttribute("d", pointsToPath(points));
@@ -274,7 +329,7 @@ export function polygon(points: { x: number; y: number }[]): Polygon {
    * @returns 多边形对象
    */
   function insertAfter(index: number, point: { x: number; y: number }) {
-    points.splice(index + 1, 0, { x: point.x, y: point.y });
+    points.splice(index + 1, 0, { x: point.x * unit, y: point.y * unit });
 
     polygon.setAttribute("d", pointsToPath(points));
 
@@ -328,15 +383,14 @@ export function polygon(points: { x: number; y: number }[]): Polygon {
       "http://www.w3.org/2000/svg",
       "circle",
     );
-    vertex.setAttribute("cx", x.toString());
-    vertex.setAttribute("cy", (-y).toString());
+    vertex.setAttribute("cx", (x * unit).toString());
+    vertex.setAttribute("cy", (-y * unit).toString());
     vertex.style.cursor = "move";
     vertex.style.pointerEvents = "all";
 
     // Apply current vertex style
     applyVertexStyle(vertex);
-
-    // 添加数据属性用于动画更新
+    
     vertex.setAttribute("data-vertex", index.toString());
 
     return vertex;
@@ -349,9 +403,11 @@ export function polygon(points: { x: number; y: number }[]): Polygon {
   function applyVertexStyle(vertex: SVGCircleElement) {
     vertex.setAttribute("r", vertexStyle.size.toString());
     vertex.setAttribute("fill", vertexStyle.fill);
-    vertex.setAttribute("fill-opacity", vertexStyle.opacity.toString());
+    vertex.setAttribute("fill-opacity", vertexStyle.fill_opacity.toString());
     vertex.setAttribute("stroke", vertexStyle.stroke);
     vertex.setAttribute("stroke-width", vertexStyle.strokeWidth.toString());
+    vertex.setAttribute("opacity", vertexStyle.opacity.toString());
+
   }
 
   /**
@@ -771,7 +827,7 @@ export function polygon(points: { x: number; y: number }[]): Polygon {
               from !== undefined
                 ? parseFloat(from)
                 : currentPoints[index][coord as "x" | "y"];
-            vertexAnimations[prop] = { from: fromValue, to: parseFloat(to) };
+            vertexAnimations[prop] = { from: fromValue, to: parseFloat(to)};
           }
         }
       });
@@ -836,7 +892,7 @@ export function polygon(points: { x: number; y: number }[]): Polygon {
           const index = parseInt(prop.slice(1)) - 1;
           if (!isNaN(index) && index < points.length) {
             points[index][coord as "x" | "y"] =
-              from + (to - from) * easeProgress;
+              (from + (to - from) * easeProgress) * unit;
           }
         });
 
@@ -1014,7 +1070,7 @@ export function polygon(points: { x: number; y: number }[]): Polygon {
 
       draggable(
         vertex,
-        (_x, _y) => true,
+        () => group.dataset.draggable === "true",
         (x, y) => {
           if (!isDragging) {
             startDragX = x;
@@ -1034,6 +1090,12 @@ export function polygon(points: { x: number; y: number }[]): Polygon {
 
           // 更新视图
           updatePolygonPath();
+
+          // 触发自定义拖动事件
+          const dragEvent = new CustomEvent('polygon-drag', {
+            detail: { dx, dy }
+          });
+          polygon.dispatchEvent(dragEvent);
         },
       );
 

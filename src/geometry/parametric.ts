@@ -3,6 +3,10 @@
  * @description 参数方程曲线的实现，提供了丰富的曲线操作和动画功能
  */
 
+// TODO: 增加微积分相关功能，如微分、积分、等
+// TODO: 增加移动拉伸功能
+// TODO: 增加微分图像功能
+// TODO: 增加所有类的选中功能
 import { getTheme } from "../theme";
 import { Parametric, ParametricStyle } from "../interfaces/geometry";
 import {
@@ -14,6 +18,7 @@ import {
   AnimationStep,
 } from "../interfaces/common";
 import { gsap } from "gsap";
+import { draggable } from "../utils/draggable";
 
 /**
  * 创建参数方程曲线
@@ -38,11 +43,14 @@ export function parametric(
   fn: (t: number) => [number, number],
   range: [number, number] = [0, 1],
 ): Parametric & {
+  setUnit(unit: number): Parametric;
+  info(): Parametric;
   domain(min: number, max: number): Parametric;
   animate(options: Animation): Parametric;
+  animation(options: Animation): Parametric;
   animateDrawing(duration?: number): Parametric;
   discontinuity(points: number[]): Parametric;
-  derivative(): Parametric;
+  derivative(t: number, length: number): Parametric;
   integral(from?: number): Parametric;
   intersection(other: Parametric): { x: number; y: number }[];
   extrema(): { x: number; y: number }[];
@@ -57,10 +65,59 @@ export function parametric(
     newFn: (t: number) => [number, number],
     newRange?: [number, number],
   ): Parametric;
+  draggable(): Parametric;
+  morph(target: any, duration: number): Parametric;
+  riemannSum(n: number, method?: 'left' | 'right' | 'midpoint'): Parametric;
+  showRiemannRectangles(n: number, method?: 'left' | 'right' | 'midpoint'): Parametric;
+  normal(t: number, length: number): Parametric;
+  matrix(matrix: [[number, number, number], [number, number, number], [number, number, number]]): Parametric;
 } {
   // 创建SVG路径元素
   const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
   path.setAttribute("fill", "none");
+  path.setAttribute("range", range.join(","));
+  
+  // 创建控制点元素（用于拖拽）
+  const controlPoint = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+  controlPoint.setAttribute("r", "4");
+  controlPoint.setAttribute("fill", "#1a73e8");
+  controlPoint.style.cursor = "move";
+
+  // 设置控制点的初始位置在曲线中间
+  const midT = (range[0] + range[1]) / 2;
+  const [midX, midY] = fn(midT);
+  controlPoint.setAttribute("cx", midX.toString());
+  controlPoint.setAttribute("cy", midY.toString());
+  controlPoint.style.opacity = "0";
+
+  // 设置微分间隔
+  let divisions = 1;
+  path.setAttribute("divisions", divisions.toString());
+  
+  // 创建SVG组元素
+  const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
+  group.appendChild(path);
+  group.appendChild(controlPoint);
+  group.dataset.draggable = "false";
+
+  // 点击图形时设置为可拖拽
+  group.addEventListener("click", (e) => {
+    e.stopPropagation(); // 阻止事件冒泡
+    if (group.dataset.draggable !== "true") {
+      controlPoint.style.cursor = "move";
+      group.dataset.draggable = "true";
+      controlPoint.style.opacity = "1";
+    }
+  });
+
+  // 点击其他地方时取消选中
+  document.addEventListener("click", (e) => {
+    const target = e.target as Element;
+    if (!group.contains(target)) {
+      group.dataset.draggable = "false";
+      controlPoint.style.opacity = "0";
+    }
+  });
 
   // 曲线变换参数
   let scaleX = 1; // X轴缩放比例
@@ -72,11 +129,14 @@ export function parametric(
   let currentFn = fn; // 当前参数方程函数
   let unit = 1; // 单位长度
   let discontinuityPoints: number[] = []; // 不连续点列表
+  let t0 = 0; // 参数偏移量，用于平移
 
   // 应用主题样式
   const theme = getTheme();
   path.setAttribute("stroke", theme.colors.primary);
   path.setAttribute("stroke-width", theme.sizes.function.toString());
+  let isDragging = false; 
+
 
   /**
    * 生成SVG路径数据
@@ -90,7 +150,7 @@ export function parametric(
     // 遍历参数范围，计算每个点的位置
     for (let t = tMin; t <= tMax; t += step) {
       try {
-        const [x, y] = currentFn(t);
+        const [x, y] = currentFn(t + t0);
         const scaledX = x * scaleX;
         const scaledY = -y * scaleY;
 
@@ -141,21 +201,28 @@ export function parametric(
   // 返回对象，包含所有可用的操作方法
   const rtn = {
     // 基础操作
-    node: () => path,
-    stroke: (color?: string) => {
-      path.setAttribute("stroke", color || theme.colors.primary);
+    node: () => group,
+    setUnit: (_unit: number) => {
+      unit = _unit;
+      currentFn = (t: number) => {
+        const [x, y] = fn(t);
+        return [x * unit, y * unit];
+      };
+      const midT = (range[0] + range[1])/ 2;
+      const [midX, midY] = fn(midT);
+      controlPoint.setAttribute("cx", (midX*unit).toString());
+      controlPoint.setAttribute("cy", (-midY*unit).toString());
+      generatePath();
       return rtn;
     },
-    style: (options: ParametricStyle) => {
-      if (options.color) path.setAttribute("stroke", options.color);
-      if (options.width)
-        path.setAttribute("stroke-width", options.width.toString());
-      if (options.opacity)
-        path.setAttribute("opacity", options.opacity.toString());
-      if (options.dashArray)
-        path.setAttribute("stroke-dasharray", options.dashArray);
-      if (options.lineCap) path.setAttribute("stroke-linecap", options.lineCap);
-      return rtn;
+    info: () => {
+      let infoData = {
+        ...rtn,
+        type: "parametric",
+        function: fn.toString(),
+        range,
+      };
+      return infoData;
     },
 
     // 范围和采样设置
@@ -199,19 +266,76 @@ export function parametric(
     },
 
     // 数学运算
-    derivative: () => {
+    derivative: (t: number, length: number = 2) => {
       const h = (tMax - tMin) / 1000;
+      // 计算当前点坐标
+      const [x, y] = fn(t);
+      // 计算导数向量
+      const [x1, y1] = fn(t);
+      const [x2, y2] = fn(t + h);
+      const dx = (x2 - x1) / h;
+      const dy = (y2 - y1) / h;
+      
+      // 归一化导数向量
+      const magnitude = Math.sqrt(dx * dx + dy * dy);
+      const normalizedDx = dx / magnitude;
+      const normalizedDy = dy / magnitude;
+      
+      // 创建切线的参数方程
       return parametric(
-        (t: number) => {
-          const [x1, y1] = currentFn(t);
-          const [x2, y2] = currentFn(t + h);
-          return [(x2 - x1) / h, (y2 - y1) / h];
-        },
-        [tMin, tMax],
+        (s: number) => [
+          x + normalizedDx * length * (s - 0.5),
+          y + normalizedDy * length * (s - 0.5)
+        ],
+        [0, 1]
       )
-        .scale(scaleX, scaleY)
-        .offset(offsetX, offsetY)
-        .samples(samples);
+      .setUnit(unit)
+        // .stroke(theme.colors.primary);
+    },
+
+    normal: (t: number, length: number = 2) => {
+      const h = (tMax - tMin) / 1000;
+      // 计算当前点坐标
+      const [x, y] = fn(t);
+      // 计算导数向量
+      const [x1, y1] = fn(t);
+      const [x2, y2] = fn(t + h);
+      const dx = (x2 - x1) / h;
+      const dy = (y2 - y1) / h;
+      
+      // 归一化导数向量
+      const magnitude = Math.sqrt(dx * dx + dy * dy);
+      const normalizedDx = dx / magnitude;
+      const normalizedDy = dy / magnitude;
+      
+      // 计算法向量（将切向量逆时针旋转90度）
+      const normalDx = -normalizedDy;  // 垂直向量的x分量
+      const normalDy = normalizedDx;   // 垂直向量的y分量
+      
+      // 创建法线的参数方程
+      return parametric(
+        (s: number) => [
+          x + normalDx * length * (s - 0.5),
+          y + normalDy * length * (s - 0.5)
+        ],
+        [0, 1]
+      )
+      .setUnit(unit);
+    },
+
+    /**
+     * 对曲线应用矩阵变换，返回新的参数曲线
+     * @param matrix 3x3变换矩阵
+     * @returns 变换后的新参数曲线
+     */
+    matrix: (matrix: [[number, number, number], [number, number, number], [number, number, number]]) => {
+      return parametric((t: number) => {
+        const [x, y] = fn(t);
+        // 应用变换矩阵
+        const transformedX = matrix[0][0] * x + matrix[0][1] * y + matrix[0][2];
+        const transformedY = matrix[1][0] * x + matrix[1][1] * y + matrix[1][2];
+        return [transformedX, transformedY];
+      }, range).setUnit(unit);
     },
 
     // 动画效果
@@ -498,7 +622,7 @@ export function parametric(
         const targetPoints = targetD
           .split(/[ML]\s*/)
           .slice(1)
-          .map((point) => {
+          .map((point: { trim: () => string }) => {
             const [x, y] = point.trim().split(",").map(Number);
             return { x: x / unit, y: y / unit };
           });
@@ -532,6 +656,270 @@ export function parametric(
         });
       }
 
+      return rtn;
+    },
+    animation: (options: Animation) => {
+      const animations: string[] = [];
+      const styleProperties = new Set([
+        "fill",
+        "stroke",
+        "stroke-width",
+        "opacity",
+        "stroke-opacity",
+        "fill-opacity",
+      ]);
+
+      const delay = options.delay || 0;
+      const duration = options.duration || 300;
+
+      // 分离样式属性和位置属性
+      const styleAnimations: { [key: string]: { from: string; to: string } } = {};
+
+      if (options.properties) {
+        Object.entries(options.properties).forEach(([prop, { from, to }]) => {
+          if (styleProperties.has(prop)) {
+            const currentValue = path.style.getPropertyValue(prop) || path.getAttribute(prop) || "";
+            styleAnimations[prop] = {
+              from: from !== undefined ? from : currentValue,
+              to,
+            };
+            // 移除延迟，让所有动画同步开始
+            animations.push(`${prop} ${duration}ms ${options.easing || "ease"}`);
+          }
+        });
+      }
+
+      // 处理样式过渡
+      if (Object.keys(styleAnimations).length > 0) {
+        // 设置初始值
+        Object.entries(styleAnimations).forEach(([prop, { from }]) => {
+          path.style.setProperty(prop, from);
+          controlPoint.style.setProperty(prop, from);
+        });
+
+        // 等待延迟后再开始所有动画
+        setTimeout(() => {
+          path.style.transition = animations.join(", ");
+          controlPoint.style.transition = animations.join(", ");
+
+          requestAnimationFrame(() => {
+            Object.entries(styleAnimations).forEach(([prop, { to }]) => {
+              path.style.setProperty(prop, to);
+              controlPoint.style.setProperty(prop, to);
+            });
+          });
+        }, delay);
+      }
+
+      // 处理参数方程动画
+      if (options.properties && (options.properties.t || options.properties.range || options.properties.divisions)) {
+        const startTime = performance.now() + delay;
+        
+        // 内置缓动函数
+        function easeInOut(progress: number) {
+          return progress < 0.5
+            ? 2 * progress * progress
+            : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+        }
+
+        let requestID: number | null = null;
+
+        function animate(currentTime: number) {
+          if (currentTime < startTime) {
+            requestAnimationFrame(animate);
+            return;
+          }
+
+          const elapsed = currentTime - startTime;
+          const progress = Math.min(elapsed / duration, 1);
+          const easeProgress = options.easing ? easeInOut(progress) : progress;
+
+          // 更新参数范围
+          if (options.properties?.range) {
+            const { from: fromRange = range, to: toRange } = options.properties.range;
+            const [fromStart, fromEnd] = Array.isArray(fromRange) ? fromRange : range;
+            const [toStart, toEnd] = Array.isArray(toRange) ? toRange : range;
+            
+            const currentStart = fromStart + (toStart - fromStart) * easeProgress;
+            const currentEnd = fromEnd + (toEnd - fromEnd) * easeProgress;
+            range = [currentStart, currentEnd];
+            tMin = currentStart; // 更新内部参数范围
+            tMax = currentEnd;
+            
+            // 更新控制点位置
+            let midT = (tMax+tMin)/2
+            const [x, y] = fn(midT);
+            controlPoint.setAttribute("cx", (x * unit).toString());
+            controlPoint.setAttribute("cy", (-y * unit).toString());
+          }
+
+          // 更新divisions
+          if (options.properties?.divisions) {
+            const { from = divisions, to } = options.properties.divisions;
+            const currentDivisions = Math.round(from + (to - from) * easeProgress);
+            divisions = currentDivisions;
+
+            samples = Math.min(currentDivisions * 2, 300);
+            path.setAttribute("divisions", divisions.toString());
+
+            if (!requestID) {
+              requestID = requestAnimationFrame(() => {
+                generatePath();
+                // 更新控制点位置
+                let midT = (tMax+tMin)/2
+                const [x, y] = fn(midT);
+                controlPoint.setAttribute("cx", (x * unit).toString());
+                controlPoint.setAttribute("cy", (-y * unit).toString());
+                requestID = null;
+              });
+            }
+            const riemannGroup = group.querySelector('.riemann-rectangles');
+            if (riemannGroup) {
+              rtn.showRiemannRectangles(divisions);
+            }
+          }
+
+          if (progress < 1) {
+            requestAnimationFrame(animate);
+          } else {
+            if (options.onEnd) {
+              options.onEnd();
+            }
+          }
+        }
+
+        requestAnimationFrame(animate);
+      }
+
+      options.onStart?.();
+      if (options.onEnd) {
+        setTimeout(options.onEnd, duration + delay);
+      }
+
+      return rtn;
+    },
+
+    // 使曲线可拖拽
+    draggable: () => {
+      let startDragX = 0;
+      let startDragY = 0;
+      let startTMin = 0;
+      let startTMax = 0;
+
+      controlPoint.style.display = "block";
+
+      // 记录拖拽开始时的偏移量和上一次的拖动距离
+      controlPoint.addEventListener("mousedown", (e) => {
+        isDragging = true;
+        e.preventDefault();
+        document.body.style.userSelect = "none";
+      });
+
+      draggable(controlPoint, () => group.dataset.draggable === "true", (x: number, y: number) => {
+        if (!isDragging) {
+          startDragX = x;
+          startDragY = y;
+          startTMin = Number(path.getAttribute("range")?.split(" ")?.[0]) || 0;
+          startTMax = Number(path.getAttribute("range")?.split(" ")?.[1]) || 0;
+          console.log(startTMin, startTMax);
+          isDragging = true;
+        }
+        
+        // 更新整条曲线的偏移量
+        const dx = x - startDragX + midX;
+        const dy = y - startDragY - midY;
+        console.log(dx, dy);
+        path.setAttribute("transform", `translate(${dx}, ${dy})`);
+        const riemannGroup = group.querySelector('.riemann-rectangles');
+        if (riemannGroup) {
+          rtn.showRiemannRectangles(divisions);
+        }
+
+        const dragEvent = new CustomEvent('parametric-drag', {
+          detail: { dx, dy }
+        });
+        path.dispatchEvent(dragEvent);
+      });
+      
+      window.addEventListener("mouseup", () => {
+        if (isDragging) {
+          isDragging = false;
+          startDragX = 0;
+          startDragY = 0;
+          startTMin = 0;
+          startTMax = 0;
+        }
+        document.body.style.userSelect = "none";
+      });
+
+      return rtn;
+    },
+
+    riemannSum: (n: number, method: 'left' | 'right' | 'midpoint' = 'midpoint') => {
+      const [a, b] = range;
+      const dx = (b - a) / n;
+      const rectangles: { x: number; y: number; width: number; height: number }[] = [];
+
+      const transform = path.getAttribute("transform");
+      const match = transform ? transform.match(/translate\(([-\d.]+),\s*([-\d.]+)\)/) : null;
+      const [dx_transform, dy_transform] = match ? [parseFloat(match[1]), parseFloat(match[2])] : [0, 0];
+
+      for (let i = 0; i < n; i++) {
+        let t;
+        switch (method) {
+          case "left":
+            t = a + i * dx;
+            break;
+          case "right":
+            t = a + (i + 1) * dx;
+            break;
+          default: // midpoint
+            t = a + (i + 0.5) * dx;
+            break;
+        }
+        const [x, y] = fn(t);
+        const transformedY = (y - dy_transform/unit);
+        rectangles.push({
+          x: (x - dx/2 + dx_transform/unit) * unit,
+          y: transformedY * unit,
+          width: dx * unit,
+          height: -transformedY * unit
+        });
+      }
+
+      return { rectangles };
+    },
+
+    showRiemannRectangles: (n: number, method: 'left' | 'right' | 'midpoint' = 'midpoint') => {
+      divisions = n;
+      const { rectangles } = rtn.riemannSum(n, method);
+      let riemannGroup = group.querySelector('.riemann-rectangles');
+      if (!riemannGroup) {
+        riemannGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        riemannGroup.classList.add('riemann-rectangles');
+        group.insertBefore(riemannGroup, path);  // 将矩形组插入到 path 之前
+      }
+      riemannGroup.setAttribute('data-method', method);
+      
+      // 清空现有矩形
+      while (riemannGroup.firstChild) {
+        riemannGroup.removeChild(riemannGroup.firstChild);
+      }
+
+      rectangles.forEach(rect => {
+        const rectElement = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        rectElement.setAttribute('x', rect.x.toString());
+        rectElement.setAttribute('y', rect.height > 0 ? '0' : rect.height.toString());
+        rectElement.setAttribute('width', rect.width.toString());
+        rectElement.setAttribute('height', Math.abs(rect.height).toString());
+        rectElement.setAttribute('fill', getTheme().colors.primary);
+        rectElement.setAttribute('fill-opacity', '0.3');
+        rectElement.setAttribute('stroke', getTheme().colors.primary);
+        rectElement.setAttribute('stroke-width', '1');
+        
+        riemannGroup.appendChild(rectElement);
+      });
+      
       return rtn;
     },
   };

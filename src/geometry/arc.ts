@@ -38,10 +38,32 @@ export function arc(x: number, y: number, radius: number = 50): Arc {
   const theme = getTheme();
   arc.setAttribute("stroke", theme.colors.primary);
   arc.setAttribute("fill", "none");
-
+  let unit = 1;
   // 返回对象，包含所有可用的操作方法
   const rtn = {
     node: () => arc,
+    setUnit: (_unit: number) => {
+      unit = _unit;
+      x = x * unit;
+      y = y * unit;
+      radius = radius * unit;
+      // 更新圆弧的位置和大小
+      arc.setAttribute("x1", (x).toString());
+      arc.setAttribute("y1", (-y).toString());
+      arc.setAttribute("r", (radius).toString());
+      arc.setAttribute("d", describeArc(x, -y, radius, 0, 0));
+      return rtn;
+    },
+    info: () => {
+      let infoData = {
+        ...rtn,
+        type: "arc",
+        x: x / unit,
+        y: y / unit,
+        radius: radius / unit,
+      };
+      return infoData;
+    },
     from,
     to,
     stroke,
@@ -347,13 +369,13 @@ export function arc(x: number, y: number, radius: number = 50): Arc {
     if (options.properties) {
       // 先设置初始位置
       if (options.properties["x1"]?.from !== undefined) {
-        fromX = Number(options.properties["x1"].from);
+        fromX = Number(options.properties["x1"].from*unit);
       }
       if (options.properties["y1"]?.from !== undefined) {
-        fromY = Number(options.properties["y1"].from);
+        fromY = Number(options.properties["y1"].from*unit);
       }
       if (options.properties["r"]?.from !== undefined) {
-        fromRadius = Number(options.properties["r"].from);
+        fromRadius = Number(options.properties["r"].from*unit);
       }
       if (options.properties["startAngle"]?.from !== undefined) {
         fromStartAngle = Number(options.properties["startAngle"].from);
@@ -369,9 +391,9 @@ export function arc(x: number, y: number, radius: number = 50): Arc {
       );
 
       Object.entries(options.properties).forEach(([prop, { from, to }]) => {
-        if (prop === "x1") toX = Number(to);
-        else if (prop === "y1") toY = Number(to);
-        else if (prop === "r") toRadius = Number(to);
+        if (prop === "x1") toX = Number(to)*unit;
+        else if (prop === "y1") toY = Number(to)*unit;
+        else if (prop === "r") toRadius = Number(to)*unit;
         else if (prop === "startAngle") toStartAngle = Number(to);
         else if (prop === "endAngle") toEndAngle = Number(to);
         else {
