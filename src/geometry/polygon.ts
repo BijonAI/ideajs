@@ -128,34 +128,12 @@ export function polygon(points: { x: number; y: number }[]): Polygon {
     },
     info: () => {
       // 添加长按事件处理
-      let longPressTimer: number | null = null;
       let infoData = {
+        ...rtn,
         type: "polygon",
-        points: points.map((point) => [point.x / unit, point.y / unit]),
+        points: points.map((point) => ({ x: point.x / unit, y: point.y / unit })),
       };
-
-      const handlePointerDown = () => {
-        longPressTimer = window.setTimeout(() => {
-          console.log("Polygon Info:", infoData);
-        }, 500);
-      };
-
-      const handlePointerUp = () => {
-        if (longPressTimer) {
-          clearTimeout(longPressTimer);
-          longPressTimer = null;
-        }
-      };
-
-      const handlePointerLeave = () => {
-        handlePointerUp();
-      };
-
-      group.addEventListener("pointerdown", handlePointerDown);
-      group.addEventListener("pointerup", handlePointerUp);
-      group.addEventListener("pointerleave", handlePointerLeave);
-      console.log("Polygon Info:", infoData);
-      return rtn;
+      return infoData;
     },
     setPoints,
     setPoint,
@@ -810,7 +788,7 @@ export function polygon(points: { x: number; y: number }[]): Polygon {
           const coord = prop.charAt(0);
           const index = parseInt(prop.slice(1)) - 1;
           if (!isNaN(index) && index < points.length) {
-            points[index][coord as "x" | "y"] = parseFloat(from) * unit;
+            points[index][coord as "x" | "y"] = parseFloat(from);
           }
         }
       });
@@ -847,9 +825,9 @@ export function polygon(points: { x: number; y: number }[]): Polygon {
           if (!isNaN(index) && index < points.length) {
             const fromValue =
               from !== undefined
-                ? parseFloat(from) * unit
+                ? parseFloat(from)
                 : currentPoints[index][coord as "x" | "y"];
-            vertexAnimations[prop] = { from: fromValue, to: parseFloat(to) * unit };
+            vertexAnimations[prop] = { from: fromValue, to: parseFloat(to)};
           }
         }
       });

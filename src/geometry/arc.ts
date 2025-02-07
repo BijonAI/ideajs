@@ -55,36 +55,14 @@ export function arc(x: number, y: number, radius: number = 50): Arc {
       return rtn;
     },
     info: () => {
-      let longPressTimer: number | null = null;
       let infoData = {
+        ...rtn,
         type: "arc",
         x: x / unit,
         y: y / unit,
         radius: radius / unit,
       };
-
-      const handlePointerDown = () => {
-        longPressTimer = window.setTimeout(() => {
-          console.log("Arc Info:", infoData);
-        }, 500);
-      };
-
-      const handlePointerUp = () => {
-        if (longPressTimer) {
-          clearTimeout(longPressTimer);
-          longPressTimer = null;
-        }
-      };
-
-      const handlePointerLeave = () => {
-        handlePointerUp();
-      };
-
-      arc.addEventListener("pointerdown", handlePointerDown);
-      arc.addEventListener("pointerup", handlePointerUp);
-      arc.addEventListener("pointerleave", handlePointerLeave);
-      console.log("Arc Info:", infoData);
-      return rtn;
+      return infoData;
     },
     from,
     to,

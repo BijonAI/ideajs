@@ -402,37 +402,15 @@ export function vector(x1: number, y1: number, x2: number, y2: number): Vector {
     },
     info: () => {
       // 添加长按事件处理
-      let longPressTimer: number | null = null;
       let infoData = {
+        ...rtn,
         type: "vector",
         x1: x1 / unit,
         y1: y1 / unit,
         x2: x2 / unit,
         y2: y2 / unit,
       };
-
-      const handlePointerDown = () => {
-        longPressTimer = window.setTimeout(() => {
-          console.log("Vector Info:", infoData);
-        }, 500);
-      };
-
-      const handlePointerUp = () => {
-        if (longPressTimer) {
-          clearTimeout(longPressTimer);
-          longPressTimer = null;
-        }
-      };
-
-      const handlePointerLeave = () => {
-        handlePointerUp();
-      };
-
-      vector.addEventListener("pointerdown", handlePointerDown);
-      vector.addEventListener("pointerup", handlePointerUp);
-      vector.addEventListener("pointerleave", handlePointerLeave);
-      console.log("Vector Info:", infoData);
-      return rtn;
+      return infoData;
     },
     draggable: enableDragging,
   };

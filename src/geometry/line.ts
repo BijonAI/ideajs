@@ -98,38 +98,15 @@ export function line(x1: number, y1: number, x2: number, y2: number): Line {
     node: () => lineGroup, // 返回当前线段的 SVG 元素
     from, // 设置起始点
     info: () => {
-      // 添加长按事件处理
-      let longPressTimer: number | null = null;
       let infoData = {
+        ...rtn,
         type: "line",
         x1: x1 / unit,
         y1: y1 / unit,
         x2: x2 / unit,
         y2: y2 / unit,
       };
-
-      const handlePointerDown = () => {
-        longPressTimer = window.setTimeout(() => {
-          console.log("Line Info:", infoData);
-        }, 500);
-      };
-
-      const handlePointerUp = () => {
-        if (longPressTimer) {
-          clearTimeout(longPressTimer);
-          longPressTimer = null;
-        }
-      };
-
-      const handlePointerLeave = () => {
-        handlePointerUp();
-      };
-
-      lineGroup.addEventListener("pointerdown", handlePointerDown);
-      lineGroup.addEventListener("pointerup", handlePointerUp);
-      lineGroup.addEventListener("pointerleave", handlePointerLeave);
-      console.log("Line Info:", infoData);
-      return rtn;
+      return infoData;
     },
     to, // 设置结束点
     stroke, // 设置线段颜色

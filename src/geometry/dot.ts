@@ -146,35 +146,13 @@ export function dot(x: number, y: number) {
     node,
     info: () => {
       // 添加长按事件处理
-      let longPressTimer: number | null = null;
       let infoData = {
+        ...rtn,
         type: "dot",
         x: x / unit,
         y: y / unit,
       };
-
-      // const handlePointerDown = () => {
-      //   longPressTimer = window.setTimeout(() => {
-      //     console.log("Dot Info:", infoData);
-      //   }, 500);
-      // };
-
-      // const handlePointerUp = () => {
-      //   if (longPressTimer) {
-      //     clearTimeout(longPressTimer);
-      //     longPressTimer = null;
-      //   }
-      // };
-
-      // const handlePointerLeave = () => {
-      //   handlePointerUp();
-      // };
-
-      // circle.addEventListener("pointerdown", handlePointerDown);
-      // circle.addEventListener("pointerup", handlePointerUp);
-      // circle.addEventListener("pointerleave", handlePointerLeave);
-      console.log("Dot Info:", infoData);
-      return rtn;
+      return infoData;
     },
     resize,
     stroke,

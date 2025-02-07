@@ -216,51 +216,13 @@ export function parametric(
       return rtn;
     },
     info: () => {
-      // 添加长按事件处理
-      let longPressTimer: number | null = null;
       let infoData = {
+        ...rtn,
         type: "parametric",
         function: fn.toString(),
         range,
       };
-
-      const handlePointerDown = () => {
-        longPressTimer = window.setTimeout(() => {
-          console.log("Parametric Info:", infoData);
-        }, 500);
-      };
-
-      const handlePointerUp = () => {
-        if (longPressTimer) {
-          clearTimeout(longPressTimer);
-          longPressTimer = null;
-        }
-      };
-
-      const handlePointerLeave = () => {
-        handlePointerUp();
-      };
-
-      group.addEventListener("pointerdown", handlePointerDown);
-      group.addEventListener("pointerup", handlePointerUp);
-      group.addEventListener("pointerleave", handlePointerLeave);
-      console.log("Parametric Info:", infoData);
-      return rtn;
-    },
-    stroke: (color?: string) => {
-      path.setAttribute("stroke", color || theme.colors.primary);
-      return rtn;
-    },
-    style: (options: ParametricStyle) => {
-      if (options.color) path.setAttribute("stroke", options.color);
-      if (options.width)
-        path.setAttribute("stroke-width", options.width.toString());
-      if (options.opacity)
-        path.setAttribute("opacity", options.opacity.toString());
-      if (options.dashArray)
-        path.setAttribute("stroke-dasharray", options.dashArray);
-      if (options.lineCap) path.setAttribute("stroke-linecap", options.lineCap);
-      return rtn;
+      return infoData;
     },
 
     // 范围和采样设置
