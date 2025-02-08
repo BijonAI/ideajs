@@ -66,7 +66,7 @@ export function polygon(points: { x: number; y: number }[]): Polygon {
   let dragEnabled = false;
 
   // 点击图形时设置为可拖拽
-  group.addEventListener("click", (e) => {
+  group.addEventListener("pointerdown", (e) => {
     e.stopPropagation(); // 阻止事件冒泡
     if (group.dataset.draggable !== "true") {
       group.dataset.draggable = "true";
@@ -79,7 +79,7 @@ export function polygon(points: { x: number; y: number }[]): Polygon {
   });
   
     // 点击其他地方时取消选中
-  document.addEventListener("click", (e) => {
+  document.addEventListener("pointerup", (e) => {
     const target = e.target as Element;
     if (!group.contains(target)) {
       group.dataset.draggable = "false";
@@ -1100,14 +1100,14 @@ export function polygon(points: { x: number; y: number }[]): Polygon {
       );
 
       // 添加鼠标抬起事件处理
-      const handleMouseUp = () => {
-        startDragX = 0;
-        startDragY = 0;
-        endDragX = 0;
-        endDragY = 0;
-        isDragging = false;
-      };
-      vertex.addEventListener("mouseup", handleMouseUp);
+      // const handleMouseUp = () => {
+      //   startDragX = 0;
+      //   startDragY = 0;
+      //   endDragX = 0;
+      //   endDragY = 0;
+      //   isDragging = false;
+      // };
+      // vertex.addEventListener("mouseup", handleMouseUp);
       document.body.style.userSelect = "none";
     });
 

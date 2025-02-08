@@ -17,9 +17,10 @@ const coord = idea.axes().grid(25).ticks(50);
 
 // 创建线段
 const line = idea
-  .line(100, 100, 200, 200)
+  .line(1, 1, 2, 2)
   // .from(50, 50)
-  .to(200, 200)
+  // .to(2, 2)
+  .setUnit(50)
   // .stroke("#FF0000")
   // .style({
   //   pointSize: 10,

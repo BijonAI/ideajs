@@ -67,7 +67,7 @@ export function line(x1: number, y1: number, x2: number, y2: number): Line {
   lineGroup.dataset.draggable = "false";
 
   // 点击线段时设置为可拖拽
-  lineGroup.addEventListener("click", (e) => {
+  lineGroup.addEventListener("pointerdown", (e) => {
     e.stopPropagation(); // 阻止事件冒泡
     if (lineGroup.dataset.draggable !== "true") {
       lineGroup.dataset.draggable = "true";
@@ -77,7 +77,7 @@ export function line(x1: number, y1: number, x2: number, y2: number): Line {
   });
 
   // 点击其他地方时取消选中
-  document.addEventListener("click", (e) => {
+  document.addEventListener("pointerup", (e) => {
     const target = e.target as Element;
     if (!lineGroup.contains(target)) {
       lineGroup.dataset.draggable = "false";
@@ -1081,23 +1081,23 @@ export function line(x1: number, y1: number, x2: number, y2: number): Line {
       startPoint,
       () => lineGroup.dataset.draggable === "true",
       (x, y) => {
-        if (!isDraggingStart) {
-          startDragX = x;
-          startDragY = y;
-          startLineX = Number(lineElement.getAttribute("x1"));
-          startLineY = Number(lineElement.getAttribute("y1"));
-          isDraggingStart = true;
-        }
+        // if (!isDraggingStart) {
+        //   startDragX = x;
+        //   startDragY = y;
+        //   startLineX = Number(lineElement.getAttribute("x1"));
+        //   startLineY = Number(lineElement.getAttribute("y1"));
+        //   isDraggingStart = true;
+        // }
 
-        const dx = x - startDragX + x1;
-        const dy = y - startDragY - y1;
+        // const dx = x - startDragX + x1;
+        // const dy = y - startDragY - y1;
 
-        // 更新线段起点位置
-        const newX = startLineX + dx;
-        const newY = startLineY + dy;
+        // // 更新线段起点位置
+        // const newX = startLineX + dx;
+        // const newY = startLineY + dy;
 
-        lineElement.setAttribute("x1", newX.toString());
-        lineElement.setAttribute("y1", newY.toString());
+        lineElement.setAttribute("x1", (x+x1).toString());
+        lineElement.setAttribute("y1", (y-y1).toString());
       },
     );
 
@@ -1111,55 +1111,55 @@ export function line(x1: number, y1: number, x2: number, y2: number): Line {
       endPoint,
       () => lineGroup.dataset.draggable === "true",
       (x, y) => {
-        if (!isDraggingEnd) {
-          endDragX = x;
-          endDragY = y;
-          endLineX = Number(lineElement.getAttribute("x2"));
-          endLineY = Number(lineElement.getAttribute("y2"));
-          isDraggingEnd = true;
-        }
+        // if (!isDraggingEnd) {
+        //   endDragX = x;
+        //   endDragY = y;
+        //   endLineX = Number(lineElement.getAttribute("x2"));
+        //   endLineY = Number(lineElement.getAttribute("y2"));
+        //   isDraggingEnd = true;
+        // }
 
-        const dx = x - endDragX + x2;
-        const dy = y - endDragY - y2;
+        // const dx = x - endDragX + x2;
+        // const dy = y - endDragY - y2;
 
-        const newX = endLineX + dx;
-        const newY = endLineY + dy;
+        // const newX = endLineX + dx;
+        // const newY = endLineY + dy;
 
-        lineElement.setAttribute("x2", newX.toString());
-        lineElement.setAttribute("y2", newY.toString());
+        lineElement.setAttribute("x2", (x+x2).toString());
+        lineElement.setAttribute("y2", (y-y2).toString());
       },
     );
 
     // 状态管理
-    startPoint.addEventListener("mousedown", (e) => {
-      isDraggingStart = true;
-      e.preventDefault();
-      document.body.style.userSelect = "none";
-    });
+    // startPoint.addEventListener("touchstart", (e) => {
+    //   isDraggingStart = true;
+    //   e.preventDefault();
+    //   document.body.style.userSelect = "none";
+    // });
 
-    endPoint.addEventListener("mousedown", (e) => {
-      isDraggingEnd = true;
-      e.preventDefault();
-      document.body.style.userSelect = "none";
-    });
+    // endPoint.addEventListener("touchstart", (e) => {
+    //   isDraggingEnd = true;
+    //   e.preventDefault();
+    //   document.body.style.userSelect = "none";
+    // });
 
-    window.addEventListener("mouseup", () => {
-      if (isDraggingStart) {
-        isDraggingStart = false;
-        startDragX = 0;
-        startDragY = 0;
-        startLineX = 0;
-        startLineY = 0;
-      }
-      if (isDraggingEnd) {
-        isDraggingEnd = false;
-        endDragX = 0;
-        endDragY = 0;
-        endLineX = 0;
-        endLineY = 0;
-      }
-      document.body.style.userSelect = "none";
-    });
+    // window.addEventListener("mouseup", () => {
+    //   if (isDraggingStart) {
+    //     isDraggingStart = false;
+    //     startDragX = 0;
+    //     startDragY = 0;
+    //     startLineX = 0;
+    //     startLineY = 0;
+    //   }
+    //   if (isDraggingEnd) {
+    //     isDraggingEnd = false;
+    //     endDragX = 0;
+    //     endDragY = 0;
+    //     endLineX = 0;
+    //     endLineY = 0;
+    //   }
+    //   document.body.style.userSelect = "none";
+    // });
 
     return rtn;
   }

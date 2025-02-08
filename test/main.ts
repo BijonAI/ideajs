@@ -5,7 +5,7 @@ const canvas = idea.field(1000, 800);
 document.body.appendChild(canvas.node());
 
 // 创建坐标系
-const coord = idea.plane(1000, 800).grid(50).axes("#ff0000").ticks(50);
+const coord = idea.plane().grid().axes().ticks(50);
 canvas.add(coord);
 
 function createMathArt() {

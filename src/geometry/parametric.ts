@@ -101,7 +101,7 @@ export function parametric(
   group.dataset.draggable = "false";
 
   // 点击图形时设置为可拖拽
-  group.addEventListener("click", (e) => {
+  group.addEventListener("pointerdown", (e) => {
     e.stopPropagation(); // 阻止事件冒泡
     if (group.dataset.draggable !== "true") {
       controlPoint.style.cursor = "move";
@@ -111,7 +111,7 @@ export function parametric(
   });
 
   // 点击其他地方时取消选中
-  document.addEventListener("click", (e) => {
+  document.addEventListener("pointerup", (e) => {
     const target = e.target as Element;
     if (!group.contains(target)) {
       group.dataset.draggable = "false";
@@ -809,21 +809,21 @@ export function parametric(
       controlPoint.style.display = "block";
 
       // 记录拖拽开始时的偏移量和上一次的拖动距离
-      controlPoint.addEventListener("mousedown", (e) => {
+      controlPoint.addEventListener("touchdown", (e) => {
         isDragging = true;
         e.preventDefault();
         document.body.style.userSelect = "none";
       });
 
       draggable(controlPoint, () => group.dataset.draggable === "true", (x: number, y: number) => {
-        if (!isDragging) {
-          startDragX = x;
-          startDragY = y;
-          startTMin = Number(path.getAttribute("range")?.split(" ")?.[0]) || 0;
-          startTMax = Number(path.getAttribute("range")?.split(" ")?.[1]) || 0;
-          console.log(startTMin, startTMax);
-          isDragging = true;
-        }
+        // if (!isDragging) {
+        //   startDragX = x;
+        //   startDragY = y;
+        //   startTMin = Number(path.getAttribute("range")?.split(" ")?.[0]) || 0;
+        //   startTMax = Number(path.getAttribute("range")?.split(" ")?.[1]) || 0;
+        //   console.log(startTMin, startTMax);
+        //   isDragging = true;
+        // }
         
         // 更新整条曲线的偏移量
         const dx = x - startDragX + midX;
@@ -841,16 +841,16 @@ export function parametric(
         path.dispatchEvent(dragEvent);
       });
       
-      window.addEventListener("mouseup", () => {
-        if (isDragging) {
-          isDragging = false;
-          startDragX = 0;
-          startDragY = 0;
-          startTMin = 0;
-          startTMax = 0;
-        }
-        document.body.style.userSelect = "none";
-      });
+      // window.addEventListener("touchup", () => {
+      //   if (isDragging) {
+      //     isDragging = false;
+      //     startDragX = 0;
+      //     startDragY = 0;
+      //     startTMin = 0;
+      //     startTMax = 0;
+      //   }
+      //   document.body.style.userSelect = "none";
+      // });
 
       return rtn;
     },

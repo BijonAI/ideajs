@@ -53,7 +53,8 @@ export function text(x: number, y: number, width: number, height: number, conten
           displayMode: false,
           strict: false,
           trust: true,
-          fleqn: true
+          fleqn: true,
+          output: "mathml"
         });
       } catch (error) {
         console.error("LaTeX Error:", error);

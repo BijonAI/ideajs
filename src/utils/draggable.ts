@@ -1,6 +1,6 @@
 /**
  * @file draggable.ts
- * @description 提供使SVG元素可拖拽的功能
+ * @description 提供使SVG元素可拖拽的功能，支持鼠标和触摸事件
  */
 
 /**
@@ -15,7 +15,6 @@ export function draggable(
   condition?: (x: number, y: number) => boolean,
   callback?: (x: number, y: number) => void,
 ) {
-  // 记录拖拽相关的坐标
   let x = 0;
   let y = 0;
   let startX = 0;
@@ -24,60 +23,85 @@ export function draggable(
   let currentY = 0;
 
   /**
-   * 处理鼠标按下事件
-   * @param event 鼠标事件对象
+   * 处理拖拽开始事件（鼠标/触摸）
    */
-  function handleMouseDown(event: MouseEvent) {
-    x = event.clientX;
-    y = event.clientY;
+  function handleStart(event: MouseEvent | TouchEvent) {
+    // 阻止默认行为，防止触摸时页面滚动
+    event.preventDefault();
+    
+    if (event instanceof MouseEvent) {
+      x = event.clientX;
+      y = event.clientY;
+      window.addEventListener("mousemove", handleMove);
+      window.addEventListener("mouseup", handleEnd);
+    } else if (event instanceof TouchEvent) {
+      const touch = event.touches[0];
+      x = touch.clientX;
+      y = touch.clientY;
+      window.addEventListener("touchmove", handleMove, { passive: false });
+      window.addEventListener("touchend", handleEnd);
+    }
+
     startX = currentX;
     startY = currentY;
-
-    // 添加鼠标移动和抬起事件监听器
-    window.addEventListener("mousemove", handleMouseMove);
-    window.addEventListener("mouseup", handleMouseUp);
+    document.body.style.userSelect = "none";
   }
 
   /**
-   * 处理鼠标移动事件
-   * @param event 鼠标事件对象
+   * 处理移动事件（鼠标/触摸）
    */
-  function handleMouseMove(event: MouseEvent) {
-    // 计算鼠标移动的距离
-    const dx = event.clientX - x;
-    const dy = event.clientY - y;
+  function handleMove(event: MouseEvent | TouchEvent) {
+    // 阻止默认行为，防止触摸时页面滚动
+    event.preventDefault();
+    
+    let clientX, clientY;
 
-    // 更新元素当前位置
-    currentX = startX + dx;
-    currentY = startY + dy;
-
-    // 如果设置了条件函数且不满足条件，则停止拖拽
-    if (condition && !condition(currentX, currentY)) {
-      handleMouseUp();
+    if (event instanceof MouseEvent) {
+      clientX = event.clientX;
+      clientY = event.clientY;
+    } else if (event instanceof TouchEvent) {
+      const touch = event.touches[0];
+      clientX = touch.clientX;
+      clientY = touch.clientY;
+    } else {
       return;
     }
 
-    // 更新元素位置并触发回调
+    const dx = clientX - x;
+    const dy = clientY - y;
+
+    currentX = startX + dx;
+    currentY = startY + dy;
+
+    if (condition && !condition(currentX, currentY)) {
+      handleEnd();
+      return;
+    }
+
     node.setAttribute("transform", `translate(${currentX}, ${currentY})`);
     callback?.(currentX, currentY);
   }
 
   /**
-   * 处理鼠标抬起事件
-   * 移除事件监听器，结束拖拽
+   * 处理拖拽结束事件（鼠标/触摸）
    */
-  function handleMouseUp() {
-    window.removeEventListener("mousemove", handleMouseMove);
-    window.removeEventListener("mouseup", handleMouseUp);
+  function handleEnd() {
+    window.removeEventListener("mousemove", handleMove);
+    window.removeEventListener("mouseup", handleEnd);
+    window.removeEventListener("touchmove", handleMove);
+    window.removeEventListener("touchend", handleEnd);
+    document.body.style.userSelect = "auto";
   }
 
-  // 添加鼠标按下事件监听器
-  node.addEventListener("mousedown", handleMouseDown);
+  // 绑定事件监听器，设置 passive: false 以允许阻止默认行为
+  node.addEventListener("mousedown", handleStart);
+  node.addEventListener("touchstart", handleStart, { passive: false });
 
-  // 返回清理函数
   return {
     destroy() {
-      node.removeEventListener("mousedown", handleMouseDown);
+      node.removeEventListener("mousedown", handleStart);
+      node.removeEventListener("touchstart", handleStart);
+      handleEnd();
     },
   };
 }

@@ -37,7 +37,7 @@ export function dot(x: number, y: number) {
   circle.dataset.draggable = "false";
 
   // 点击图形时设置为可拖拽
-  circle.addEventListener("click", (e) => {
+  circle.addEventListener("pointerdown", (e) => {
     e.stopPropagation(); // 阻止事件冒泡
     if (circle.dataset.draggable !== "true") {
       circle.dataset.draggable = "true";
@@ -46,7 +46,7 @@ export function dot(x: number, y: number) {
   });
 
   // 点击其他地方时取消选中
-  document.addEventListener("click", (e) => {
+  document.addEventListener("pointerup", (e) => {
     if (e.target !== circle) {
       circle.dataset.draggable = "false";
       circle.style.cursor = "default";
@@ -364,10 +364,10 @@ export function dot(x: number, y: number) {
     selectEvents.forEach((callback) => callback());
     const oldColor = circle.getAttribute("stroke") || "#000000"; // Provide default color if attribute is null
     let isMouseOver = false;
-    circle.addEventListener("mousedown", () => {
+    circle.addEventListener("touchstart", () => {
       isMouseOver = true;
     });
-    circle.addEventListener("mouseout", () => {
+    circle.addEventListener("touchend", () => {
       isMouseOver = false;
     });
     circle.addEventListener("click", () => {

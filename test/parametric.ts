@@ -3,7 +3,7 @@ import * as idea from "../src";
 const canvas = idea.field(1000, 800);
 document.body.appendChild(canvas.node());
 
-const coord = idea.plane(1000, 800).grid(50).axes("#ff0000").ticks(50);
+const coord = idea.plane().grid(50).axes("#ff0000").ticks(50);
 const parametric = idea.parametric(
     (t: number) => [
         2*Math.cos(t),

@@ -7,12 +7,13 @@ document.body.appendChild(canvas.node());
 const coord = idea.plane().grid(50).axes().ticks(50);
 
 const equations = [
-  "\\e^{i\\pi} + 1 = 0",
+  "x^2 + y^2 = 1",
 ];
 
 equations.forEach((eq, i) => {
   const latex = idea
-    .text(100, 200 + i * 100, 300, 80, eq, true)
+    .text(1, 2 + i * 1, 300, 80, eq, true)
+    .setUnit(50)
     .style({
       fontSize: 20,
       textColor: "#2196f3",

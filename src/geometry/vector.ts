@@ -67,7 +67,7 @@ export function vector(x1: number, y1: number, x2: number, y2: number): Vector {
   vector.append(line, startPoint, arrow);
   vector.dataset.draggable = "false";
 
-  vector.addEventListener("click", (e) => {
+  vector.addEventListener("pointerdown", (e) => {
     e.stopPropagation(); // 阻止事件冒泡
     if (vector.dataset.draggable !== "true") {
       vector.dataset.draggable = "true";
@@ -76,7 +76,7 @@ export function vector(x1: number, y1: number, x2: number, y2: number): Vector {
   });
 
   // 点击其他地方时取消选中
-  document.addEventListener("click", (e) => {
+  document.addEventListener("pointerup", (e) => {
     const target = e.target as Element;
     if (!vector.contains(target)) {
       vector.dataset.draggable = "false";
@@ -1038,23 +1038,23 @@ export function vector(x1: number, y1: number, x2: number, y2: number): Vector {
       startPoint,
       () => vector.dataset.draggable === "true",
       (x, y) => {
-        if (!isDraggingStart) {
-          startDragX = x;
-          startDragY = y;
-          startVectorX = Number(line.getAttribute("x1"));
-          startVectorY = Number(line.getAttribute("y1"));
-          isDraggingStart = true;
-        }
+        // if (!isDraggingStart) {
+        //   startDragX = x;
+        //   startDragY = y;
+        //   startVectorX = Number(line.getAttribute("x1"));
+        //   startVectorY = Number(line.getAttribute("y1"));
+        //   isDraggingStart = true;
+        // }
 
-        const dx = x - startDragX + x1;
-        const dy = y - startDragY - y1;
+        // const dx = x - startDragX + x1;
+        // const dy = y - startDragY - y1;
 
-        // 更新起点位置
-        const newX = startVectorX + dx;
-        const newY = startVectorY + dy;
+        // // 更新起点位置
+        // const newX = startVectorX + dx;
+        // const newY = startVectorY + dy;
 
-        line.setAttribute("x1", newX.toString());
-        line.setAttribute("y1", newY.toString());
+        line.setAttribute("x1", (x + x1).toString());
+        line.setAttribute("y1", (y - y1).toString());
         updateArrow();
       },
     );
@@ -1069,25 +1069,25 @@ export function vector(x1: number, y1: number, x2: number, y2: number): Vector {
       arrow,
       () => vector.dataset.draggable === "true",
       (x, y) => {
-        if (!isDraggingEnd) {
-          endDragX = x;
-          endDragY = y;
-          endVectorX = Number(line.getAttribute("x2"));
-          endVectorY = Number(line.getAttribute("y2"));
-          isDraggingEnd = true;
-        }
+        // if (!isDraggingEnd) {
+        //   endDragX = x;
+        //   endDragY = y;
+        //   endVectorX = Number(line.getAttribute("x2"));
+        //   endVectorY = Number(line.getAttribute("y2"));
+        //   isDraggingEnd = true;
+        // }
 
-        const dx = x - endDragX + x2;
-        const dy = y - endDragY - y2;
+        // const dx = x - endDragX + x2;
+        // const dy = y - endDragY - y2;
 
-        const newX = endVectorX + dx;
-        const newY = endVectorY + dy;
+        // const newX = endVectorX + dx;
+        // const newY = endVectorY + dy;
 
-        line.setAttribute("x2", newX.toString());
-        line.setAttribute("y2", newY.toString());
+        line.setAttribute("x2", (x + x2).toString());
+        line.setAttribute("y2", (y - y2).toString());
 
         const dragEvent = new CustomEvent('vector-drag', {
-          detail: { dx, dy }
+          detail: { x, y }
         });
         vector.dispatchEvent(dragEvent);
         updateArrow();
