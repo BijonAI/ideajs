@@ -1,6 +1,6 @@
 import { getTheme, setTheme } from "../theme";
 
-export function plane() {
+export function plane(width: number, height: number) {
   const figure = document.createElementNS("http://www.w3.org/2000/svg", "g");
 
   // frame
@@ -37,6 +37,8 @@ export function plane() {
   figure.append(frame);
   figure.append(geom);
 
+  let parent: SVGElement | SVGGElement | null = null;
+
   const rtn = {
     node: () => figure,
 
@@ -55,13 +57,14 @@ export function plane() {
     add,
     addMarker,
     addText,
+    _setParent: (p: SVGElement | SVGGElement) => (parent = p),
   };
 
   const viewBox = {
-    x: -document.getElementById("canvas")!.getBoundingClientRect().width / 2,
-    y: -document.getElementById("canvas")!.getBoundingClientRect().height / 2,
-    w: document.getElementById("canvas")!.getBoundingClientRect().width,
-    h: document.getElementById("canvas")!.getBoundingClientRect().height,
+    x: -width / 2,
+    y: -height / 2,
+    w: width,
+    h: height,
   };
 
   grid.setAttribute(

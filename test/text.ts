@@ -4,11 +4,9 @@ import * as idea from "../src";
 const canvas = idea.field(1000, 800);
 document.body.appendChild(canvas.node());
 
-const coord = idea.plane().grid(50).axes().ticks(50);
+const coord = idea.plane(1000, 800).grid(50).axes().ticks(50);
 
-const equations = [
-  "x^2 + y^2 = 1",
-];
+const equations = ["x^2 + y^2 = 1"];
 
 equations.forEach((eq, i) => {
   const latex = idea
@@ -19,10 +17,10 @@ equations.forEach((eq, i) => {
       textColor: "#2196f3",
       backgroundColor: "#f0f0f0",
       padding: 8,
-      borderRadius: 4
+      borderRadius: 4,
     })
     .draggable();
-  
+
   coord.add(latex);
 });
 

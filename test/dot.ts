@@ -5,8 +5,7 @@ const canvas = idea.field(1000, 800);
 document.body.appendChild(canvas.node());
 
 // 创建坐标系
-// const coord = idea.plane().grid().axes().ticks(50);
-const coord = idea.grid(25);
+const coord = idea.plane(1000, 800).grid().axes().ticks(50);
 
 // 创建点
 const dot = idea
