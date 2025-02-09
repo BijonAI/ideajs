@@ -1,6 +1,6 @@
 {
   "name": "idea-math",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "SVG-based mathematical graph library.",
   "scripts": {
     "build": "tsup",
@@ -24,7 +24,8 @@
     }
   },
   "dependencies": {
-    "gsap": "^3.12.7"
+    "gsap": "^3.12.7",
+    "katex": "^0.16.21"
   },
   "type": "module",
   "main": "./dist/index.js",
