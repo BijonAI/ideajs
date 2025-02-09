@@ -5,27 +5,22 @@ const canvas = idea.field(1000, 800);
 document.body.appendChild(canvas.node());
 
 const coord = idea.plane(1000, 800).grid(25).axes().ticks(50);
-// const coord = idea.grid(25).axes();
+// const coord = idea.grid(25);
 
 // 创建向量
 const polygon = idea
   .polygon([
     {
-      x: 100,
-      y: 100,
+      x: 1,
+      y: 1,
     },
     {
-      x: 200,
-      y: 200,
+      x: 2,
+      y: 2,
     },
-    { x: 200, y: 300 },
+    { x: 2, y: 3 },
   ])
-  // 先设置初始点位置
-  .setPoints([
-    { x: -100, y: -100 },
-    { x: 0, y: 0 },
-    { x: 200, y: 200 },
-  ])
+  .setUnit(50)
   .animation({
     duration: 5000,
     delay: 1000,
@@ -36,12 +31,12 @@ const polygon = idea
       opacity: { from: "1", to: "0.5" },
 
       // 顶点位置动画
-      x1: { from: -100, to: 200 },
-      y1: { from: -100, to: 300 },
-      x2: { from: 0, to: 200 },
-      y2: { from: 0, to: 200 },
-      x3: { from: 200, to: 300 },
-      y3: { from: 200, to: 300 },
+      x1: { from: -1, to: 2 },
+      y1: { from: -1, to: 3 },
+      x2: { from: 0, to: 2 },
+      y2: { from: 0, to: 2 },
+      x3: { from: 2, to: 3 },
+      y3: { from: 2, to: 3 },
     },
     onStart: () => {
       console.log("Animation started");

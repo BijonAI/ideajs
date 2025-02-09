@@ -28,3 +28,4 @@ export * from "./direction";
 export * from "./utils/draggable";
 export * from "./utils/range";
 export * from "./theme";
+export * from "./geometry/text";
