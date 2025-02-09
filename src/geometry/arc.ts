@@ -39,6 +39,8 @@ export function arc(x: number, y: number, radius: number = 50): Arc {
   arc.setAttribute("stroke", theme.colors.primary);
   arc.setAttribute("fill", "none");
   let unit = 1;
+  let startAngle = 0;
+  let endAngle = 0;
   // 返回对象，包含所有可用的操作方法
   const rtn = {
     node: () => arc,
@@ -60,7 +62,10 @@ export function arc(x: number, y: number, radius: number = 50): Arc {
         type: "arc",
         x: x / unit,
         y: y / unit,
+        startAngle: startAngle,
+        endAngle: endAngle,
         radius: radius / unit,
+
       };
       return infoData;
     },
