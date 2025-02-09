@@ -345,7 +345,9 @@ export function axes(color?: string) {
     node: () => SVGElement;
     scale?: (x: number, y?: number) => any;
     offset?: (x: number, y: number) => any;
+    _setParent?: (p: SVGElement | SVGGElement) => any;
   }) {
+    if (element._setParent) element._setParent(cont);
     cont.appendChild(element.node());
     elements.push(element);
     return rtn;
