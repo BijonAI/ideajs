@@ -4,9 +4,7 @@
   "description": "SVG-based mathematical graph library.",
   "scripts": {
     "build": "tsup",
-    "dev": "tsup --watch",
-    "preview": "pnpm vite preview",
-    "test": "pnpm vite test"
+    "dev": "tsup --watch"
   },
   "author": "BugDuck Team",
   "license": "MIT",
