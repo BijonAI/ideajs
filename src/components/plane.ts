@@ -205,7 +205,7 @@ export class Plane extends Base implements Appendable {
       text.setAttribute("fill", `black`);
       text.style.font = "14px sans-serif";
       text.style.fontFamily = "Comic Sans MS";
-      text.textContent = `${Math.round(x / resolveTick(this.tick))}`;
+      text.textContent = `${this.xTickLabel(x)}`;
 
       this.xTicks.push(tick)
       this.xLabels.push(text)
@@ -239,7 +239,7 @@ export class Plane extends Base implements Appendable {
       text.setAttribute("fill", `black`);
       text.style.font = "14px sans-serif";
       text.style.fontFamily = "Comic Sans MS";
-      text.textContent = `${Math.round(-y / resolveTick(this.tick))}`;
+      text.textContent = `${this.yTickLabel(y)}`;
 
       this.yTicks.push(tick)
       this.yLabels.push(text)
