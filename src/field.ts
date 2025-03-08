@@ -13,8 +13,8 @@ export class Field implements Renderable, Appendable {
   private width: number
   private height: number
   private _origin: [number, number] = [0, 0]
-  private container: SVGElement = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
-  private root: SVGGElement = document.createElementNS('http://www.w3.org/2000/svg', 'g')
+  container: SVGElement = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
+  root: SVGGElement = document.createElementNS('http://www.w3.org/2000/svg', 'g')
   private xDirection: 'left' | 'right' = 'right'
   private yDirection: 'top' | 'bottom' = 'top'
   private children: Renderable[] = []
