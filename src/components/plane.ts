@@ -7,7 +7,8 @@ export type StringTrend = (count: number) => string
 
 export interface PlaneOptions extends BaseOptions {
   tick?: number | NumbericTrend
-  tickLabel?: StringTrend
+  xTickLabel?: StringTrend
+  yTickLabel?: StringTrend
   grid?: number | NumbericTrend
   xLabel?: string
   yLabel?: string
@@ -21,7 +22,8 @@ export interface PlaneOptions extends BaseOptions {
 
 export class Plane extends Base implements Appendable {
   private tick: number | NumbericTrend = 50
-  private tickLabel: StringTrend = (count) => count.toString()
+  private xTickLabel: StringTrend = (count) => count.toString()
+  private yTickLabel: StringTrend = (count) => count.toString()
   private grid: number | NumbericTrend = 50
   private xLabel: string = 'x'
   private yLabel: string = 'y'
@@ -48,10 +50,14 @@ export class Plane extends Base implements Appendable {
   private xLabels: SVGTextElement[] = []
   private yLabels: SVGTextElement[] = []
 
+  private isDragging = false;
+  private startPos = { x: 0, y: 0 };
+
   constructor(options: PlaneOptions) {
     super(options)
     options.tick && (this.tick = options.tick)
-    options.tickLabel && (this.tickLabel = options.tickLabel)
+    options.xTickLabel && (this.xTickLabel = options.xTickLabel)
+    options.yTickLabel && (this.yTickLabel = options.yTickLabel)
     options.grid && (this.grid = options.grid)
     options.xLabel && (this.xLabel = options.xLabel)
     options.yLabel && (this.yLabel = options.yLabel)
@@ -98,6 +104,53 @@ export class Plane extends Base implements Appendable {
     this.initAxes()
     this.initTicks()
     this.initLabels()
+
+    this.frameElement.addEventListener("mousedown", (e) => {
+      this.isDragging = true;
+      this.startPos = { x: e.clientX, y: e.clientY };
+    });
+  
+    this.frameElement.addEventListener("mousemove", (e) => {
+      if (!this.isDragging) return;
+  
+      const dx = e.clientX - this.startPos.x;
+      const dy = e.clientY - this.startPos.y;
+  
+      this.viewBox.x -= dx;
+      this.viewBox.y -= dy;
+      this.startPos = { x: e.clientX, y: e.clientY };
+  
+      this.gridElement.setAttribute(
+        "viewBox",
+        `${this.viewBox.x} ${this.viewBox.y} ${this.viewBox.w} ${this.viewBox.h}`,
+      );
+  
+      this.axesElement.setAttribute(
+        "viewBox",
+        `${this.viewBox.x} ${this.viewBox.y} ${this.viewBox.w} ${this.viewBox.h}`,
+      );
+  
+      this.contElement.setAttribute(
+        "viewBox",
+        `${this.viewBox.x} ${this.viewBox.y} ${this.viewBox.w} ${this.viewBox.h}`,
+      );
+  
+      // 清空并重新绘制
+      this.gridElement.innerHTML = "";
+      this.axesElement.innerHTML = "";
+      this.contElement.innerHTML = "";
+  
+      this.initAxes()
+      this.initTicks()
+      this.initLabels()
+  
+      this.xLabels.forEach((label) => {
+        this.contElement.appendChild(label);
+      });
+    });
+  
+    this.frameElement.addEventListener("mouseup", () => this.isDragging = false);
+    this.frameElement.addEventListener("mouseleave", () => this.isDragging = false);
   }
 
   initAxes() {
@@ -194,5 +247,23 @@ export class Plane extends Base implements Appendable {
   }
 
   initLabels() {
+  }
+
+  setXTickLabel(options: {
+    label: string | StringTrend
+    size?: number
+    color?: string
+    anchor?: "start" | "middle" | "end"
+  }) {
+    
+  }
+
+  setYTickLabel(options: {
+    label: string | StringTrend
+    size?: number
+    color?: string
+    anchor?: "start" | "middle" | "end"
+  }) {
+
   }
 }
